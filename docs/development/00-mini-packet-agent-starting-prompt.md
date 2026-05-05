@@ -92,4 +92,3 @@ Final response format for each completed task:
 - Ready for integration: yes/no
 
 Keep final responses concise but complete. If you stopped before mutation because approval is required, say exactly what is waiting for approval.
-

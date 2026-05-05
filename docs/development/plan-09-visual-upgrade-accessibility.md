@@ -25,11 +25,24 @@
 ## Implementation Requirements
 
 - Create a restrained, domain-specific visual language around expressions, rows, regions, feedback, and progress.
+- Use a consistent token system for color, spacing, radius, and typography rather than ad hoc component styling.
 - Improve mobile, laptop, and projector readability.
 - Ensure text does not overlap controls at narrow widths.
 - Provide visible focus states, sufficient contrast, and accessible names.
 - Use icons where helpful for controls, but do not rely on decorative clutter.
+- Keep the visual upgrade compatible with the classroom learning flow; style must not obscure correct/incorrect reasoning.
 - Add or update Playwright/accessibility checks where practical.
+
+## Required Behavior
+
+- The app should feel intentionally designed, not like a default UI kit.
+- Visual changes should preserve the meaning of answer states and feedback.
+- Responsive behavior must work at narrow mobile widths and wide classroom/projector widths.
+
+## Stop Conditions
+
+- If the only path to a prettier UI would add heavy dependencies or obscure semantics, stop and report.
+- If the redesign proposal would change feedback meaning, pause for approval before proceeding.
 
 ## Validation Checklist
 
@@ -38,3 +51,5 @@
 - [ ] Color is not the only feedback channel.
 - [ ] The UI looks substantially upgraded from plain Bootstrap.
 - [ ] Build and relevant browser checks pass.
+- [ ] Typography, spacing, and color are consistent across views.
+- [ ] No learning state is hidden behind decorative styling.

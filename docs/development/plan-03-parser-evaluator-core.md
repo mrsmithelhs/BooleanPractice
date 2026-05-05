@@ -24,16 +24,34 @@
 
 ## Implementation Requirements
 
-- Support variables, `true`, `false`, `!`, `&&`, `||`, and parentheses.
-- Preserve precedence: `!` before `&&` before `||`.
-- Reject malformed expressions and trailing tokens with useful errors.
-- Produce stable AST formatting for subexpression display.
-- Generate truth table rows for one, two, and three variables.
-- Include tests for precedence, parentheses, negation, boolean literals, malformed input, variable extraction, and truth table output.
+- Support variables, `true`, `false`, `!`, `&&`, `||`, and parentheses only.
+- Ignore insignificant whitespace.
+- Preserve precedence exactly as `!` before `&&` before `||`, with parentheses overriding precedence.
+- Reject malformed expressions, unsupported tokens, and trailing tokens with useful errors.
+- Produce stable AST formatting for subexpression display so later packets can render the same structure deterministically.
+- Extract variables into a stable ordering for truth tables and Venn regions. Use one documented ordering everywhere.
+- Generate truth table rows for one, two, and three variables from the shared evaluator, not a separate evaluation path.
+- Keep parser, AST, and evaluator logic framework-agnostic and free of Vue or DOM dependencies.
+- Include tests for precedence, parentheses, negation, boolean literals, malformed input, trailing tokens, whitespace, variable extraction, AST formatting, and truth table output.
+- Include a regression test that truth-table row results match direct AST evaluation for representative assignments.
+
+## Required Behavior
+
+- A valid parse should consume the entire input.
+- Evaluation should return booleans only.
+- Formatting should be derived from the AST, not by reparsing formatted strings.
+- Any future grammar extension must stop for approval before being added here.
+
+## Stop Conditions
+
+- If the product spec and archive disagree about grammar or boolean semantics, stop and report before coding.
+- If non-boolean comparison syntax is requested, do not add it in this packet.
 
 ## Validation Checklist
 
 - [ ] Unit tests cover parser success and failure cases.
 - [ ] Truth table generation is deterministic.
 - [ ] Parser and evaluator are independent of Vue.
+- [ ] Variable ordering is stable and shared with later packets.
+- [ ] Trailing tokens and unsupported syntax are rejected.
 - [ ] `npm test` passes.

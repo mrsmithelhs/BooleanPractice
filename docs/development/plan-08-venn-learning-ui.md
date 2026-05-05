@@ -24,12 +24,25 @@
 
 ## Implementation Requirements
 
-- Render one-, two-, and three-variable region selection using the region engine.
+- Render one-, two-, and three-variable region selection using the region engine and its stable region ids.
 - Include a keyboard-accessible region list or controls even if a visual diagram is present.
 - Show current subexpression and operand previews for multi-step expressions.
-- Provide missed/extra feedback by region label.
+- Provide missed/extra feedback by region label and not only by color or shape.
 - Avoid `alert()` for learning feedback.
-- Add tests for region selection, checking, step advancement, and three-variable expressions.
+- Keep the visual diagram and accessible controls synchronized from the same source of truth.
+- Add tests for region selection, checking, step advancement, keyboard operation, and three-variable expressions.
+- Keep the component dependent on shared region/evaluator logic; do not create a second Venn rule engine.
+
+## Required Behavior
+
+- Every selectable region must be reachable without a pointer device.
+- The active expression and current step should stay visible while selecting regions.
+- Feedback should name the missed or extra regions so students can correct specific reasoning.
+
+## Stop Conditions
+
+- If the packet starts to drift toward canvas-only controls, stop and confirm before proceeding.
+- If a different region-id or region-label scheme is needed, stop because the shared engine contract must stay aligned.
 
 ## Validation Checklist
 
@@ -37,3 +50,5 @@
 - [ ] Keyboard users can select all regions.
 - [ ] Visual and accessible region controls stay in sync.
 - [ ] Tests cover missed and extra region feedback.
+- [ ] Region labels are readable in feedback and controls.
+- [ ] No separate Venn semantics are introduced in the component.

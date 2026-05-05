@@ -37,4 +37,3 @@ This repository is migrating from an archived Google Apps Script web app into a 
 - Packet reports belong in `reports/development/<packet-name>/progress.md`, not in `local/`.
 - Use `local/` only for disposable scratch work and keep it ignored by git.
 - GitHub Pages deployment should come from the compiled static app, preferably through a workflow artifact rather than committed `dist/`.
-

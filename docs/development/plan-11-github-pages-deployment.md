@@ -24,11 +24,23 @@
 
 ## Implementation Requirements
 
-- Add or finalize GitHub Actions workflow for build and Pages artifact upload.
-- Ensure Vite base path works for repository Pages URLs.
+- Add or finalize a GitHub Actions workflow that installs dependencies, runs tests, builds the app, uploads the Pages artifact, and deploys with GitHub Pages actions.
+- Ensure Vite base path works for repository Pages URLs and matches the configured repository name or base route.
 - Document repository setting assumptions and deployment steps.
 - Add a release checklist covering tests, accessibility, browser smoke checks, and rollback notes.
-- Include a local preview command for the production build.
+- Include a local preview command for the production build and note that local preview is not the same as production deploy.
+- Keep production deployment approval-gated and separate from local validation.
+
+## Required Behavior
+
+- The workflow should be syntax-valid and use the same build output the app ships publicly.
+- The docs should describe the difference between local preview, artifact upload, and production deployment.
+- The packet should not assume repository settings are already configured.
+
+## Stop Conditions
+
+- If repository settings or permissions must change, stop and ask for approval before touching them.
+- If the base-path contract is not settled by earlier packets, do not invent a deployment workaround here.
 
 ## Validation Checklist
 
@@ -37,3 +49,5 @@
 - [ ] Workflow is syntax-valid.
 - [ ] Deployment docs clearly distinguish local validation from production deploy.
 - [ ] No production deployment was performed without approval.
+- [ ] The workflow uses reproducible install and build steps.
+- [ ] Release notes or checklist mention rollback considerations.

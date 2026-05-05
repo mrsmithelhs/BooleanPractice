@@ -24,12 +24,25 @@
 
 ## Implementation Requirements
 
-- Render fixed variable columns and editable answer columns.
+- Render fixed variable columns and editable answer columns from the shared truth-table generator.
 - Prevent students from changing fixed assignment values.
-- Reveal subexpression columns progressively.
-- Provide row/column feedback without `alert()`.
-- Include keyboard-accessible toggles and clear focus states.
-- Test answer checking, revealed steps, incorrect rows, and fixed variable cells.
+- Reveal subexpression columns progressively in a deterministic order that matches the AST or product spec.
+- Provide row/column feedback without `alert()` and without modal dialogs that block classroom use.
+- Include keyboard-accessible toggles, clear focus states, and readable feedback text for screen readers.
+- Use row numbers and subexpression labels in feedback so students know what reasoning step to revisit.
+- Test answer checking, revealed steps, incorrect rows, fixed variable cells, and keyboard interaction.
+- Keep the truth table UI dependent on shared semantics; do not duplicate evaluation logic in the component.
+
+## Required Behavior
+
+- Fixed assignment cells must be read-only.
+- Answer checking should identify both correct and incorrect rows, not just a final score.
+- Feedback should explain the next reasoning move when possible, not only say correct or incorrect.
+
+## Stop Conditions
+
+- If the product spec changes the answer/feedback semantics, stop and realign before coding.
+- If a change would make the table less accessible or encourage guess-and-check behavior, stop and report.
 
 ## Validation Checklist
 
@@ -37,3 +50,5 @@
 - [ ] Step feedback identifies correct and incorrect cells.
 - [ ] Feedback is visible without modal alerts.
 - [ ] Tests cover representative truth table interactions.
+- [ ] Keyboard navigation works for answer cells.
+- [ ] Feedback references the relevant row or subexpression.

@@ -194,4 +194,3 @@ Packets should tell the implementing agent to stop and ask for review if:
 - a dependency, workflow, or deployment choice has meaningful tradeoffs not covered by the packet
 - a UI change could mislead students about boolean semantics
 - production deployment or repository settings changes are needed
-

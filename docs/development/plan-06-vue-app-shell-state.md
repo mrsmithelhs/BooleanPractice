@@ -27,8 +27,22 @@
 - Build a first screen with problem controls, current expression, mode selection, and placeholder practice panels.
 - Use catalog filtering without mutating catalog data.
 - Keep state local and static-app friendly.
-- Configure Vite base path for GitHub Pages.
+- Define a clear app state shape for the shell, including selected problem, selected mode, visible feedback, and current step or placeholder panel state.
+- Configure Vite base path for GitHub Pages and ensure asset URLs resolve through the same base path.
+- Prefer a simple state-driven shell; do not add a router unless the packet cannot meet the requirements without one.
 - Add basic component tests for selection and state transitions if test utilities are available.
+- Ensure no hardcoded root paths remain in the shell, preview, or assets.
+
+## Required Behavior
+
+- The shell should render successfully from a static build.
+- Catalog-derived selections should flow through state, not through direct mutation of catalog records.
+- The same base-path rules should work in local preview and GitHub Pages deployment.
+
+## Stop Conditions
+
+- If a router becomes necessary, pause and ask for approval before adding one.
+- If the shell needs learning semantics that belong to later packets, keep a placeholder and stop rather than guessing.
 
 ## Validation Checklist
 
@@ -36,3 +50,5 @@
 - [ ] Catalog filtering respects mode and difficulty.
 - [ ] No Google Apps Script runtime dependency remains.
 - [ ] GitHub Pages base path is documented or configured.
+- [ ] The shell works without mutating catalog data.
+- [ ] No hardcoded `/` asset assumptions remain.
