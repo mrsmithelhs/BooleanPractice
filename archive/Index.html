@@ -1,0 +1,1180 @@
+<!-- Boolean Practice Web App, File: Index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <title>Boolean Practice</title>
+
+  <!-- Bootstrap (Spacelab) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/5.3.3/spacelab/bootstrap.min.css" integrity="sha512-NWw8XgTx2tYA5oEZwBrmyH8bg37mh4bIjeV4OLWwqI3ipQ0ITyiWTFdG295uz2lMy+QO9DszNZwta4m4mJpnmw==" crossorigin="anonymous" referrerpolicy="no-referrer">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" integrity="sha384-tViUnnbYAV00FLIhhi3v/dWt3Jxw4gZQcNoSCxCIFNJVCx7/D55/wXsrNIRANwdD" crossorigin="anonymous">
+
+  <!-- Vue 3 -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <!-- p5.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.2/p5.min.js" integrity="sha512-1YMgn4j8cIL91s14ByDGmHtBU6+F8bWOMcF47S0cRO3QNm8SKPNexy4s3OCim9fABUtO++nJMtcpWbINWjMSzQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <style>
+    .table-cell-clickable { cursor: pointer; }
+    .table-cell-correct { background-color: #c7f7c7 !important; }
+    .table-cell-incorrect { background-color: #f7c7c7 !important; }
+    .selected-region {
+      outline: 2px solid #000;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="container-fluid p-4">
+    <h2 class="text-center mb-4">Boolean Expression Practice</h2>
+
+    <!-- Difficulty and Modality Selection -->
+    <div class="mb-4">
+      <label for="difficulty-select" class="form-label">Choose Difficulty:</label>
+      <select v-model="selectedDifficulty" id="difficulty-select" class="form-select mb-3">
+        <option disabled value=""> -- Select Difficulty -- </option>
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+      </select>
+
+      <label class="form-label">Select Modality:</label>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" v-model="selectedModality" value="truth_table" id="modality-truth">
+        <label class="form-check-label" for="modality-truth">Truth Table</label>
+      </div>
+      <div class="form-check mb-3">
+        <input class="form-check-input" type="radio" v-model="selectedModality" value="venn_diagram" id="modality-venn">
+        <label class="form-check-label" for="modality-venn">Venn Diagram</label>
+      </div>
+
+      <button class="btn btn-primary" @click="generateRandomProblem">Get Problem</button>
+    </div>
+
+    <!-- Current Problem Display -->
+    <div v-if="currentProblem" class="mb-4">
+      <h4 class="mb-2">
+        Current Problem: <code>{{ currentProblem.expression }}</code> ({{ currentProblem.type }}, {{ currentProblem.difficulty }})
+      </h4>
+    </div>
+
+    <!-- Truth Table Interface -->
+    <div v-if="currentProblem && currentProblem.type === 'truth_table'" class="mb-4">
+      <h5>Truth Table for: <code>{{ currentProblem.expression }}</code></h5>
+      <p>Fill out the truth table for each step and click "Check Step" to verify.</p>
+      <table class="table table-bordered text-center">
+        <thead>
+          <tr>
+            <th v-for="variable in currentVariables" :key="variable">{{ variable }}</th>
+            <th v-for="(step, idx) in subexpressionSteps.slice(0, revealedStepsCount)" :key="idx">
+              {{ formatSubexpression(step) }}
+            </th>
+
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(row, rowIndex) in truthTable" :key="rowIndex">
+            <td v-for="(cellValue, colIndex) in row" :key="colIndex" 
+                @click="toggleCell(rowIndex, colIndex)" 
+                :class="cellClass(rowIndex, colIndex)"
+                class="table-cell-clickable">
+              {{ displayCellValue(cellValue) }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="d-flex flex-row gap-2">
+        <div v-for="(step, idx) in subexpressionSteps" :key="'stepCheck'+idx">
+          <button class="btn btn-success" @click="checkTruthTableColumn(idx)">Check Step {{ idx + 1 }}</button>
+        </div>
+      </div>
+    </div>
+
+<!-- Venn Diagram Section -->
+<!-- Operand Diagrams Section -->
+<div v-if="currentProblem && currentProblem.type === 'venn_diagram'">
+  <h5>Current Step: 
+    <span v-if="currentOperator === '!'">NOT Operation</span>
+    <span v-else-if="currentOperator === '&&'">AND Operation</span>
+    <span v-else-if="currentOperator === '||'">OR Operation</span>
+    <span v-else>Literal/Single Operand</span>
+  </h5>
+  <p>{{ currentOperatorHelpText }}</p>
+  <!-- Only render the operand diagrams if showOperands is true -->
+  <div id="operand-diagrams-container" v-if="showOperands">
+    <div id="operand-diagrams"></div>
+  </div>
+
+</div>
+
+<!-- Main Venn Diagram Section -->
+<div v-if="currentProblem && currentProblem.type === 'venn_diagram'" class="mb-4">
+  <h5>Construct the diagram for: <code>{{ subexpressionSteps[currentStepIndex] && formatSubexpression(subexpressionSteps[currentStepIndex]) }}</code></h5>
+  <div id="venn-container" class="border" style="width: 400px; height: 400px; position: relative;"></div>
+  <p class="mt-2">Click on regions in the diagram above to toggle shading, then click "Check" to verify.</p>
+  <button class="btn btn-primary" @click="checkVennDiagram">Check</button>
+</div>
+
+
+
+  </div>
+
+  <script>
+    const DEBUG = true;
+
+const problems = [
+  { id: 0, expression: "(a || !b) && (a || b)", type: "truth_table", difficulty: "medium", variables: ["a", "b"] },
+  { id: 1, expression: "a && b", type: "truth_table", difficulty: "easy", variables: ["a", "b"] },
+  { id: 2, expression: "!(a || b)", type: "venn_diagram", difficulty: "medium", variables: ["a", "b"] },
+  { id: 3, expression: "!(a && b) && (a || b)", type: "truth_table", difficulty: "hard", variables: ["a", "b"] },
+  { id: 4, expression: "(a && b) || (!a && b)", type: "venn_diagram", difficulty: "easy", variables: ["a", "b"] },
+
+  // Additional Easy Problems
+  { id: 5, expression: "a || b", type: "truth_table", difficulty: "easy", variables: ["a", "b"] },
+  { id: 6, expression: "!a", type: "venn_diagram", difficulty: "easy", variables: ["a", "b"] },
+  { id: 7, expression: "a && !b", type: "truth_table", difficulty: "easy", variables: ["a", "b"] },
+  { id: 8, expression: "!(a && b)", type: "venn_diagram", difficulty: "easy", variables: ["a", "b"] },
+  { id: 9, expression: "a", type: "truth_table", difficulty: "easy", variables: ["a", "b"] },
+  { id: 10, expression: "b", type: "venn_diagram", difficulty: "easy", variables: ["a", "b"] },
+  { id: 11, expression: "!b", type: "truth_table", difficulty: "easy", variables: ["a", "b"] },
+  { id: 12, expression: "a && b", type: "venn_diagram", difficulty: "easy", variables: ["a", "b"] },
+  { id: 13, expression: "a || !b", type: "truth_table", difficulty: "easy", variables: ["a", "b"] },
+  { id: 14, expression: "!(a || b)", type: "venn_diagram", difficulty: "easy", variables: ["a", "b"] },
+
+  // Additional Medium Problems
+  { id: 15, expression: "!(a && !b)", type: "truth_table", difficulty: "medium", variables: ["a", "b"] },
+  { id: 16, expression: "a && (b || !b)", type: "venn_diagram", difficulty: "medium", variables: ["a", "b"] },
+  { id: 17, expression: "!a || (a && b)", type: "truth_table", difficulty: "medium", variables: ["a", "b"] },
+  { id: 18, expression: "!(a || !b) && b", type: "venn_diagram", difficulty: "medium", variables: ["a", "b"] },
+  { id: 19, expression: "(a || b) && !(a && b)", type: "truth_table", difficulty: "medium", variables: ["a", "b"] },
+  { id: 20, expression: "(a && !b) || (!a && b)", type: "venn_diagram", difficulty: "medium", variables: ["a", "b"] },
+  { id: 21, expression: "a || !(a && b)", type: "truth_table", difficulty: "medium", variables: ["a", "b"] },
+  { id: 22, expression: "!(a || b) || a", type: "venn_diagram", difficulty: "medium", variables: ["a", "b"] },
+  { id: 23, expression: "a && !(b && a)", type: "truth_table", difficulty: "medium", variables: ["a", "b"] },
+  { id: 24, expression: "!(!a || b)", type: "venn_diagram", difficulty: "medium", variables: ["a", "b"] },
+
+  // Additional Hard Problems
+  { id: 25, expression: "(a && b) || (!a && !b)", type: "truth_table", difficulty: "hard", variables: ["a", "b"] },
+  { id: 26, expression: "!(a && b) && (a || b)", type: "venn_diagram", difficulty: "hard", variables: ["a", "b"] },
+  { id: 27, expression: "(a || !b) && !(a && b)", type: "truth_table", difficulty: "hard", variables: ["a", "b"] },
+  { id: 28, expression: "(!a && b) || (a && !b) || (a && b)", type: "venn_diagram", difficulty: "hard", variables: ["a", "b"] },
+  { id: 29, expression: "!(a || b) && (a || !b)", type: "truth_table", difficulty: "hard", variables: ["a", "b"] },
+  { id: 30, expression: "(!a || b) && !(a && !b)", type: "venn_diagram", difficulty: "hard", variables: ["a", "b"] },
+  { id: 31, expression: "!((a && b) || (!a && b))", type: "truth_table", difficulty: "hard", variables: ["a", "b"] },
+  { id: 32, expression: "(a && b) || (!a && b) || (!a && !b)", type: "venn_diagram", difficulty: "hard", variables: ["a", "b"] },
+  { id: 33, expression: "!((a || b) && !(a && b))", type: "truth_table", difficulty: "hard", variables: ["a", "b"] },
+  { id: 34, expression: "a && (b || !a) && !(a && b)", type: "venn_diagram", difficulty: "hard", variables: ["a", "b"] }
+];
+
+
+    const app = Vue.createApp({
+      data() {
+        return {
+          problems,
+          selectedDifficulty: "",
+          selectedModality: "",
+          currentProblem: null,
+          currentVariables: [],
+          subexpressionSteps: [],
+          truthTable: [],
+          userAnswers: [], // Parallel structure to truthTable for user correctness checks
+          vennSketch: null,
+          shadedRegions: [], // For venn diagram, which regions are toggled
+          correctTruthTable: [], // Store correct values for verification
+          revealedStepsCount: 0,
+          subexpressionDiagrams: [], // Array to hold subexpression diagrams
+          currentStepIndex: 0, // Track which step the user is on
+          currentOperands: [], // Will store the operand ASTs of the current step
+          currentOperator: null, // The operator ("!", "&&", "||") of the current step
+          vennSketches: [], // Track all p5.js instances
+          showOperands: false, // Toggle operand rendering
+          showVennDiagram: false, // Control Venn diagram rendering
+        };
+      },
+      methods: {
+        generateRandomProblem() {
+          if (!this.selectedDifficulty || !this.selectedModality) {
+            alert("Please select a difficulty and a modality first.");
+            return;
+          }
+
+          const filtered = this.problems.filter(p => 
+            p.difficulty === this.selectedDifficulty
+          );
+
+          if (filtered.length === 0) {
+            alert("No problems found for the chosen difficulty and modality.");
+            return;
+          }
+
+          const randomIndex = Math.floor(Math.random() * filtered.length);
+          this.currentProblem = filtered[randomIndex];
+          // force current problem type to user-selected modality
+          this.currentProblem.type = this.selectedModality;
+          this.$nextTick(() => { this.loadProblem(); });
+        },
+        
+loadProblem() {
+  if (!this.currentProblem) return;
+
+  // Step 1: Reset state
+  this.destroyVennSketches();
+  this.showOperands = false; // Force Vue to destroy operand diagrams
+  this.currentStepIndex = 0; // Reset step index
+  this.subexpressionSteps = []; // Clear subexpressions
+  this.currentOperands = []; // Clear operands
+  this.currentOperator = null; // Clear operator
+
+  // Step 2: Parse the new problem
+  const parser = new BooleanParser(this.currentProblem.expression);
+  parser.tokenize();
+  const ast = parser.parse();
+  this.subexpressionSteps = parser.steps;
+  this.currentVariables = parser.extractVariables();
+
+  this.$nextTick(() => {
+    if (this.selectedModality === 'truth_table') {
+      this.setupTruthTable(parser);
+      this.revealedStepsCount = this.subexpressionSteps.length > 0 ? 1 : 0;
+    } else if (this.selectedModality === 'venn_diagram') {
+      this.setupVennDiagram(parser);
+      this.updateCurrentOperandsAndOperator();
+    }
+    this.showOperands = true; // Re-render operand diagrams
+  });
+},
+
+
+
+
+  generateSubexpressionDiagrams(parser) {
+    // Clear any existing diagrams
+    this.subexpressionDiagrams = [];
+
+    // Iterate over subexpressions and create diagrams
+    this.subexpressionSteps.forEach((subexpr, index) => {
+      // Determine the truth value for each region based on the subexpression
+      const combinations = [
+        { name: "a b", values: { a: true, b: true } },
+        { name: "a !b", values: { a: true, b: false } },
+        { name: "!a b", values: { a: false, b: true } },
+        { name: "!a !b", values: { a: false, b: false } }
+      ];
+
+      const results = {};
+      combinations.forEach(combo => {
+        results[combo.name] = parser.evaluateAST(subexpr, combo.values);
+      });
+
+      // Map boolean results to state values
+      const outsideVal = results["!a !b"] ? 2 : (results["!a !b"] === false ? 1 : 0);
+      const aOnlyVal = results["a !b"] ? 2 : (results["a !b"] === false ? 1 : 0);
+      const bOnlyVal = results["!a b"] ? 2 : (results["!a b"] === false ? 1 : 0);
+      const intersectionVal = results["a b"] ? 2 : (results["a b"] === false ? 1 : 0);
+
+      // Add to the subexpression diagrams array
+      this.subexpressionDiagrams.push({
+        id: `subexpr-container-${index}`,
+        states: {
+          outside: outsideVal,
+          aOnly: aOnlyVal,
+          bOnly: bOnlyVal,
+          intersection: intersectionVal
+        }
+      });
+    });
+
+    // After Vue updates the DOM, instantiate the sketches
+    this.$nextTick(() => {
+      this.subexpressionDiagrams.forEach(diagram => {
+        const { id, states } = diagram;
+        const sketchInstance = createVennSketch(id, { width: 200, height: 200, interactive: false });
+        sketchInstance.setStates(states);
+      });
+    });
+  },
+
+updateCurrentOperandsAndOperator() {
+  if (!this.subexpressionSteps || this.subexpressionSteps.length === 0) {
+    this.currentOperator = null;
+    this.currentOperands = [];
+    return;
+  }
+
+  const currentNode = this.subexpressionSteps[this.currentStepIndex];
+  if (!currentNode) return;
+
+  // Determine operator and operands
+  if (currentNode.type === "Unary") {
+    this.currentOperator = currentNode.operator;
+    this.currentOperands = [currentNode.right];
+  } else if (currentNode.type === "Binary") {
+    this.currentOperator = currentNode.operator;
+    this.currentOperands = [currentNode.left, currentNode.right];
+  } else {
+    this.currentOperator = null;
+    this.currentOperands = [];
+  }
+
+  // Ensure DOM is ready before rendering operand diagrams
+  this.$nextTick(() => {
+    const container = document.getElementById('venn-container');
+    if (container) {
+      this.renderOperandDiagrams(); // Call the method to render diagrams
+    }
+  });
+},
+
+
+
+destroyVennSketches() {
+  this.vennSketches.forEach(sketch => {
+    if (sketch) {
+      sketch.remove();
+    }
+  });
+  this.vennSketches = [];
+
+  const vennContainer = document.getElementById('venn-container');
+  if (vennContainer) {
+    vennContainer.innerHTML = ''; // Fully clear container
+  }
+},
+
+
+
+
+
+
+renderOperandDiagrams() {
+  // Clear previous p5.js sketches
+  this.destroyVennSketches();
+
+  // Clear previous operand diagrams
+  const operandContainer = document.getElementById('operand-diagrams');
+  if (!operandContainer) return;
+
+  // Safeguard: Skip rendering if there are no operands
+  if (!this.currentOperands || this.currentOperands.length === 0) {
+    operandContainer.innerHTML = `
+      <div class="alert alert-info text-center">
+        No operands to display for a single variable or literal.
+      </div>
+    `;
+    return;
+  }
+
+  operandContainer.innerHTML = ''; // Clear the container
+
+  // Create a row (flexbox) for operand diagrams
+  const rowDiv = document.createElement('div');
+  rowDiv.style.display = 'flex';
+  rowDiv.style.gap = '20px';
+  rowDiv.style.justifyContent = 'center'; // Center-align horizontally
+
+  this.currentOperands.forEach((opAst, index) => {
+    const diagramContainer = document.createElement('div');
+    diagramContainer.style.textAlign = 'center';
+
+    // Add the title
+    const title = document.createElement('div');
+    title.innerHTML = `<strong>Operand ${index + 1}: ${this.formatSubexpression(opAst)}</strong>`;
+    title.style.marginBottom = '10px';
+
+    const containerId = `operand-diagram-${index}`;
+    const diagramDiv = document.createElement('div');
+    diagramDiv.id = containerId;
+
+    diagramContainer.appendChild(title);
+    diagramContainer.appendChild(diagramDiv);
+    rowDiv.appendChild(diagramContainer);
+
+    // Compute states and render the diagram
+    const states = this.computeOperandStates(opAst);
+    this.$nextTick(() => {
+      const sketch = createVennSketch(containerId, { width: 200, height: 200, interactive: false });
+      sketch.setStates(states);
+      this.vennSketches.push(sketch); // Track the sketch
+    });
+  });
+
+  operandContainer.appendChild(rowDiv);
+},
+
+
+
+
+
+  computeOperandStates(astNode) {
+    // Evaluate the node for a,b combinations and map to states
+    const parser = new BooleanParser(this.currentProblem.expression);
+    parser.tokenize();
+    parser.parse();
+    const combinations = [
+      { name: "a b", values: { a: true, b: true } },
+      { name: "a !b", values: { a: true, b: false } },
+      { name: "!a b", values: { a: false, b: true } },
+      { name: "!a !b", values: { a: false, b: false } }
+    ];
+    const results = {};
+    combinations.forEach(c => {
+      results[c.name] = parser.evaluateAST(astNode, c.values);
+    });
+
+    const outsideVal = results["!a !b"] ? 2 : (results["!a !b"] === false ? 1 : 0);
+    const aOnlyVal = results["a !b"] ? 2 : (results["a !b"] === false ? 1 : 0);
+    const bOnlyVal = results["!a b"] ? 2 : (results["!a b"] === false ? 1 : 0);
+    const intersectionVal = results["a b"] ? 2 : (results["a b"] === false ? 1 : 0);
+
+    return { outside: outsideVal, aOnly: aOnlyVal, bOnly: bOnlyVal, intersection: intersectionVal };
+  },
+
+        setupTruthTable(parser) {
+          const fullTable = parser.generateTruthTable();
+          const vars = this.currentVariables;
+          const stepCount = this.subexpressionSteps.length;
+
+          // Convert fullTable (objects) to arrays
+          this.truthTable = fullTable.map(rowObj => {
+            const rowArr = [];
+            vars.forEach(v => rowArr.push(rowObj[v]));
+            for (let i = 1; i <= stepCount; i++) {
+              // Start user answers as null (unset)
+              rowArr.push(null);
+            }
+            return rowArr;
+          });
+
+          // Store the correct answers separately (for verification)
+          this.correctTruthTable = fullTable.map(rowObj => {
+            const correctArr = [];
+            vars.forEach(v => correctArr.push(rowObj[v]));
+            for (let i = 1; i <= stepCount; i++) {
+              correctArr.push(rowObj[`Step ${i}`]);
+            }
+            return correctArr;
+          });
+        },
+
+setupVennDiagram(parser) {
+  this.destroyVennSketches(); // Clean up previous sketches
+
+  this.showVennDiagram = false; // Force Vue to destroy the container
+  this.$nextTick(() => {
+    this.showVennDiagram = true; // Recreate the container
+
+    this.$nextTick(() => {
+      const container = document.getElementById('venn-container');
+      if (container) {
+        this.vennSketch = createVennSketch('venn-container', {
+          width: 400,
+          height: 400,
+          interactive: true
+        });
+        this.vennSketch.resetStates();
+      }
+    });
+  });
+},
+
+
+
+
+
+        toggleCell(rowIndex, colIndex) {
+          // Toggle between true/false/null
+          // First variables columns are read-only from correctTruthTable, steps are user input
+          // Variables: 0..(varCount-1)
+          // Steps: varCount..(varCount+stepCount-1)
+          const varCount = this.currentVariables.length;
+          if (colIndex < varCount) {
+            // This is a variable column - not user-editable. Ignore clicks here.
+            return;
+          }
+          // This is a step column. Toggle T/F
+          const currentVal = this.truthTable[rowIndex][colIndex];
+          if (currentVal === null) {
+            this.truthTable[rowIndex][colIndex] = true;
+          } else if (currentVal === true) {
+            this.truthTable[rowIndex][colIndex] = false;
+          } else {
+            this.truthTable[rowIndex][colIndex] = null;
+          }
+        },
+
+        cellClass(rowIndex, colIndex) {
+          return '';
+        },
+
+        displayCellValue(val) {
+          if (val === true) return 'T';
+          if (val === false) return 'F';
+          return ' ';
+        },
+  formatSubexpression(node) {
+    // Convert AST node back to string form:
+    if (node.type === "Literal") return node.value;
+    if (node.type === "Unary") return "!" + this.formatSubexpression(node.right);
+    if (node.type === "Binary") {
+      return "(" + this.formatSubexpression(node.left) + " " + node.operator + " " + this.formatSubexpression(node.right) + ")";
+    }
+    return "";
+  },
+checkTruthTableColumn(stepIndex) {
+  const varCount = this.currentVariables.length;
+  const colIndex = varCount + stepIndex;
+  
+  let allCorrect = true;
+  for (let rowIndex = 0; rowIndex < this.truthTable.length; rowIndex++) {
+    const userVal = this.truthTable[rowIndex][colIndex];
+    const correctVal = this.correctTruthTable[rowIndex][colIndex];
+    if (userVal !== correctVal) {
+      allCorrect = false;
+      break;
+    }
+  }
+
+  // Remove old classes
+  const table = document.querySelector('table');
+  if (table) {
+    // Get all cells in this column
+    for (let rowIndex = 0; rowIndex < this.truthTable.length; rowIndex++) {
+      const cell = this.getCellElement(rowIndex, colIndex);
+      if (cell) {
+        cell.classList.remove('table-cell-correct', 'table-cell-incorrect');
+        // Apply single color for the entire column
+        cell.classList.add(allCorrect ? 'table-cell-correct' : 'table-cell-incorrect');
+      }
+    }
+  }
+
+  if (allCorrect) {
+    alert("Step " + (stepIndex+1) + " is correct!");
+    if (this.revealedStepsCount < this.subexpressionSteps.length) {
+      this.revealedStepsCount++;
+    }
+  } else {
+    alert("Step " + (stepIndex+1) + " is incorrect. Reconsider the entire column.");
+  }
+},
+
+
+        markCellCorrect(rowIndex, colIndex) {
+          // Add a temporary highlight. We can do this by dynamically adding a CSS class.
+          // Easiest in Vue is to store correctness in a separate structure. For brevity,
+          // just modify the background inline.
+          let cell = this.getCellElement(rowIndex, colIndex);
+          if (cell) {
+            cell.classList.remove('table-cell-incorrect');
+            cell.classList.add('table-cell-correct');
+          }
+        },
+
+        markCellIncorrect(rowIndex, colIndex) {
+          let cell = this.getCellElement(rowIndex, colIndex);
+          if (cell) {
+            cell.classList.remove('table-cell-correct');
+            cell.classList.add('table-cell-incorrect');
+          }
+        },
+
+        getCellElement(rowIndex, colIndex) {
+          // A bit hacky: query the table DOM directly
+          const table = document.querySelector('table');
+          if (!table) return null;
+          const rows = table.getElementsByTagName('tr');
+          if (rowIndex < rows.length) {
+            const cells = rows[rowIndex].getElementsByTagName('td');
+            if (colIndex < cells.length) {
+              return cells[colIndex];
+            }
+          }
+          return null;
+        },
+
+checkVennDiagram() {
+  const parser = new BooleanParser(this.currentProblem.expression);
+  parser.tokenize();
+
+  const vars = this.currentVariables;
+
+  // Handle single-variable or literal cases explicitly
+  let ast = this.subexpressionSteps?.[this.currentStepIndex];
+  if (!ast && this.currentOperands.length === 0) {
+    ast = { type: "Literal", value: this.currentProblem.expression }; // Single variable as AST node
+  }
+
+  // Gather user-selected regions
+  const states = this.vennSketch.getStates();
+  const studentRegions = [];
+  if (states.aOnly === 2) studentRegions.push("a !b");
+  if (states.bOnly === 2) studentRegions.push("!a b");
+  if (states.intersection === 2) studentRegions.push("a b");
+  if (states.outside === 2) studentRegions.push("!a !b");
+
+  // Evaluate expected regions
+  const expectedResults = parser.evaluateRegions(ast, vars);
+
+  // Determine correct regions
+  let expectedRegions = [];
+  if (ast.type === "Unary" && ast.operator === "!") {
+    // NOT operation: invert the operand's results
+    const operandResults = parser.evaluateRegions(this.currentOperands[0], vars);
+    Object.keys(operandResults).forEach(region => {
+      if (!operandResults[region]) expectedRegions.push(region);
+    });
+  } else {
+    // Default behavior
+    Object.keys(expectedResults).forEach(region => {
+      if (expectedResults[region]) expectedRegions.push(region);
+    });
+  }
+
+  // Compare user regions to expected regions
+  const incorrectRegions = studentRegions.filter(r => !expectedRegions.includes(r));
+  const missedRegions = expectedRegions.filter(r => !studentRegions.includes(r));
+
+  if (incorrectRegions.length === 0 && missedRegions.length === 0) {
+    alert("Correct!");
+    this.advanceToNextStep();
+  } else {
+    alert("Incorrect. Try again.");
+    console.warn("Student Regions:", studentRegions);
+    console.warn("Expected Regions:", expectedRegions);
+  }
+},
+
+advanceToNextStep() {
+  this.currentStepIndex++; // Advance to the next step
+
+  if (this.currentStepIndex < this.subexpressionSteps.length) {
+    // Update operands and operator for the new step
+    this.updateCurrentOperandsAndOperator();
+
+    // Step 1: Destroy the old canvas
+    this.destroyVennSketches();
+
+    // Step 2: Recreate the canvas and reset its state
+    this.$nextTick(() => {
+      const container = document.getElementById('venn-container');
+      if (container) {
+        this.vennSketch = createVennSketch('venn-container', {
+          width: 400,
+          height: 400,
+          interactive: true
+        });
+        this.vennSketch.resetStates(); // Reset shading
+      }
+    });
+
+    // Provide feedback about the next step
+    const nextStep = this.subexpressionSteps[this.currentStepIndex];
+    alert(`Proceed to the next step: ${this.formatSubexpression(nextStep)}`);
+  } else {
+    // All steps are completed
+    alert("Congratulations! You have completed all steps of this problem.");
+    this.currentStepIndex = 0; // Reset for future problems
+    this.currentProblem = null; // Clear the problem
+  }
+},
+
+
+
+
+
+      },
+computed: {
+  currentOperatorHelpText() {
+    switch (this.currentOperator) {
+      case "!":
+        return "The NOT operation inverts the diagram; true regions become false and false regions become true.";
+      case "&&":
+        return "The AND operation should be shaded in regions where both of the input operands are shaded.";
+      case "||":
+        return "The OR operation should be shaded in any region where at least one of the input operands is shaded.";
+      default:
+        return "For a single variable or literal, shade only those regions where the variable(s) evaluate to true.";
+    }
+  }
+}
+
+    });
+
+    app.mount('#app');
+
+class BooleanParser {
+  constructor(expression) {
+    this.expression = expression.replace(/\s+/g, ''); // Remove spaces
+    this.tokens = [];
+    this.current = 0;
+    this.steps = []; // Tracks intermediate subexpressions
+  }
+
+  tokenize() {
+    const regex = /[a-z]+|true|false|&&|\|\||!|\(|\)/g;
+    this.tokens = this.expression.match(regex);
+  }
+
+  parse() {
+    this.current = 0;
+    this.steps = [];
+    return this.parseExpression();
+  }
+
+  parseExpression() {
+    let node = this.parseTerm();
+    while (this.match("||")) {
+      const operator = this.previous();
+      const right = this.parseTerm();
+      node = this.addStep({ type: "Binary", operator: operator, left: node, right: right });
+    }
+    return node;
+  }
+
+  parseTerm() {
+    let node = this.parseFactor();
+    while (this.match("&&")) {
+      const operator = this.previous();
+      const right = this.parseFactor();
+      node = this.addStep({ type: "Binary", operator: operator, left: node, right: right });
+    }
+    return node;
+  }
+
+  parseFactor() {
+    if (this.match("!")) {
+      const operator = this.previous();
+      const right = this.parseFactor();
+      return this.addStep({ type: "Unary", operator: operator, right: right });
+    } else if (this.match("(")) {
+      const expression = this.parseExpression();
+      this.consume(")");
+      return expression;
+    } else if (this.match(/^[a-z]+|true|false$/)) {
+      return { type: "Literal", value: this.previous() };
+    }
+    throw new Error("Unexpected token: " + this.peek());
+  }
+
+  addStep(node) {
+    this.steps.push(node);
+    return node;
+  }
+
+  match(expected) {
+    if (this.isAtEnd()) return false;
+    if (typeof expected === "string" && this.peek() === expected) {
+      this.advance();
+      return true;
+    } else if (expected instanceof RegExp && expected.test(this.peek())) {
+      this.advance();
+      return true;
+    }
+    return false;
+  }
+
+  consume(expected) {
+    if (this.match(expected)) return;
+    throw new Error("Expected '" + expected + "' but found '" + this.peek() + "'");
+  }
+
+  advance() {
+    this.current++;
+    return this.previous();
+  }
+
+  peek() {
+    return this.tokens[this.current];
+  }
+
+  previous() {
+    return this.tokens[this.current - 1];
+  }
+
+  isAtEnd() {
+    return this.current >= this.tokens.length;
+  }
+
+  evaluateAST(node, variables) {
+    if (!node) {
+      console.warn("evaluateAST received an undefined node. Returning false.");
+      return false; // Default behavior for invalid nodes
+    }
+
+    if (node.type === "Literal") {
+      if (node.value === "true") return true;
+      if (node.value === "false") return false;
+      return variables[node.value];
+    } else if (node.type === "Unary") {
+      return !this.evaluateAST(node.right, variables);
+    } else if (node.type === "Binary") {
+      const left = this.evaluateAST(node.left, variables);
+      const right = this.evaluateAST(node.right, variables);
+      switch (node.operator) {
+        case "&&": return left && right;
+        case "||": return left || right;
+      }
+    }
+    console.warn("Invalid AST Node encountered:", node);
+    return false; // Default for invalid or unsupported nodes
+  }
+
+
+  generateTruthTable() {
+    const variables = this.extractVariables();
+    const rows = 1 << variables.length;
+    const truthTable = [];
+
+    for (let i = 0; i < rows; i++) {
+      const row = {};
+      variables.forEach((v, index) => {
+        row[v] = !!(i & (1 << (variables.length - index - 1)));
+      });
+
+      this.steps.forEach((step, idx) => {
+        row[`Step ${idx + 1}`] = this.evaluateAST(step, row);
+      });
+
+      truthTable.push(row);
+    }
+
+    return truthTable;
+  }
+
+  extractVariables() {
+    const vars = new Set();
+    const traverse = (node) => {
+      if (node.type === "Literal" && /^[a-z]+$/.test(node.value)) {
+        vars.add(node.value);
+      } else if (node.type === "Unary") {
+        traverse(node.right);
+      } else if (node.type === "Binary") {
+        traverse(node.left);
+        traverse(node.right);
+      }
+    };
+    if (this.steps.length > 0) {
+      traverse(this.steps[this.steps.length - 1]);
+    }
+    return Array.from(vars).sort();
+  }
+
+  // Evaluate regions for Venn diagram
+  evaluateRegions(node, variables) {
+    if (!node) {
+      console.warn("evaluateRegions received an undefined node. Returning empty results.");
+      return {
+        "a b": false,
+        "a !b": false,
+        "!a b": false,
+        "!a !b": false
+      };
+    }
+
+    const combinations = this.getRegionCombinations(2); // Fixed to 2 variables
+    const results = {};
+    combinations.forEach(combo => {
+      results[combo.name] = this.evaluateAST(node, combo.values);
+    });
+    return results;
+  }
+
+
+
+  getRegionCombinations(numVars) {
+    // Fixed to 2 variables: a and b
+    return [
+      { name: "a b", values: { a: true, b: true } },
+      { name: "a !b", values: { a: true, b: false } },
+      { name: "!a b", values: { a: false, b: true } },
+      { name: "!a !b", values: { a: false, b: false } }
+    ];
+  }
+
+  verifyVennInput(node, studentRegions, variables) {
+    const correctRegions = this.evaluateRegions(node, variables);
+    const expected = Object.keys(correctRegions).filter(key => correctRegions[key]);
+
+    const incorrect = studentRegions.filter(r => !expected.includes(r));
+    const missed = expected.filter(e => !studentRegions.includes(e));
+
+    const isCorrect = (incorrect.length === 0 && missed.length === 0);
+
+    return {
+      isCorrect,
+      expected,
+      incorrect,
+      missed
+    };
+  }
+}
+
+
+function createVennSketch(containerId, options = {}) {
+  const {
+    width = 400,
+    height = 400,
+    interactive = true
+  } = options;
+
+  return new p5((sketch) => {
+    // State Variables
+    let outsideState = 0;    // 0=neutral(gray), 1=false(white), 2=true(light blue)
+    let aOnlyState = 0;
+    let bOnlyState = 0;
+    let intersectionState = 0;
+
+    // Circle Properties
+    let ax, ay, bx, by;      // Centers of circles A and B
+    let r;                   // Radius of circles
+    let intersectionPoints = [];
+
+    let canvasElement; // To store reference to the canvas
+
+    // Initialize the Sketch
+    sketch.setup = function() {
+      canvasElement = sketch.createCanvas(width, height);
+      canvasElement.parent(containerId);
+      computePositions();
+      sketch.noLoop(); // Draw only when necessary
+    };
+
+    // Compute Positions of Circles and Intersection Points
+    function computePositions() {
+      r = Math.min(sketch.width, sketch.height) / 4;
+
+      // Position circles to ensure overlap
+      ax = sketch.width / 2 - r / 2;
+      ay = sketch.height / 2;
+      bx = sketch.width / 2 + r / 2;
+      by = sketch.height / 2;
+
+      computeIntersectionPoints();
+    }
+
+    // Compute Intersection Points of the Two Circles
+    function computeIntersectionPoints() {
+      intersectionPoints = [];
+
+      const dx = bx - ax;
+      const dy = by - ay;
+      const d = Math.sqrt(dx * dx + dy * dy);
+
+      if (d > 2 * r) {
+        // No intersection
+        return;
+      }
+
+      const a = d / 2;
+      const h = Math.sqrt(r * r - a * a);
+
+      const xm = ax + (dx * a) / d;
+      const ym = ay + (dy * a) / d;
+
+      const rx = -dy * (h / d);
+      const ry = dx * (h / d);
+
+      const xi1 = xm + rx;
+      const yi1 = ym + ry;
+      const xi2 = xm - rx;
+      const yi2 = ym - ry;
+
+      intersectionPoints.push({ x: xi1, y: yi1 });
+      intersectionPoints.push({ x: xi2, y: yi2 });
+    }
+
+    // Generate Arc Vertices for Drawing Shapes
+    function arcVertices(cx, cy, radius, startAngle, endAngle, steps) {
+      // Normalize angles
+      startAngle = (startAngle + sketch.TWO_PI) % sketch.TWO_PI;
+      endAngle = (endAngle + sketch.TWO_PI) % sketch.TWO_PI;
+
+      // Ensure the smaller arc is drawn
+      if (endAngle < startAngle) endAngle += sketch.TWO_PI;
+      if (endAngle - startAngle > sketch.PI) {
+        let temp = startAngle;
+        startAngle = endAngle;
+        endAngle = temp + sketch.TWO_PI;
+      }
+
+      const vertices = [];
+      const step = (endAngle - startAngle) / steps;
+
+      for (let i = 0; i <= steps; i++) {
+        const angle = startAngle + i * step;
+        const x = cx + Math.cos(angle) * radius;
+        const y = cy + Math.sin(angle) * radius;
+        vertices.push({ x, y });
+      }
+
+      return vertices;
+    }
+
+    // Draw the Intersection Lens Shape
+    function drawLens(steps) {
+      if (intersectionPoints.length < 2) return;
+
+      const startAngleA = Math.atan2(intersectionPoints[0].y - ay, intersectionPoints[0].x - ax);
+      const endAngleA = Math.atan2(intersectionPoints[1].y - ay, intersectionPoints[1].x - ax);
+      const startAngleB = Math.atan2(intersectionPoints[1].y - by, intersectionPoints[1].x - bx);
+      const endAngleB = Math.atan2(intersectionPoints[0].y - by, intersectionPoints[0].x - bx);
+
+      let adjustedEndAngleA = endAngleA;
+      let adjustedEndAngleB = endAngleB;
+
+      if (adjustedEndAngleA < startAngleA) adjustedEndAngleA += sketch.TWO_PI;
+      if (adjustedEndAngleB < startAngleB) adjustedEndAngleB += sketch.TWO_PI;
+
+      const arcA = arcVertices(ax, ay, r, startAngleA, adjustedEndAngleA, steps);
+      const arcB = arcVertices(bx, by, r, startAngleB, adjustedEndAngleB, steps);
+
+      sketch.beginShape();
+      arcA.forEach(v => sketch.vertex(v.x, v.y));
+      for (let i = arcB.length - 1; i >= 0; i--) {
+        sketch.vertex(arcB[i].x, arcB[i].y);
+      }
+      sketch.endShape(sketch.CLOSE);
+    }
+
+    // Draw Labels for the Circles
+    function drawLabels() {
+      sketch.fill(0);
+      sketch.noStroke();
+      sketch.textAlign(sketch.CENTER, sketch.CENTER);
+      sketch.textSize(r / 3);
+      sketch.text('a', ax, ay - r - 30); // Label A above Circle A
+      sketch.text('b', bx, by - r - 30); // Label B above Circle B
+    }
+
+    // Draw Legend
+    function drawLegend() {
+      sketch.fill(0);
+      sketch.noStroke();
+      sketch.textAlign(sketch.CENTER, sketch.CENTER);
+      sketch.textSize(r / 4);
+      sketch.text('Colors: Blue (True), White (False),\nGray (Neutral)', sketch.width / 2, sketch.height * 0.85);
+    }
+
+    // Determine Fill Color Based on State
+    function getFillColor(state) {
+      if (state === 0) {
+        return sketch.color(220); // Light gray neutral
+      } else if (state === 1) {
+        return sketch.color(255); // White false
+      } else if (state === 2) {
+        return sketch.color(173, 216, 230); // Light blue true
+      }
+    }
+
+    // Draw Function
+    sketch.draw = function() {
+      // Fill Outside Region
+      sketch.background(getFillColor(outsideState));
+
+      // Fill Circle A
+      sketch.fill(getFillColor(aOnlyState));
+      sketch.noStroke();
+      sketch.ellipse(ax, ay, 2 * r, 2 * r);
+
+      // Fill Circle B
+      sketch.fill(getFillColor(bOnlyState));
+      sketch.noStroke();
+      sketch.ellipse(bx, by, 2 * r, 2 * r);
+
+      // Fill Intersection Lens
+      sketch.fill(getFillColor(intersectionState));
+      sketch.noStroke();
+      drawLens(50); // 50 steps for smoothness
+
+      // Draw Circle Outlines
+      sketch.stroke(0);
+      sketch.strokeWeight(2);
+      sketch.noFill();
+      sketch.ellipse(ax, ay, 2 * r, 2 * r);
+      sketch.ellipse(bx, by, 2 * r, 2 * r);
+
+      // Draw Labels
+      drawLabels();
+
+      // Draw Legend
+      drawLegend();
+    };
+
+    // Handle Mouse Pressed for Interactivity
+    if (interactive) {
+      sketch.mousePressed = function() {
+        // Check if inside the canvas
+        if (sketch.mouseX < 0 || sketch.mouseX > sketch.width || sketch.mouseY < 0 || sketch.mouseY > sketch.height) {
+          // Click is outside the canvas area; ignore
+          return;
+        }
+        const mx = sketch.mouseX;
+        const my = sketch.mouseY;
+
+        const inA = inCircle(mx, my, ax, ay, r);
+        const inB = inCircle(mx, my, bx, by, r);
+
+        if (!inA && !inB) {
+          outsideState = (outsideState + 1) % 3;
+        } else if (inA && !inB) {
+          aOnlyState = (aOnlyState + 1) % 3;
+        } else if (!inA && inB) {
+          bOnlyState = (bOnlyState + 1) % 3;
+        } else if (inA && inB) {
+          intersectionState = (intersectionState + 1) % 3;
+        }
+
+        sketch.redraw();
+      };
+    }
+
+    // Utility Function to Check if a Point is Inside a Circle
+    function inCircle(px, py, cx, cy, rr) {
+      const dx = px - cx;
+      const dy = py - cy;
+      return (dx * dx + dy * dy <= rr * rr);
+    }
+
+    // Methods to Set and Get States Externally
+    sketch.setStates = function(states) {
+      if (states.outside !== undefined) outsideState = states.outside;
+      if (states.aOnly !== undefined) aOnlyState = states.aOnly;
+      if (states.bOnly !== undefined) bOnlyState = states.bOnly;
+      if (states.intersection !== undefined) intersectionState = states.intersection;
+      sketch.redraw();
+    };
+
+    sketch.getStates = function() {
+      return {
+        outside: outsideState,
+        aOnly: aOnlyState,
+        bOnly: bOnlyState,
+        intersection: intersectionState
+      };
+    };
+
+    // Optional: Reset All States to Neutral
+    sketch.resetStates = function() {
+      outsideState = 0;
+      aOnlyState = 0;
+      bOnlyState = 0;
+      intersectionState = 0;
+      sketch.redraw();
+    };
+
+  }, containerId);
+}
+// Add this at the top of your script
+app.config.errorHandler = (err, vm, info) => {
+  console.error("Vue Error:", err);
+  console.log("Component Info:", info);
+
+  // Log the current DOM state to identify null elements
+  console.log("Problematic DOM Snapshot:", document.body.innerHTML);
+};
+
+
+  </script>
+</body>
+</html>
