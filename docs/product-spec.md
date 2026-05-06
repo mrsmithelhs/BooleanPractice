@@ -46,7 +46,7 @@ Boolean Practice is an educational web application designed to help computer sci
 
 ## Non-Goals (MVP)
 - User accounts or persistent server-side storage.
-- Complex Java-style predicates (e.g., `x > 5`) - keep to pure boolean variables initially.
+- Complex numeric comparison predicates beyond the supported authored subset - keep the MVP centered on pure boolean variables initially.
 - Dynamic problem generation beyond the curated catalog.
 - Competitive leaderboards.
 - A separate short-circuiting lesson or evaluator mode.
@@ -58,7 +58,7 @@ Boolean Practice is an educational web application designed to help computer sci
 - **Cleanliness**: Avoid decorative clutter; every visual element should serve a pedagogical purpose.
 
 ## Deferred Enhancements And Open Questions
-- Whether to introduce Java-style comparison predicates after the boolean core is stable.
+- Whether to expand the supported numeric comparison subset after the boolean core is stable.
 - Whether to add explicit compare-modes activities or end-of-problem review summaries.
 - Whether to surface short-circuiting as an optional lesson after the MVP is proven.
 - Whether to add more difficulty bands or keep the initial easy/medium/hard structure.

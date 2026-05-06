@@ -51,8 +51,53 @@
       <article class="mini-card">
         <h3>Region Count</h3>
         <p>
-          {{ vennBlueprint.regions.length }} regions based on {{ vennBlueprint.variables.join(', ') }}
+          {{ vennBlueprint.regions.length }} regions based on
+          {{ vennBlueprint.variables.join(', ') }}
         </p>
+      </article>
+
+      <PredicateAtomLegend
+        :atoms="predicateAtomLegend"
+        test-id="venn-predicate-legend"
+      />
+
+      <article
+        v-if="currentMemoryState"
+        class="mini-card venn-practice__memory"
+        data-testid="venn-session-memory"
+      >
+        <h3>Session Memory</h3>
+        <p>
+          {{ currentMemoryText }}
+        </p>
+        <p
+          v-if="currentMemoryState.canAutofill"
+          class="venn-practice__memory-note"
+        >
+          Remembered regions are ready for this step. You can restore them, clear the selection,
+          or forget the stored memory for this session.
+        </p>
+        <div
+          v-if="currentMemoryState.canAutofill"
+          class="venn-practice__memory-actions"
+        >
+          <button
+            type="button"
+            class="action-button action-button--secondary"
+            data-testid="venn-restore-memory"
+            @click="restoreRememberedSelection"
+          >
+            Restore Remembered Regions
+          </button>
+          <button
+            type="button"
+            class="action-button action-button--secondary"
+            data-testid="venn-forget-memory"
+            @click="forgetRememberedSelection"
+          >
+            Forget Memory
+          </button>
+        </div>
       </article>
     </div>
 
@@ -75,6 +120,40 @@
       </button>
     </div>
 
+    <div
+      class="venn-practice__bulk-actions"
+      role="group"
+      aria-label="Bulk edit controls"
+    >
+      <button
+        type="button"
+        class="action-button action-button--secondary"
+        data-testid="venn-shade-all"
+        :disabled="!currentStep"
+        @click="shadeAllRegions"
+      >
+        Shade All
+      </button>
+      <button
+        type="button"
+        class="action-button action-button--secondary"
+        data-testid="venn-clear-selection"
+        :disabled="!currentStep"
+        @click="clearCurrentSelection"
+      >
+        Clear / Neutral
+      </button>
+      <button
+        type="button"
+        class="action-button action-button--secondary"
+        data-testid="venn-copy-previous"
+        :disabled="!hasPreviousStep"
+        @click="copyPreviousStepSelection"
+      >
+        Copy Previous Step
+      </button>
+    </div>
+
     <p
       class="venn-practice__status"
       aria-live="polite"
@@ -90,11 +169,11 @@
     >
       <h3>Region Feedback</h3>
       <ul>
-        <li v-if="latestCheck.missedRegions.length">
-          Missed regions: {{ latestCheck.missedRegions.map((region) => region.label).join(', ') }}
-        </li>
-        <li v-if="latestCheck.extraRegions.length">
-          Extra regions: {{ latestCheck.extraRegions.map((region) => region.label).join(', ') }}
+        <li
+          v-for="entry in latestCheck.details"
+          :key="entry.key"
+        >
+          {{ entry.message }}
         </li>
       </ul>
     </div>
@@ -133,17 +212,47 @@
         </p>
       </article>
     </div>
+
+    <ProblemReviewSummary
+      v-if="completionSummary"
+      :summary="completionSummary"
+      :submission-payload="submissionPayload"
+      test-id="venn-review-summary"
+    />
   </section>
 </template>
 
 <script setup>
 import { computed, reactive, ref, watch } from 'vue';
-import { evaluateBooleanAst, formatBooleanExpression, generateTruthTable, generateVennRegions } from '@shared/index';
+import {
+  AUTOMATION_THRESHOLD,
+  buildProblemReviewSummary,
+  buildVennHint,
+  clearSessionMemory,
+  evaluateBooleanAst,
+  formatBooleanExpression,
+  buildSubmissionPayload,
+  generateTruthTable,
+  generateVennRegions,
+  readSessionMemory,
+  writeSessionMemory,
+  VERSION,
+  resolveBuildTarget,
+  getPredicateAtomLegend,
+} from '@shared/index';
+import ProblemReviewSummary from './ProblemReviewSummary.vue';
+import PredicateAtomLegend from './PredicateAtomLegend.vue';
+
+const emit = defineEmits(['complete']);
 
 const props = defineProps({
   problem: {
     type: Object,
     required: true,
+  },
+  assignmentContext: {
+    type: Object,
+    default: null,
   },
 });
 
@@ -165,10 +274,21 @@ const stepDefinitions = computed(() =>
 );
 
 const currentStepIndex = ref(0);
-const feedbackMessage = ref('Select the regions that make the current step true, then check your work.');
+const feedbackMessage = ref(
+  'Select the regions that make the current step true, then check your work.',
+);
 const latestCheck = ref(null);
+const completionSummary = ref(null);
+const submissionPayload = ref(null);
 const stepStatuses = reactive({});
 const selectionsByStep = reactive({});
+const attemptCountsByStep = reactive({});
+const stepReviewHistory = reactive({});
+const memoryAutoAppliedByStep = reactive({});
+const bulkActionCount = ref(0);
+const autofillCount = ref(0);
+const currentMemoryState = ref(null);
+const predicateAtomLegend = computed(() => getPredicateAtomLegend(props.problem));
 
 const currentStep = computed(() => {
   if (currentStepIndex.value >= stepDefinitions.value.length) {
@@ -180,6 +300,18 @@ const currentStep = computed(() => {
 });
 
 const currentStepLabel = computed(() => currentStep.value?.label ?? 'All regions are complete');
+const hasPreviousStep = computed(() => currentStepIndex.value > 0);
+const currentMemoryText = computed(() => {
+  if (!currentMemoryState.value) {
+    return 'No remembered regions are available for this step yet.';
+  }
+
+  if (currentMemoryState.value.canAutofill) {
+    return `This step has been solved ${currentMemoryState.value.solveCount} time(s) in this session.`;
+  }
+
+  return `This step has been solved ${currentMemoryState.value.solveCount} time(s); solve it one more time to enable remembered autofill.`;
+});
 
 const currentStepPosition = computed(() => {
   if (!currentStep.value) {
@@ -190,7 +322,9 @@ const currentStepPosition = computed(() => {
 });
 
 const revealedStepCount = computed(() => {
-  const completed = stepDefinitions.value.filter((step) => stepStatuses[step.id] === 'correct').length;
+  const completed = stepDefinitions.value.filter(
+    (step) => stepStatuses[step.id] === 'correct',
+  ).length;
   return completed + (currentStep.value ? 1 : 0);
 });
 
@@ -218,10 +352,19 @@ watch(
   { immediate: true },
 );
 
+watch(
+  [() => currentStep.value?.id ?? null, () => vennBlueprint.value.expression, () => vennBlueprint.value.regions.length],
+  () => {
+    syncCurrentStepMemory();
+  },
+  { immediate: true },
+);
+
 function resetPractice() {
   currentStepIndex.value = 0;
-  feedbackMessage.value = `Work through ${currentStepLabel.value}.`;
   latestCheck.value = null;
+  completionSummary.value = null;
+  submissionPayload.value = null;
 
   Object.keys(stepStatuses).forEach((key) => {
     delete stepStatuses[key];
@@ -231,9 +374,28 @@ function resetPractice() {
     delete selectionsByStep[key];
   });
 
+  Object.keys(attemptCountsByStep).forEach((key) => {
+    delete attemptCountsByStep[key];
+  });
+
+  Object.keys(stepReviewHistory).forEach((key) => {
+    delete stepReviewHistory[key];
+  });
+
+  Object.keys(memoryAutoAppliedByStep).forEach((key) => {
+    delete memoryAutoAppliedByStep[key];
+  });
+
+  bulkActionCount.value = 0;
+  autofillCount.value = 0;
+
+  currentMemoryState.value = null;
+
   if (stepDefinitions.value.length > 0) {
     ensureSelectionForStep(stepDefinitions.value[0].id);
   }
+
+  feedbackMessage.value = `Work through ${stepDefinitions.value[0]?.label ?? 'the current step'}.`;
 }
 
 function ensureSelectionForStep(stepId) {
@@ -260,6 +422,120 @@ function toggleRegion(regionId) {
 
   latestCheck.value = null;
   feedbackMessage.value = `Select the regions that make ${currentStepLabel.value} true, then check your work.`;
+}
+
+function replaceCurrentSelection(regionIds) {
+  if (!currentStep.value) {
+    return;
+  }
+
+  const selection = ensureSelectionForStep(currentStep.value.id);
+  selection.splice(0, selection.length, ...regionIds);
+  latestCheck.value = null;
+}
+
+function shadeAllRegions() {
+  if (!currentStep.value) {
+    return;
+  }
+
+  replaceCurrentSelection(vennBlueprint.value.regions.map((region) => region.id));
+  bulkActionCount.value += 1;
+  feedbackMessage.value = `Shaded all regions for ${currentStepLabel.value}. Check your work when you are ready.`;
+}
+
+function clearCurrentSelection() {
+  if (!currentStep.value) {
+    return;
+  }
+
+  replaceCurrentSelection([]);
+  bulkActionCount.value += 1;
+  feedbackMessage.value = `Cleared ${currentStepLabel.value}. Build the selection again when you are ready.`;
+}
+
+function copyPreviousStepSelection() {
+  if (!currentStep.value || !hasPreviousStep.value) {
+    return;
+  }
+
+  const previousStep = stepDefinitions.value[currentStepIndex.value - 1];
+  const previousSelection = ensureSelectionForStep(previousStep.id);
+  replaceCurrentSelection(previousSelection);
+  bulkActionCount.value += 1;
+  feedbackMessage.value = `Copied ${previousStep.label} into ${currentStepLabel.value}. Check your work when you are ready.`;
+}
+
+function buildCurrentStepMemoryDescriptor() {
+  if (!currentStep.value) {
+    return null;
+  }
+
+  return {
+    mode: 'venn',
+    expression: formatBooleanExpression(currentStep.value.node),
+    variables: vennBlueprint.value.variables,
+  };
+}
+
+function syncCurrentStepMemory() {
+  currentMemoryState.value = null;
+
+  if (!currentStep.value) {
+    return;
+  }
+
+  const descriptor = buildCurrentStepMemoryDescriptor();
+  if (!descriptor) {
+    return;
+  }
+
+  const memory = readSessionMemory(descriptor, {
+    validatePayload: validateRememberedRegions,
+    threshold: AUTOMATION_THRESHOLD,
+  });
+
+  currentMemoryState.value = memory;
+
+  if (!memory?.canAutofill || memoryAutoAppliedByStep[currentStep.value.id]) {
+    return;
+  }
+
+  const selection = ensureSelectionForStep(currentStep.value.id);
+  if (selection.length > 0) {
+    return;
+  }
+
+  replaceCurrentSelection(memory.payload);
+  memoryAutoAppliedByStep[currentStep.value.id] = true;
+  autofillCount.value += 1;
+  feedbackMessage.value = `Restored remembered regions for ${currentStep.value.label} from this session.`;
+}
+
+function restoreRememberedSelection() {
+  if (!currentStep.value || !currentMemoryState.value?.canAutofill) {
+    return;
+  }
+
+  replaceCurrentSelection(currentMemoryState.value.payload);
+  memoryAutoAppliedByStep[currentStep.value.id] = true;
+  autofillCount.value += 1;
+  feedbackMessage.value = `Restored remembered regions for ${currentStep.value.label}.`;
+}
+
+function forgetRememberedSelection() {
+  const descriptor = buildCurrentStepMemoryDescriptor();
+
+  if (!descriptor) {
+    return;
+  }
+
+  clearSessionMemory(descriptor);
+  currentMemoryState.value = null;
+  if (currentStep.value) {
+    delete memoryAutoAppliedByStep[currentStep.value.id];
+  }
+  feedbackMessage.value = `Forgot the remembered regions for ${currentStep.value?.label ?? 'this step'}.`;
 }
 
 function isRegionSelected(regionId) {
@@ -291,7 +567,8 @@ function regionClasses(regionId) {
     'venn-region--selected': isRegionSelected(regionId),
     'venn-region--missed': latestCheck.value?.missedRegionIds.includes(regionId),
     'venn-region--extra': latestCheck.value?.extraRegionIds.includes(regionId),
-    'venn-region--correct': stepStatuses[currentStep.value?.id] === 'correct' && isRegionSelected(regionId),
+    'venn-region--correct':
+      stepStatuses[currentStep.value?.id] === 'correct' && isRegionSelected(regionId),
   };
 }
 
@@ -340,66 +617,74 @@ function describeStepPreview(node) {
   }
 }
 
-function describeStepReasoning(step) {
-  switch (step.node.type) {
-    case 'UnaryExpression':
-      return `Start with the operand ${formatBooleanExpression(step.node.argument)}, then invert those regions for ${step.label}.`;
-    case 'BinaryExpression':
-      if (step.node.operator === '&&') {
-        return `A region belongs only when both ${formatBooleanExpression(step.node.left)} and ${formatBooleanExpression(step.node.right)} are true.`;
-      }
-
-      if (step.node.operator === '||') {
-        return `A region belongs when either ${formatBooleanExpression(step.node.left)} or ${formatBooleanExpression(step.node.right)} is true.`;
-      }
-
-      return `Use the operands to decide ${step.label}.`;
-    default:
-      return `Select every region where ${step.label} is true.`;
-  }
-}
-
 function checkCurrentStep() {
-  if (!currentStep.value) {
+  const step = currentStep.value;
+
+  if (!step) {
     feedbackMessage.value = 'All Venn regions are complete.';
     return;
   }
 
   const selection = [...currentSelection.value];
-  const expectedRegionIds = expectedRegionIdsForStep(currentStep.value);
+  const attemptCount = (attemptCountsByStep[step.id] ?? 0) + 1;
+  attemptCountsByStep[step.id] = attemptCount;
+  const expectedRegionIds = expectedRegionIdsForStep(step);
   const expectedSet = new Set(expectedRegionIds);
   const selectedSet = new Set(selection);
   const regionById = new Map(vennBlueprint.value.regions.map((region) => [region.id, region]));
   const missedRegionIds = expectedRegionIds.filter((regionId) => !selectedSet.has(regionId));
   const extraRegionIds = selection.filter((regionId) => !expectedSet.has(regionId));
+  const missedRegions = missedRegionIds.map((regionId) => regionById.get(regionId)).filter(Boolean);
+  const extraRegions = extraRegionIds.map((regionId) => regionById.get(regionId)).filter(Boolean);
+  const message = buildVennHint({
+    attemptCount,
+    step,
+    missedRegions,
+    extraRegions,
+    problemHints: props.problem.hints ?? [],
+  });
+
+  recordStepReview(step, attemptCount, {
+    completed: missedRegionIds.length === 0 && extraRegionIds.length === 0,
+    failedChecks: missedRegionIds.length > 0 || extraRegionIds.length > 0 ? attemptCount : Math.max(0, attemptCount - 1),
+    lastMistake:
+      missedRegionIds.length > 0 || extraRegionIds.length > 0
+        ? {
+            type: 'regions',
+            missedRegionLabels: missedRegions.map((region) => region.label),
+            extraRegionLabels: extraRegions.map((region) => region.label),
+            summary: buildRegionSummary(missedRegions, extraRegions, step.label),
+          }
+        : stepReviewHistory[step.id]?.lastMistake ?? null,
+  });
 
   latestCheck.value = {
+    details: [
+      {
+        key: `${step.id}-${attemptCount}`,
+        message,
+      },
+    ],
     missedRegionIds,
     extraRegionIds,
-    missedRegions: missedRegionIds.map((regionId) => regionById.get(regionId)).filter(Boolean),
-    extraRegions: extraRegionIds.map((regionId) => regionById.get(regionId)).filter(Boolean),
+    missedRegions,
+    extraRegions,
   };
 
   if (missedRegionIds.length > 0 || extraRegionIds.length > 0) {
-    const missedLabels = latestCheck.value.missedRegions.map((region) => region.label).join(', ');
-    const extraLabels = latestCheck.value.extraRegions.map((region) => region.label).join(', ');
-    const parts = [];
-
-    if (missedLabels) {
-      parts.push(`Missed regions: ${missedLabels}.`);
-    }
-
-    if (extraLabels) {
-      parts.push(`Extra regions: ${extraLabels}.`);
-    }
-
-    parts.push(describeStepReasoning(currentStep.value));
-    feedbackMessage.value = parts.join(' ');
+    feedbackMessage.value = message;
     return;
   }
 
-  const completedStepLabel = currentStep.value.label;
-  stepStatuses[currentStep.value.id] = 'correct';
+  const completedStepLabel = step.label;
+  recordRememberedSelection(step, expectedRegionIds);
+  stepStatuses[step.id] = 'correct';
+  latestCheck.value = null;
+  recordStepReview(step, attemptCount, {
+    completed: true,
+    failedChecks: Math.max(0, attemptCount - 1),
+    lastMistake: stepReviewHistory[step.id]?.lastMistake ?? null,
+  });
 
   if (currentStepIndex.value < stepDefinitions.value.length - 1) {
     currentStepIndex.value += 1;
@@ -409,5 +694,84 @@ function checkCurrentStep() {
   }
 
   feedbackMessage.value = `Great work. ${completedStepLabel} is complete and the Venn answer is finished.`;
+  completionSummary.value = buildProblemReviewSummary({
+    problem: props.problem,
+    mode: 'venn',
+    stepDefinitions: stepDefinitions.value,
+    stepReviews: Object.values(stepReviewHistory),
+  });
+  submissionPayload.value = buildSubmissionPayload({
+    problem: props.problem,
+    mode: 'venn',
+    summary: completionSummary.value,
+    attempts: completionSummary.value.totalAttempts,
+    hintsUsed: completionSummary.value.totalHintsUsed,
+    autofillUses: autofillCount.value,
+    bulkActionUses: bulkActionCount.value,
+    appVersion: VERSION,
+    buildTarget: resolveBuildTarget(),
+    assignmentContext: props.assignmentContext,
+  });
+
+  emit('complete', {
+    summary: completionSummary.value,
+    submissionPayload: submissionPayload.value,
+    assignmentContext: props.assignmentContext,
+  });
+}
+
+function buildRegionSummary(missedRegions, extraRegions, label) {
+  const parts = [];
+
+  if (missedRegions.length > 0) {
+    parts.push(`Missed regions: ${missedRegions.map((region) => region.label).join(', ')}.`);
+  }
+
+  if (extraRegions.length > 0) {
+    parts.push(`Extra regions: ${extraRegions.map((region) => region.label).join(', ')}.`);
+  }
+
+  if (parts.length === 0) {
+    return `The selection for ${label} is correct.`;
+  }
+
+  parts.push(`Recheck how ${label} combines its operands.`);
+  return parts.join(' ');
+}
+
+function recordStepReview(step, attemptCount, { completed, failedChecks, lastMistake }) {
+  stepReviewHistory[step.id] = {
+    stepId: step.id,
+    label: step.label,
+    attemptCount,
+    failedChecks,
+    completed,
+    lastMistake,
+  };
+}
+
+function recordRememberedSelection(step, regionIds) {
+  const descriptor = {
+    mode: 'venn',
+    expression: formatBooleanExpression(step.node),
+    variables: vennBlueprint.value.variables,
+  };
+
+  currentMemoryState.value = writeSessionMemory(descriptor, regionIds, {
+    validatePayload: validateRememberedRegions,
+    threshold: AUTOMATION_THRESHOLD,
+  });
+}
+
+function validateRememberedRegions(payload) {
+  return (
+    Array.isArray(payload) &&
+    payload.every(
+      (regionId) =>
+        Number.isInteger(regionId) &&
+        regionId >= 0 &&
+        regionId < vennBlueprint.value.regions.length,
+    )
+  );
 }
 </script>

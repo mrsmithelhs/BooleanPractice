@@ -15,5 +15,4 @@ Open questions for a future teacher UI:
 
 ## Advanced Java Condition Modeling
 
-Plan 23 introduces pre-authored Java predicate atoms, and Plan 24 scopes relational equivalence rules. Later work could consider richer condition modeling for AP CSA examples, including loop bounds and compound object/string predicates, but only after the supported subset remains clear and testable.
-
+Plan 23 introduces pre-authored numeric predicate atoms, and Plan 24 scopes relational equivalence rules. Later work could consider richer numeric condition modeling for AP CSA examples, but only after the supported subset remains clear and testable.

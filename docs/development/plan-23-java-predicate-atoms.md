@@ -16,8 +16,8 @@
 
 ## Packet Summary
 
-- Goal: let catalog problems use boolean-valued Java-style predicates, such as `x > 10` or `str.length() > 5`, as meaningful atoms in larger boolean expressions.
-- Non-goals: do not parse arbitrary Java and do not reason about relational inverses yet.
+- Goal: let catalog problems use boolean-valued numeric predicates, such as `x > 10` or `count == 0`, as meaningful atoms in larger boolean expressions.
+- Non-goals: do not parse arbitrary Java, do not rely on dot notation, and do not reason about relational inverses yet.
 - Depends on: Plans 15-17 preferred.
 - Blocks: Plan 24 relational equivalence knowledge graph.
 - Why this packet exists: AP CSA students need to connect abstract boolean variables to real conditions used in selection and iteration.
@@ -32,8 +32,8 @@ In scope:
 
 - Add catalog support for pre-authored boolean atoms with display labels, such as:
   - `P: x > 10`
-  - `Q: str.length() > 5`
-  - `R: count == 0`
+  - `Q: count == 0`
+  - `R: index < limit`
 - Evaluate them internally as boolean variables.
 - Show a readable legend or compact table headers that preserve the predicate connection.
 - Ensure truth table and Venn layouts remain readable.
@@ -43,14 +43,14 @@ Out of scope:
 
 - Do not allow students to type arbitrary Java predicates.
 - Do not transform `!(x > 10)` into `x <= 10`.
-- Do not add numeric domains or sample values for `x`, `count`, or `str`.
+- Do not add dot notation, object fields, method calls, arrays, or collections.
 
 ## Implementation Requirements
 
 - Support abstraction/indirection with aliases, but always present the full predicate near the working surface.
 - Use pre-authored atoms only.
 - Avoid table headers so long they break layout; prefer alias headers plus persistent legend or expandable detail.
-- Include examples tied to AP CSA conditionals and loops.
+- Include examples tied to AP CSA conditionals and loops that stay within plain numeric variables.
 
 ## Validation Checklist
 
@@ -63,4 +63,3 @@ Out of scope:
 ## Stop Conditions
 
 Stop if preserving readability requires a larger UI redesign or if implementation starts parsing arbitrary Java expressions.
-

@@ -1,4 +1,17 @@
 import { defineConfig, devices } from '@playwright/test';
+import { loadEnv } from 'vite';
+
+const DEFAULT_HOST = '127.0.0.1';
+const DEFAULT_DEV_PORT = 5177;
+
+function parsePort(value, fallback) {
+  const port = Number(value);
+  return Number.isInteger(port) && port > 0 ? port : fallback;
+}
+
+const env = loadEnv('test', process.cwd(), 'BOOLEAN_PRACTICE_');
+const host = env.BOOLEAN_PRACTICE_HOST || DEFAULT_HOST;
+const devPort = parsePort(env.BOOLEAN_PRACTICE_DEV_PORT, DEFAULT_DEV_PORT);
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -8,7 +21,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: `http://${host}:${devPort}`,
     trace: 'on-first-retry',
   },
   projects: [
@@ -19,7 +32,7 @@ export default defineConfig({
   ],
   webServer: {
     command: 'npm run dev',
-    url: 'http://localhost:5173',
+    url: `http://${host}:${devPort}`,
     reuseExistingServer: !process.env.CI,
   },
 });

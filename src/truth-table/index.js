@@ -27,6 +27,15 @@ function collectSubexpressions(node, path = '0', steps = []) {
   }
 }
 
+function assignmentToBitString(assignment, variables) {
+  return variables.map((variable) => (assignment[variable] ? '1' : '0')).join('');
+}
+
+function assignmentToRegionId(assignment, variables) {
+  const bits = assignmentToBitString(assignment, variables);
+  return bits === '' ? 0 : Number.parseInt(bits, 2);
+}
+
 function buildAssignments(variables) {
   if (variables.length === 0) {
     return [{}];
@@ -48,12 +57,16 @@ export function generateTruthTable(nodeOrSource) {
   const variables = collectBooleanVariables(ast);
   const subexpressions = collectSubexpressions(ast);
   const rows = buildAssignments(variables).map((assignment) => {
+    const bits = assignmentToBitString(assignment, variables);
+
     const values = {};
     for (const subexpression of subexpressions) {
       values[subexpression.id] = evaluateBooleanAst(subexpression.node, assignment);
     }
 
     return {
+      id: assignmentToRegionId(assignment, variables),
+      bits,
       assignment,
       values,
       result: evaluateBooleanAst(ast, assignment),
@@ -68,4 +81,3 @@ export function generateTruthTable(nodeOrSource) {
     rows,
   };
 }
-

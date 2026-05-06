@@ -8,44 +8,94 @@ import {
   validateProblemCatalog,
 } from '@shared/index';
 
+function getDifficultyCounts(catalog) {
+  return catalog.reduce(
+    (counts, problem) => {
+      counts[problem.difficulty] += 1;
+      return counts;
+    },
+    { easy: 0, medium: 0, hard: 0 },
+  );
+}
+
 describe('problem catalog', () => {
-  it('exposes a frozen, ordered source catalog', () => {
+  it('exposes a frozen, ordered source catalog with expanded variety', () => {
     expect(Object.isFrozen(problemCatalog)).toBe(true);
-    expect(problemCatalog.map((problem) => problem.sequence)).toEqual([
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
-    ]);
+    expect(problemCatalog.length).toBeGreaterThan(20);
+    expect(problemCatalog.map((problem) => problem.sequence)).toEqual(
+      problemCatalog.map((_, index) => index + 1),
+    );
   });
 
   it('validates all entries and keeps expressions parseable', () => {
-    expect(validateProblemCatalog()).toEqual([
-      { id: 'tt-01-literal-a', valid: true },
-      { id: 'tt-02-negation-a', valid: true },
-      { id: 'tt-03-and-a-b', valid: true },
-      { id: 'tt-04-or-a-b', valid: true },
-      { id: 'tt-05-precedence', valid: true },
-      { id: 'tt-06-parentheses', valid: true },
-      { id: 'tt-07-de-morgan', valid: true },
-      { id: 'tt-08-equivalence', valid: true },
-      { id: 'tt-09-three-variable-venn', valid: true },
-      { id: 'tt-10-three-variable-precedence', valid: true },
-      { id: 'tt-11-de-morgan-three', valid: true },
-    ]);
+    const validation = validateProblemCatalog();
+
+    expect(validation).toHaveLength(problemCatalog.length);
+    expect(validation.every((entry) => entry.valid)).toBe(true);
   });
 
-  it('includes explicit supported modes and three-variable problems', () => {
+  it('includes the required catalog metadata and balanced difficulty buckets', () => {
     const catalog = getProblemCatalog();
-    const threeVariableProblems = catalog.filter((problem) => problem.variables.length === 3);
-    const vennSupportedThreeVariableProblems = threeVariableProblems.filter((problem) =>
-      problem.supportedModes.includes('venn'),
-    );
+    const difficultyCounts = getDifficultyCounts(catalog);
 
     expect(catalog.every((problem) => Array.isArray(problem.supportedModes) && problem.supportedModes.length > 0)).toBe(
       true,
     );
-    expect(threeVariableProblems).toHaveLength(4);
-    expect(vennSupportedThreeVariableProblems).toHaveLength(2);
-    expect(catalog.some((problem) => problem.supportedModes.includes('truth-table'))).toBe(true);
-    expect(catalog.some((problem) => problem.supportedModes.includes('venn'))).toBe(true);
+    expect(catalog.every((problem) => Array.isArray(problem.conceptTags) && problem.conceptTags.length > 0)).toBe(
+      true,
+    );
+    expect(catalog.every((problem) => Number.isInteger(problem.variableCount) && problem.variableCount === problem.variables.length)).toBe(
+      true,
+    );
+    expect(catalog.every((problem) => Number.isInteger(problem.estimatedComplexity) && problem.estimatedComplexity >= 1 && problem.estimatedComplexity <= 5)).toBe(
+      true,
+    );
+    expect(catalog.every((problem) => typeof problem.lawFamily === 'string' && problem.lawFamily.length > 0)).toBe(
+      true,
+    );
+    expect(catalog.every((problem) => typeof problem.equivalenceReady === 'boolean')).toBe(true);
+    expect(catalog.every((problem) => typeof problem.simplificationReady === 'boolean')).toBe(true);
+
+    expect(difficultyCounts.easy).toBeGreaterThan(0);
+    expect(difficultyCounts.medium).toBeGreaterThan(0);
+    expect(difficultyCounts.hard).toBeGreaterThan(0);
+  });
+
+  it('includes literal-plus-variable expressions and three-variable venn-compatible problems', () => {
+    const catalog = getProblemCatalog();
+    const expressions = catalog.map((problem) => problem.expression);
+    const requiredExpressions = ['a && true', 'b || false', '!(false || a)', 'a || true', 'c && false'];
+    const threeVariableVennProblems = catalog.filter(
+      (problem) => problem.variableCount === 3 && problem.supportedModes.includes('venn'),
+    );
+
+    for (const expression of requiredExpressions) {
+      expect(expressions).toContain(expression);
+    }
+
+    expect(threeVariableVennProblems.length).toBeGreaterThanOrEqual(3);
+    expect(
+      threeVariableVennProblems.some(
+        (problem) => problem.supportedModes.includes('truth-table') && problem.supportedModes.includes('venn'),
+      ),
+    ).toBe(true);
+  });
+
+  it('includes predicate atom problems with visible Java-style labels', () => {
+    const predicateProblems = getProblemCatalog().filter((problem) => problem.predicateAtoms.length > 0);
+
+    expect(predicateProblems.map((problem) => problem.id)).toEqual([
+      'pa-25-score-and-count',
+      'pa-26-string-and-loop',
+      'pa-27-three-atom-guard',
+    ]);
+    expect(predicateProblems.every((problem) => problem.predicateAtoms.length === problem.variables.length)).toBe(
+      true,
+    );
+    expect(predicateProblems[0].predicateAtoms[0]).toMatchObject({
+      alias: 'P',
+      predicate: 'score > 10',
+    });
   });
 
   it('filters without mutating the source catalog', () => {
@@ -54,15 +104,19 @@ describe('problem catalog', () => {
 
     expect(vennProblems.length).toBeGreaterThan(0);
     expect(vennProblems.every((problem) => problem.supportedModes.includes('venn'))).toBe(true);
-    expect(vennProblems.every((problem, index) => problem.sequence === sourceBefore.filter((entry) => entry.supportedModes.includes('venn'))[index].sequence)).toBe(true);
+    expect(vennProblems.map((problem) => problem.sequence)).toEqual(
+      sourceBefore.filter((entry) => entry.supportedModes.includes('venn')).map((entry) => entry.sequence),
+    );
     expect(vennProblems[0]).not.toBe(sourceBefore.find((problem) => problem.id === vennProblems[0].id));
 
     vennProblems[0].supportedModes.push('bogus');
     vennProblems[0].title = 'Changed title';
+    vennProblems[0].variables.push('z');
 
     const sourceAfter = getProblemById(vennProblems[0].id);
     expect(sourceAfter.supportedModes).not.toContain('bogus');
     expect(sourceAfter.title).not.toBe('Changed title');
+    expect(sourceAfter.variables).not.toContain('z');
   });
 
   it('rejects unsupported catalog filters', () => {
@@ -71,12 +125,14 @@ describe('problem catalog', () => {
   });
 
   it('provides selectable problems by id', () => {
-    const problem = getProblemById('tt-09-three-variable-venn');
+    const problem = getProblemById('tt-20-xor-like');
 
     expect(problem).toMatchObject({
-      id: 'tt-09-three-variable-venn',
+      id: 'tt-20-xor-like',
       difficulty: 'hard',
       supportedModes: ['truth-table', 'venn'],
+      lawFamily: 'xor-like',
+      variableCount: 2,
     });
     expect(isProblemSupported(problem, 'venn')).toBe(true);
     expect(isProblemSupported(problem, 'truth-table')).toBe(true);

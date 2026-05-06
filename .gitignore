@@ -138,3 +138,9 @@ dist
 # Playwright artifacts
 playwright-report/
 test-results/
+
+# Generated GAS output
+gas-dist/
+
+# Local developer tooling state
+local/
