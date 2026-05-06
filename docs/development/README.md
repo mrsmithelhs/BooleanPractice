@@ -17,15 +17,27 @@ This sequence migrates Boolean Practice from the archived Google Apps Script for
 | [Plan 09](plan-09-visual-upgrade-accessibility.md)   | ready  | Apply a cohesive visual design upgrade and responsive accessibility polish.                         |
 | [Plan 10](plan-10-robust-test-suite.md)              | ready  | Expand unit, integration, accessibility, and E2E coverage beyond smoke tests.                       |
 | [Plan 11](plan-11-github-pages-deployment.md)        | ready  | Add GitHub Pages workflow, deployment docs, and final release confidence checks.                    |
-| [Plan 12](plan-12-learning-upgrades-review.md)       | draft  | Add optional learning enhancements after the migration base is stable.                              |
+| [Plan 12](plan-12-hint-ladder-attempt-feedback.md) | ready | Add attempt-aware hints that help students recover from mistakes. |
+| [Plan 13](plan-13-problem-review-summary.md) | ready | Add end-of-problem summaries and suggested next practice. |
+| [Plan 14](plan-14-cross-representation-comparison.md) | ready | Compare truth table rows and matching Venn regions. |
+| [Plan 15](plan-15-expanded-catalog-variety.md) | ready | Expand the catalog with richer boolean expressions and metadata. |
+| [Plan 16](plan-16-expression-equivalence-mode.md) | ready | Add expression equivalence challenges proved by tables or diagrams. |
+| [Plan 17](plan-17-simplification-guess-mode.md) | ready | Add simplification guess mode with equivalence checking. |
+| [Plan 18](plan-18-bulk-fill-copy-controls.md) | ready | Add all-true/all-false/clear/copy controls for tables and diagrams. |
+| [Plan 19](plan-19-session-memory-subexpressions.md) | ready | Use sessionStorage to remember mastered normalized subexpressions. |
+| [Plan 20](plan-20-gas-web-app-submission-output.md) | ready | Add a shared-source GAS web app output and Sheets submissions. |
+| [Plan 21](plan-21-sheets-assignment-mode.md) | ready | Add Sheets-authored assignment mode for the GAS output. |
+| [Plan 22](plan-22-adaptive-assignment-algorithm-design.md) | ready | Define and prove an adaptive assignment algorithm before implementation. |
+| [Plan 23](plan-23-java-predicate-atoms.md) | ready | Add pre-authored Java-style predicate atoms while preserving readable UI. |
+| [Plan 24](plan-24-relational-equivalence-knowledge-graph.md) | draft | Scope relational predicate equivalences such as `!(x > 10)` and `x <= 10`. |
 
 ## Suggested Execution Order
 
-Run Plans 01 through 11 in order. Plan 12 should wait until the migrated app is locally stable and visually coherent.
+Plans 01 through 11 establish the migrated static app. Plans 12 through 19 deepen standalone learning and interaction. Plans 20 and 21 add the optional GAS/Sheets classroom surface. Plan 22 should design and prove adaptive assignment before implementation. Plans 23 and 24 connect the app to Java-style AP CSA predicates.
 
 Plans 02 through 11 now carry explicit required-behavior, stop-condition, and validation language to reduce drift. Treat those sections as part of the contract, not optional guidance.
 
-Plans 03, 05, 07, 08, 10, and 11 are the highest correctness-risk packets. Use a stronger model or closer integration-owner review if those packets expose ambiguity in boolean semantics, Venn representation, feedback behavior, or deployment assumptions.
+Plans 03, 05, 07, 08, 10, 11, 16, 17, 20, 21, 22, and 24 are the highest correctness-risk packets. Use a stronger model or closer integration-owner review if those packets expose ambiguity in boolean semantics, Venn representation, feedback behavior, deployment assumptions, GAS identity, assignment data, or relational equivalence rules.
 
 ## Cross-Packet Contracts
 
@@ -35,3 +47,6 @@ Plans 03, 05, 07, 08, 10, and 11 are the highest correctness-risk packets. Use a
 - Venn mode must support one, two, and three variables.
 - Tests should protect parser behavior, expression evaluation, problem progression, UI workflows, accessibility, and GitHub Pages deployment assumptions.
 - The app must work as static assets with no Google Apps Script runtime.
+- Optional GAS output should be built from shared source as much as practical, not maintained as a separate app by hand.
+- GAS behavior must be locally simulatable, including `google.script.run` delay and failure behavior.
+- Java predicate atoms must preserve the pedagogical connection to real AP CSA conditions while keeping tables and diagrams readable.
