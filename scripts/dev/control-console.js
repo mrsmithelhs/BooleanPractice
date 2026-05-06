@@ -7,6 +7,7 @@ import {
   ENV_FILES,
   buildDashboardText,
   buildRuntimeTargets,
+  buildUiTourCaptureArgs,
   ensureLocalControlDirs,
   inspectRuntime,
   loadRepoLocalEnv,
@@ -16,6 +17,7 @@ import {
   startManagedRuntime,
   stopManagedRuntime,
 } from '../lib/dev-control.js';
+import { getUiTourDefinitions } from '../lib/ui-tour-capture.js';
 
 function separator(title) {
   return `\n${'='.repeat(12)} ${title} ${'='.repeat(12)}\n`;
@@ -220,6 +222,51 @@ async function showConfig(repoRoot) {
   printBlock(`Env keys: ${Object.keys(env).length ? Object.keys(env).join(', ') : '(none)'}`);
 }
 
+function parseCommaSeparatedList(input) {
+  return input
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+async function captureUiTours(repoRoot, rl) {
+  const tours = getUiTourDefinitions();
+  printBlock(separator('UI tour capture').trimEnd());
+  printBlock('Available tours:');
+  for (const tour of tours) {
+    printBlock(`- ${tour.id}: ${tour.title}`);
+  }
+
+  const runFullBatch = await promptConfirm(rl, 'Capture the full starter batch now?');
+  let selectedTourIds = [];
+  let selectedViewports = [];
+  let target = 'preview';
+  let outputRoot = '';
+
+  if (!runFullBatch) {
+    const tourInput = await promptChoice(rl, 'Tour ids (comma-separated, blank for all)', '');
+    selectedTourIds = tourInput ? parseCommaSeparatedList(tourInput) : [];
+    const viewportInput = await promptChoice(
+      rl,
+      'Viewports (comma-separated, blank for desktop,mobile)',
+      '',
+    );
+    selectedViewports = viewportInput ? parseCommaSeparatedList(viewportInput) : [];
+    target = await promptChoice(rl, 'Target (preview or dev)', 'preview');
+    outputRoot = await promptChoice(rl, 'Output root (blank for local/ui-reviews)', '');
+  }
+
+  const args = buildUiTourCaptureArgs({
+    tours: selectedTourIds,
+    viewports: selectedViewports,
+    target: target || null,
+    outputRoot: outputRoot || null,
+  });
+  printBlock(`Running: npm run capture:ui-tour${args.length ? ` -- ${args.join(' ')}` : ''}`);
+  const result = await runPackageScript('capture:ui-tour', args, { repoRoot });
+  printBlock(`Exit code: ${result.code ?? 0}`);
+}
+
 async function main() {
   const repoRoot = process.cwd();
   await ensureLocalControlDirs(repoRoot);
@@ -245,11 +292,12 @@ async function main() {
       printBlock('5. Open app');
       printBlock('6. Open preview');
       printBlock('7. Run checks');
-      printBlock('8. Show config');
-      printBlock('9. Exit');
+      printBlock('8. Capture UI tours');
+      printBlock('9. Show config');
+      printBlock('10. Exit');
 
       const choice = await promptChoice(rl, 'Choose an action', '1');
-      if (choice === '9') {
+      if (choice === '10') {
         running = false;
         continue;
       }
@@ -281,6 +329,10 @@ async function main() {
         continue;
       }
       if (choice === '8') {
+        await captureUiTours(repoRoot, rl);
+        continue;
+      }
+      if (choice === '9') {
         await showConfig(repoRoot);
         continue;
       }

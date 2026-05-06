@@ -8,7 +8,7 @@ Use these commands from the repository root:
 - `npm run build:gas` - produce the static build and assemble the GAS-friendly output in `gas-dist/`.
 - `npm run test:e2e` - run the Playwright browser checks against the local app.
 - `npm run dev` - start the Vite dev server for manual browser inspection.
-- `npm run dev:control` - open the local console for starting/stopping the dev server, checking ports, and opening the app or preview.
+- `npm run dev:control` - open the local console for starting/stopping the dev server, checking ports, opening the app or preview, and launching UI tour captures.
 - `npm run preview` - serve the production build locally after `npm run build`.
 - `npm run capture:ui-tour` - capture local-only UI tour screenshots and write a blind-review packet under `local/ui-reviews/`.
 

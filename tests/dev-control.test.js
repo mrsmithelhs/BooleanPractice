@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildDashboardText,
   buildRuntimeTargets,
+  buildUiTourCaptureArgs,
   classifyRuntimeStatus,
   loadRepoLocalEnv,
   parseEnvFileContents,
@@ -137,5 +138,27 @@ Active Connections
     expect(text).toContain('Dev port: 5177');
     expect(text).toContain('healthy');
     expect(text).toContain('healthy-response');
+  });
+
+  it('builds capture command arguments for the ui tour workflow', () => {
+    expect(
+      buildUiTourCaptureArgs({
+        tours: ['truth-table', 'venn'],
+        viewports: ['desktop', 'mobile'],
+        target: 'dev',
+        outputRoot: 'local/ui-reviews/custom',
+      }),
+    ).toEqual([
+      '--tour',
+      'truth-table,venn',
+      '--viewports',
+      'desktop,mobile',
+      '--target',
+      'dev',
+      '--output-root',
+      'local/ui-reviews/custom',
+    ]);
+
+    expect(buildUiTourCaptureArgs({ listTours: true })).toEqual(['--list-tours']);
   });
 });

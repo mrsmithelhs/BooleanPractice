@@ -125,6 +125,32 @@ export function buildRuntimeTargets(config) {
   ];
 }
 
+export function buildUiTourCaptureArgs({
+  tours = [],
+  viewports = [],
+  target = null,
+  outputRoot = null,
+  listTours = false,
+} = {}) {
+  const args = [];
+  if (listTours) {
+    args.push('--list-tours');
+  }
+  if (tours.length) {
+    args.push('--tour', tours.join(','));
+  }
+  if (viewports.length) {
+    args.push('--viewports', viewports.join(','));
+  }
+  if (target) {
+    args.push('--target', target);
+  }
+  if (outputRoot) {
+    args.push('--output-root', outputRoot);
+  }
+  return args;
+}
+
 export function formatClockLabel(date = new Date()) {
   return date.toISOString().replace(/[:.]/gu, '-');
 }
