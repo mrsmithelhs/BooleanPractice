@@ -15,6 +15,19 @@ describe('venn diagram layout', () => {
     expect(twoVariable.regions.map((region) => region.id)).toEqual([0, 1, 2, 3]);
     expect(threeVariable.regions.map((region) => region.id)).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
 
+    expect(oneVariable.regions[1]).toMatchObject({
+      includedVariables: ['a'],
+      excludedVariables: [],
+    });
+    expect(twoVariable.regions[3]).toMatchObject({
+      includedVariables: ['a', 'b'],
+      excludedVariables: [],
+    });
+    expect(threeVariable.regions[0]).toMatchObject({
+      includedVariables: [],
+      excludedVariables: ['a', 'b', 'c'],
+    });
+
     expect(new Set(threeVariable.regions.map((region) => region.anchor.x)).size).toBeGreaterThan(1);
     expect(new Set(threeVariable.regions.map((region) => region.anchor.y)).size).toBeGreaterThan(1);
   });

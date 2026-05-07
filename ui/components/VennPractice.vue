@@ -183,6 +183,7 @@
       :regions="vennBlueprint.regions"
       :state-by-region-id="diagramStateByRegionId"
       :focus-region-ids="diagramFocusRegionIds"
+      :show-detailed-labels="showDetailedLabels"
       aria-label="Interactive Venn diagram"
       diagram-label="Interactive Venn diagram"
       test-id-prefix="venn-region"
@@ -197,7 +198,7 @@
       <article class="mini-card">
         <h3>Selection Guide</h3>
         <p>
-          Select every region that makes {{ currentStepLabel }} true. The region buttons are
+          Select every region that makes {{ currentStepLabel }} true. The SVG regions are
           keyboard-accessible and stay in sync with the feedback below.
         </p>
       </article>
@@ -244,6 +245,10 @@ const props = defineProps({
   assignmentContext: {
     type: Object,
     default: null,
+  },
+  showDetailedLabels: {
+    type: Boolean,
+    default: false,
   },
 });
 

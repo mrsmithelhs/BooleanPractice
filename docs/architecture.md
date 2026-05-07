@@ -42,7 +42,7 @@ The app has NO runtime dependencies on a backend. All problem data and logic are
 ### Accessibility
 
 - Interactive elements need stable IDs or accessible names where tests and assistive tech rely on them.
-- Venn diagram regions must be keyboard-accessible, either through a parallel list of buttons/checkboxes or equivalent controls.
+- Venn diagram regions must be keyboard-accessible through the primary SVG region controls or an equivalent fallback control surface.
 - ARIA labels should describe the current state of truth tables and diagrams.
 
 ### Visual System
@@ -101,7 +101,8 @@ The app has NO runtime dependencies on a backend. All problem data and logic are
 ### Venn Learning Contract
 
 - Venn practice should present an actual overlapping-circle diagram as the primary interaction surface, while keeping a compact exact-region list or other fallback available for accessibility and precision.
-- Venn practice should keep keyboard-accessible region buttons available at all times, even when the region layout is presented visually.
+- Venn practice should keep keyboard-accessible SVG region controls available at all times, even when the region layout is presented visually.
+- Detailed region labels should be hidden by default and toggled on demand, while the basic circle identifiers remain visible at all times.
 - The visual diagram, fallback region list, and accessible controls should all read from the same shared region list and selected-region state.
 - Feedback should name missed and extra regions explicitly and should explain the current operator in plain language.
 - Step progression should come from the shared truth-table subexpression order so the same expression teaches the same sequence in both learning modes.

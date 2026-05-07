@@ -186,6 +186,7 @@
                 :regions="proof.regions"
                 :state-by-region-id="leftRegionStates"
                 :focus-region-ids="proof.firstDifference ? [proof.firstDifference.id] : []"
+                :show-detailed-labels="showDetailedLabels"
                 aria-label="Left expression Venn diagram"
                 diagram-label="Left expression Venn diagram"
                 test-id-prefix="equivalence-proof-left-region"
@@ -204,6 +205,7 @@
                 :regions="proof.regions"
                 :state-by-region-id="rightRegionStates"
                 :focus-region-ids="proof.firstDifference ? [proof.firstDifference.id] : []"
+                :show-detailed-labels="showDetailedLabels"
                 aria-label="Right expression Venn diagram"
                 diagram-label="Right expression Venn diagram"
                 test-id-prefix="equivalence-proof-right-region"
@@ -230,6 +232,10 @@ const props = defineProps({
   challenge: {
     type: Object,
     required: true,
+  },
+  showDetailedLabels: {
+    type: Boolean,
+    default: false,
   },
 });
 

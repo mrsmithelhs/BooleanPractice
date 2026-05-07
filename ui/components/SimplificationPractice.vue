@@ -200,6 +200,7 @@
                 :regions="proof.regions"
                 :state-by-region-id="originalRegionStates"
                 :focus-region-ids="proof.firstDifference ? [proof.firstDifference.id] : []"
+                :show-detailed-labels="showDetailedLabels"
                 aria-label="Original expression Venn diagram"
                 diagram-label="Original expression Venn diagram"
                 test-id-prefix="simplification-proof-original-region"
@@ -218,6 +219,7 @@
                 :regions="proof.regions"
                 :state-by-region-id="guessRegionStates"
                 :focus-region-ids="proof.firstDifference ? [proof.firstDifference.id] : []"
+                :show-detailed-labels="showDetailedLabels"
                 aria-label="Guess expression Venn diagram"
                 diagram-label="Guess expression Venn diagram"
                 test-id-prefix="simplification-proof-guess-region"
@@ -244,6 +246,10 @@ const props = defineProps({
   challenge: {
     type: Object,
     required: true,
+  },
+  showDetailedLabels: {
+    type: Boolean,
+    default: false,
   },
 });
 

@@ -42,6 +42,29 @@
           {{ assignmentLede }}
         </p>
       </article>
+
+      <article
+        v-if="currentItemUsesVennVisuals"
+        class="mini-card assignment-practice__toggle-card"
+      >
+        <h3>Venn Labels</h3>
+        <label class="field field--toggle assignment-practice__toggle">
+          <div class="field__toggle">
+            <input
+              v-model="showDetailedLabelsModel"
+              type="checkbox"
+              name="assignment-show-venn-labels"
+              aria-label="Show detailed Venn labels"
+              data-testid="assignment-venn-label-toggle"
+            >
+            <span>Show detailed Venn region labels</span>
+          </div>
+          <div class="field__help">
+            Circle identifiers stay visible. Region labels, bit patterns, and extra text are
+            optional.
+          </div>
+        </label>
+      </article>
     </div>
 
     <details class="details-card assignment-practice__details">
@@ -105,18 +128,21 @@
         :key="currentItem.assignmentItemId"
         :problem="currentItem.challenge"
         :assignment-context="currentAssignmentContext"
+        :show-detailed-labels="showDetailedLabels"
         @complete="handleItemComplete"
       />
       <EquivalencePractice
         v-else-if="currentItem.challengeMode === 'equivalence'"
         :key="currentItem.assignmentItemId"
         :challenge="currentItem.challenge"
+        :show-detailed-labels="showDetailedLabels"
         @complete="handleItemComplete"
       />
       <SimplificationPractice
         v-else-if="currentItem.challengeMode === 'simplification'"
         :key="currentItem.assignmentItemId"
         :challenge="currentItem.challenge"
+        :show-detailed-labels="showDetailedLabels"
         @complete="handleItemComplete"
       />
 
@@ -169,10 +195,16 @@ import SimplificationPractice from './SimplificationPractice.vue';
 import TruthTablePractice from './TruthTablePractice.vue';
 import VennPractice from './VennPractice.vue';
 
+const emit = defineEmits(['update:showDetailedLabels']);
+
 const props = defineProps({
   session: {
     type: Object,
     required: true,
+  },
+  showDetailedLabels: {
+    type: Boolean,
+    default: false,
   },
 });
 
@@ -185,6 +217,13 @@ const currentItem = computed(() => props.session.items[currentItemIndex.value] ?
 const completedCount = computed(() => completedItemIds.value.length);
 const allItemsComplete = computed(() => completedCount.value >= props.session.items.length);
 const displayItemNumber = computed(() => Math.min(currentItemIndex.value + 1, props.session.items.length));
+const currentItemUsesVennVisuals = computed(() =>
+  ['venn', 'equivalence', 'simplification'].includes(currentItem.value?.challengeMode),
+);
+const showDetailedLabelsModel = computed({
+  get: () => props.showDetailedLabels,
+  set: (value) => emit('update:showDetailedLabels', value),
+});
 const currentAssignmentContext = computed(() =>
   buildAssignmentSubmissionContext(
     {

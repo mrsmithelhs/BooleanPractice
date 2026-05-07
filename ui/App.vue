@@ -25,7 +25,10 @@
     </header>
 
     <main class="layout layout--assignment">
-      <AssignmentPractice :session="assignmentSession" />
+      <AssignmentPractice
+        v-model:show-detailed-labels="showVennDetailedLabels"
+        :session="assignmentSession"
+      />
     </main>
   </div>
 
@@ -133,14 +136,17 @@
           <VennPractice
             v-else-if="selectedMode === 'venn'"
             :problem="selectedRecord"
+            :show-detailed-labels="showVennDetailedLabels"
           />
           <EquivalencePractice
             v-else-if="selectedMode === 'equivalence'"
             :challenge="selectedRecord"
+            :show-detailed-labels="showVennDetailedLabels"
           />
           <SimplificationPractice
             v-else-if="selectedMode === 'simplification'"
             :challenge="selectedRecord"
+            :show-detailed-labels="showVennDetailedLabels"
           />
         </template>
 
@@ -211,6 +217,26 @@
                 {{ mode.label }}
               </option>
             </select>
+          </label>
+
+          <label class="field field--full field--toggle">
+            <div class="field__label">
+              Venn labels
+            </div>
+            <div class="field__toggle">
+              <input
+                v-model="showVennDetailedLabels"
+                type="checkbox"
+                name="show-venn-labels"
+                aria-label="Show detailed Venn labels"
+                data-testid="venn-label-toggle"
+              >
+              <span>Show detailed Venn region labels</span>
+            </div>
+            <div class="field__help">
+              Circle identifiers stay visible. Region labels, bit patterns, and extra text are
+              optional.
+            </div>
           </label>
 
           <label class="field field--full">
@@ -391,6 +417,7 @@ const modeOptions = [
 const selectedDifficulty = ref('easy');
 const selectedMode = ref('truth-table');
 const selectedRecordId = ref('');
+const showVennDetailedLabels = ref(false);
 const feedbackMessage = ref('Choose a difficulty and mode to load a problem.');
 const assignmentBootstrapContext = readAssignmentBootstrapContext();
 const assignmentSession = assignmentBootstrapContext

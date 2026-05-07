@@ -32,6 +32,8 @@ describe('venn practice', () => {
     expect(wrapper.findAll('[data-testid^="venn-region-"]')).toHaveLength(8);
     expect(wrapper.find('.venn-diagram__stage').exists()).toBe(true);
     expect(wrapper.find('.venn-diagram__legend').exists()).toBe(true);
+    expect(wrapper.find('button.venn-diagram__region').exists()).toBe(false);
+    expect(wrapper.get('[data-testid="venn-region-0"]').element.tagName.toLowerCase()).toBe('rect');
 
     const region = wrapper.get('[data-testid="venn-region-0"]');
     expect(region.attributes('aria-pressed')).toBe('false');
@@ -41,6 +43,34 @@ describe('venn practice', () => {
 
     await region.trigger('keydown.space');
     expect(region.attributes('aria-pressed')).toBe('false');
+  });
+
+  it('hides detailed region labels by default and reveals them when enabled', async () => {
+    const wrapper = mount(VennPractice, {
+      props: { problem: getProblemById('tt-09-three-variable-venn') },
+    });
+
+    await nextTick();
+
+    expect(wrapper.find('.venn-diagram__region-label').exists()).toBe(false);
+    expect(wrapper.find('.venn-diagram__region-bits').exists()).toBe(false);
+    expect(wrapper.find('.venn-diagram__region-state').exists()).toBe(false);
+    expect(wrapper.findAll('.venn-diagram__circle-label')).toHaveLength(3);
+    expect(wrapper.findAll('.venn-diagram__circle-label').map((label) => label.text())).toEqual([
+      'a',
+      'b',
+      'c',
+    ]);
+    expect(wrapper.get('[data-testid="venn-region-0"]').attributes('aria-label')).toContain(
+      'outside all sets',
+    );
+
+    await wrapper.setProps({ showDetailedLabels: true });
+    await nextTick();
+
+    expect(wrapper.find('.venn-diagram__region-label').exists()).toBe(true);
+    expect(wrapper.find('.venn-diagram__region-bits').exists()).toBe(true);
+    expect(wrapper.find('.venn-diagram__region-state').exists()).toBe(true);
   });
 
   it('reports missed and extra regions and advances through the final step', async () => {

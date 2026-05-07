@@ -27,7 +27,10 @@ describe('equivalence practice', () => {
 
   it('switches to venn proof mode and reports the first differing region for a near miss', async () => {
     const wrapper = mount(EquivalencePractice, {
-      props: { challenge: getEquivalenceChallengeById('eq-07-near-miss-and-or') },
+      props: {
+        challenge: getEquivalenceChallengeById('eq-07-near-miss-and-or'),
+        showDetailedLabels: true,
+      },
     });
 
     await nextTick();
@@ -38,6 +41,10 @@ describe('equivalence practice', () => {
     expect(wrapper.get('[data-testid="equivalence-first-difference"]').text()).toContain('Region');
     expect(wrapper.findAll('[data-testid^="equivalence-proof-left-region-"]')).toHaveLength(4);
     expect(wrapper.findAll('[data-testid^="equivalence-proof-right-region-"]')).toHaveLength(4);
+    expect(
+      wrapper.get('[data-testid="equivalence-proof-left-region-0"]').element.tagName.toLowerCase(),
+    ).toBe('rect');
+    expect(wrapper.find('.venn-diagram__region-label').exists()).toBe(true);
 
     await wrapper.get('[data-testid="equivalence-choice-not-equivalent"]').trigger('click');
     await wrapper.get('[data-testid="equivalence-check"]').trigger('click');

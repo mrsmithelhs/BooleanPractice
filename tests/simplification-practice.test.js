@@ -7,7 +7,10 @@ import SimplificationPractice from '@/components/SimplificationPractice.vue';
 describe('simplification practice', () => {
   it('checks a valid simpler guess and supports proof mode switching', async () => {
     const wrapper = mount(SimplificationPractice, {
-      props: { challenge: getSimplificationChallengeById('tt-12-identity-and-true') },
+      props: {
+        challenge: getSimplificationChallengeById('tt-12-identity-and-true'),
+        showDetailedLabels: true,
+      },
     });
 
     await nextTick();
@@ -28,6 +31,10 @@ describe('simplification practice', () => {
 
     expect(wrapper.findAll('[data-testid^="simplification-proof-original-region-"]')).toHaveLength(2);
     expect(wrapper.findAll('[data-testid^="simplification-proof-guess-region-"]')).toHaveLength(2);
+    expect(
+      wrapper.get('[data-testid="simplification-proof-original-region-0"]').element.tagName.toLowerCase(),
+    ).toBe('rect');
+    expect(wrapper.find('.venn-diagram__region-label').exists()).toBe(true);
   });
 
   it('reports parser feedback for invalid syntax and a counterexample for a wrong guess', async () => {

@@ -37,6 +37,40 @@ function buildAssignmentWorkbook() {
   };
 }
 
+function buildVennAssignmentWorkbook() {
+  return {
+    assignments: [
+      {
+        assignmentId: 'assignment-2',
+        title: 'Assignment Two',
+        sequence: 1,
+        active: true,
+      },
+    ],
+    assignmentItems: [
+      {
+        assignmentItemId: 'assignment-2-item-1',
+        assignmentId: 'assignment-2',
+        sequence: 1,
+        challengeMode: 'venn',
+        challengeId: 'tt-09-three-variable-venn',
+        active: true,
+      },
+    ],
+    roster: [
+      {
+        studentEmail: 'student@example.com',
+        studentName: 'Student One',
+        className: 'Period 1',
+        section: 'A',
+        assignmentId: 'assignment-2',
+        active: true,
+      },
+    ],
+    submissions: [],
+  };
+}
+
 describe('app shell', () => {
   beforeEach(() => {
     delete globalThis.__BOOLEAN_PRACTICE_ASSIGNMENT_CONTEXT__;
@@ -51,6 +85,7 @@ describe('app shell', () => {
     expect(wrapper.get('[data-testid="truth-table-practice"]').exists()).toBe(true);
     expect(wrapper.find('header.hero').exists()).toBe(false);
     expect(wrapper.get('[data-testid="problem-details"]').exists()).toBe(true);
+    expect(wrapper.get('[data-testid="venn-label-toggle"]').element.checked).toBe(false);
     expect(wrapper.get('[data-testid="truth-table-feedback"]').text()).toContain(
       'Work through a.',
     );
@@ -69,6 +104,12 @@ describe('app shell', () => {
     expect(wrapper.find('[data-testid="truth-table-practice"]').exists()).toBe(false);
     expect(wrapper.get('[data-testid="venn-practice"]').exists()).toBe(true);
     expect(wrapper.get('[data-testid="venn-practice"] .venn-diagram__stage').exists()).toBe(true);
+    expect(wrapper.find('.venn-diagram__region-label').exists()).toBe(false);
+
+    await wrapper.get('[data-testid="venn-label-toggle"]').setValue(true);
+    await nextTick();
+
+    expect(wrapper.find('.venn-diagram__region-label').exists()).toBe(true);
   });
 
   it('loads the equivalence practice panel and swaps challenge sets by filter', async () => {
@@ -138,5 +179,31 @@ describe('app shell', () => {
       true,
     );
     expect(wrapper.find('select[name="mode"]').exists()).toBe(false);
+  });
+
+  it('keeps detailed venn labels hidden by default but lets assignment mode toggle them on', async () => {
+    globalThis.__BOOLEAN_PRACTICE_ASSIGNMENT_CONTEXT__ = {
+      workbook: buildVennAssignmentWorkbook(),
+      assignmentId: 'assignment-2',
+      student: {
+        email: 'student@example.com',
+      },
+      request: {
+        assignmentId: 'assignment-2',
+      },
+    };
+
+    const wrapper = mount(App);
+
+    await nextTick();
+
+    expect(wrapper.get('[data-testid="assignment-practice"]').exists()).toBe(true);
+    expect(wrapper.get('[data-testid="assignment-venn-label-toggle"]').element.checked).toBe(false);
+    expect(wrapper.find('.venn-diagram__region-label').exists()).toBe(false);
+
+    await wrapper.get('[data-testid="assignment-venn-label-toggle"]').setValue(true);
+    await nextTick();
+
+    expect(wrapper.find('.venn-diagram__region-label').exists()).toBe(true);
   });
 });

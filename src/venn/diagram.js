@@ -176,6 +176,25 @@ function getRegionDisplayLabel(bits, variables) {
   return `inside ${activeVariables.join(' and ')} only`;
 }
 
+function getRegionMembership(bits, variables) {
+  const includedVariables = [];
+  const excludedVariables = [];
+
+  bits.split('').forEach((bit, index) => {
+    if (bit === '1') {
+      includedVariables.push(variables[index]);
+      return;
+    }
+
+    excludedVariables.push(variables[index]);
+  });
+
+  return {
+    includedVariables,
+    excludedVariables,
+  };
+}
+
 function resolveRegionState(state) {
   return STATE_LABELS[state] ?? STATE_LABELS.neutral;
 }
@@ -207,6 +226,7 @@ export function buildVennDiagramModel(blueprint, { stateByRegionId = {}, focusRe
       const anchor = getRegionAnchor(region.id, variableCount);
       const displayLabel = getRegionDisplayLabel(region.bits, blueprint.variables);
       const stateLabel = resolveRegionState(state);
+      const membership = getRegionMembership(region.bits, blueprint.variables);
 
       return {
         ...region,
@@ -217,6 +237,7 @@ export function buildVennDiagramModel(blueprint, { stateByRegionId = {}, focusRe
         stateLabel,
         ariaLabel: buildRegionAriaLabel(region, stateLabel, displayLabel),
         anchor,
+        ...membership,
       };
     }),
   };
@@ -233,4 +254,3 @@ export function getVennDiagramRegionAnchor(regionId, variableCount) {
 export function getVennDiagramRegionDisplayLabel(bits, variables) {
   return getRegionDisplayLabel(bits, variables);
 }
-

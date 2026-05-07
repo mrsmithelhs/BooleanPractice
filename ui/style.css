@@ -338,6 +338,46 @@ body::after {
   grid-column: 1 / -1;
 }
 
+.field--toggle {
+  padding: 0.8rem 0.9rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(146, 183, 255, 0.2);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02)),
+    rgba(255, 255, 255, 0.02);
+}
+
+.field__label {
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.field__toggle {
+  display: inline-flex;
+  gap: 0.55rem;
+  align-items: flex-start;
+  color: var(--text);
+  font-size: 0.93rem;
+  line-height: 1.25;
+}
+
+.field__toggle span {
+  color: var(--text);
+  font-size: inherit;
+}
+
+.field__toggle input {
+  margin-top: 0.15rem;
+  accent-color: var(--accent);
+}
+
+.field__help {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
 .status,
 .placeholder-note,
 .placeholder-copy,
@@ -774,6 +814,10 @@ body::after {
 
 .assignment-practice__summary-grid .mini-card {
   align-self: start;
+}
+
+.assignment-practice__toggle-card {
+  grid-column: 1 / -1;
 }
 
 .assignment-practice__details {
@@ -1374,100 +1418,101 @@ select:focus-visible {
   text-transform: uppercase;
 }
 
-.venn-diagram__regions {
-  position: absolute;
-  inset: 0;
+.venn-diagram__region-layer {
+  isolation: isolate;
 }
 
-.venn-diagram__region {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  display: grid;
-  gap: 0.08rem;
-  align-content: center;
-  justify-items: center;
-  padding: 0.35rem 0.5rem;
-  border-radius: 999px;
-  border: 1px solid rgba(146, 183, 255, 0.26);
-  background:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.07), transparent 64%),
-    rgba(255, 255, 255, 0.04);
-  color: inherit;
-  text-align: center;
-  line-height: 1.05;
-  backdrop-filter: blur(8px);
+.venn-diagram__text-layer {
+  isolation: isolate;
 }
 
-.venn-diagram__region--interactive:hover {
-  border-color: rgba(152, 192, 255, 0.56);
-  transform: translate(-50%, -50%) translateY(-1px);
+.venn-diagram__region-hit {
+  fill: rgba(255, 255, 255, 0.01);
+  stroke: rgba(146, 183, 255, 0.12);
+  stroke-width: 0.7;
+  transition:
+    fill 120ms ease,
+    stroke 120ms ease,
+    opacity 120ms ease,
+    filter 120ms ease;
 }
 
-.venn-diagram__region:focus-visible {
-  outline: 3px solid rgba(109, 174, 255, 0.78);
-  outline-offset: 2px;
+.venn-diagram__region-hit--interactive {
+  cursor: pointer;
+  pointer-events: all;
 }
 
-.venn-diagram__region--selected {
-  border-color: rgba(109, 174, 255, 0.84);
-  background:
-    radial-gradient(circle at top, rgba(109, 174, 255, 0.24), transparent 60%),
-    rgba(255, 255, 255, 0.06);
+.venn-diagram__region-hit--interactive:hover {
+  stroke: rgba(152, 192, 255, 0.42);
+  filter: drop-shadow(0 6px 10px rgba(4, 10, 22, 0.18));
 }
 
-.venn-diagram__region--correct {
-  border-color: rgba(95, 255, 171, 0.84);
-  background:
-    radial-gradient(circle at top, rgba(95, 255, 171, 0.18), transparent 60%),
-    rgba(255, 255, 255, 0.05);
+.venn-diagram__region-hit:focus-visible {
+  outline: none;
+  stroke: rgba(109, 174, 255, 0.95);
+  stroke-width: 1.2;
+  filter: drop-shadow(0 0 0.8rem rgba(109, 174, 255, 0.3));
 }
 
-.venn-diagram__region--missed {
-  border-color: rgba(255, 180, 76, 0.9);
-  background:
-    radial-gradient(circle at top, rgba(255, 180, 76, 0.18), transparent 60%),
-    rgba(255, 255, 255, 0.05);
+.venn-diagram__region-hit--selected {
+  fill: rgba(109, 174, 255, 0.28);
+  stroke: rgba(109, 174, 255, 0.7);
 }
 
-.venn-diagram__region--extra {
-  border-color: rgba(255, 108, 108, 0.92);
-  background:
-    radial-gradient(circle at top, rgba(255, 108, 108, 0.18), transparent 60%),
-    rgba(255, 255, 255, 0.05);
+.venn-diagram__region-hit--correct {
+  fill: rgba(95, 255, 171, 0.22);
+  stroke: rgba(95, 255, 171, 0.72);
 }
 
-.venn-diagram__region--available {
-  color: rgba(243, 247, 255, 0.92);
+.venn-diagram__region-hit--missed {
+  fill: rgba(255, 180, 76, 0.2);
+  stroke: rgba(255, 180, 76, 0.78);
 }
 
-.venn-diagram__region--locked {
+.venn-diagram__region-hit--extra {
+  fill: rgba(255, 108, 108, 0.2);
+  stroke: rgba(255, 108, 108, 0.8);
+}
+
+.venn-diagram__region-hit--available {
+  fill: rgba(255, 255, 255, 0.01);
+}
+
+.venn-diagram__region-hit--locked {
   opacity: 0.76;
 }
 
-.venn-diagram__region--focused {
-  box-shadow: 0 0 0 1px rgba(109, 174, 255, 0.38) inset;
+.venn-diagram__region-hit--focused {
+  stroke-width: 1.15;
+}
+
+.venn-diagram__region-label-group {
+  fill: var(--text);
+  text-anchor: middle;
 }
 
 .venn-diagram__region-icon {
-  font-size: 0.95rem;
+  fill: var(--accent);
+  font-size: 4px;
   font-weight: 800;
+  letter-spacing: 0.06em;
 }
 
 .venn-diagram__region-label {
-  font-size: 0.86rem;
+  fill: var(--text);
+  font-size: 3.6px;
   font-weight: 800;
-  word-break: break-word;
 }
 
 .venn-diagram__region-bits {
-  font-size: 0.68rem;
-  color: var(--text-soft);
+  fill: var(--text-soft);
+  font-size: 2.5px;
   letter-spacing: 0.12em;
 }
 
 .venn-diagram__region-state {
-  font-size: 0.66rem;
-  color: var(--text-muted);
+  fill: var(--text-muted);
+  font-size: 2.2px;
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
@@ -1588,8 +1633,8 @@ select:focus-visible {
     min-height: 19rem;
   }
 
-  .venn-diagram__region {
-    padding: 0.28rem 0.42rem;
+  .venn-diagram__region-hit {
+    stroke-width: 0.6;
   }
 
   .venn-diagram__region-label {
