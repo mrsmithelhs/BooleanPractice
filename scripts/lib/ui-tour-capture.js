@@ -870,19 +870,81 @@ export function buildTourMarkdown(manifest) {
 }
 
 export function buildReviewStartingPrompt(manifest) {
+  const captureFolder = manifest.outputFolder || 'local/ui-reviews/<capture-folder>/';
+  const reviewsFolder = `${captureFolder.replace(/\/?$/, '/')}${REVIEW_SUBFOLDER}/`;
+
   return [
     '# Blind Review Starting Prompt',
     '',
-    'You are a fresh UI consultant reviewing only the screenshots and tour metadata in this folder.',
+    'You are a fresh UI expert with deep experience reviewing data-driven educational web apps.',
     'Do not inspect the codebase, project docs outside this folder, tests, package files, or git history.',
-    'Read `tour.md` first, inspect the screenshots in order, ignore review subfolders created by other agents, and create a unique subfolder under `reviews/`.',
+    `Capture folder: \`${captureFolder}\``,
+    `Review subfolders: \`${reviewsFolder}\``,
+    `Read \`tour.md\` first, inspect the screenshots in order, ignore review subfolders created by other agents, and create a unique subfolder under \`${reviewsFolder}\`.`,
     'Write per-screenshot notes before writing any summary, and re-read those notes before drawing final patterns or recommendations.',
     '',
     `Project: ${manifest.projectName}`,
     `Capture time: ${manifest.captureDateTime}`,
     `App target: ${manifest.appTarget}`,
     '',
-    'Focus on confusing UI, missing affordances, visual hierarchy, responsiveness, accessibility, transitions, and whether the interface tells the story clearly.',
+    'As you review, look for confusing UI, overwhelming UI, missing but expected UI elements, poor transitions from one app state to another, mis-labeled UI, over-explanatory text, opportunities to show instead of telling, color choices, UI cohesiveness, iconography or places where iconography could replace text, accessibility issues, and any other UI concern an experienced reviewer would naturally investigate.',
+    'You do not need to comment on every category, but you should consider all of them while forming your judgment.',
     'Distinguish "I cannot tell" from "this is wrong."',
+    '',
+    'When you record a finding, include:',
+    '- severity: blocker, high, medium, or low',
+    '- confidence: high, medium, or low',
+    '- affected screenshot numbers',
+    '- likely user impact',
+    '- suggested fix direction',
+  ].join('\n');
+}
+
+export function buildSynthesisStartingPrompt(manifest) {
+  const captureFolder = manifest.outputFolder || 'local/ui-reviews/<capture-folder>/';
+  const reviewsFolder = `${captureFolder.replace(/\/?$/, '/')}${REVIEW_SUBFOLDER}/`;
+
+  return [
+    '# UI Review Synthesis Starting Prompt',
+    '',
+    'You are a senior UI review synthesizer with strong experience in data-driven educational web apps.',
+    'Your job is to read this capture folder, compare the blind-review outputs, and produce an implementation-ready handoff.',
+    'Use the screenshots, manifest, tour notes, and reviewer subfolders as your evidence base.',
+    'You may use the broader app context already available to you, but do not invent issues that are not supported by the review evidence.',
+    'Preserve reviewer disagreement when it matters, and separate confirmed findings from weak or conflicting ones.',
+    `Capture folder: \`${captureFolder}\``,
+    `Review subfolders: \`${reviewsFolder}\``,
+    '',
+    `Project: ${manifest.projectName}`,
+    `Capture time: ${manifest.captureDateTime}`,
+    `App target: ${manifest.appTarget}`,
+    '',
+    'What to consider while synthesizing:',
+    '- confusing UI',
+    '- overwhelming UI',
+    '- missing but expected UI elements',
+    '- poor transitions from one app state to another',
+    '- mis-labeled UI',
+    '- over-explanatory text',
+    '- opportunities to show instead of telling',
+    '- color choices',
+    '- UI cohesiveness',
+    '- iconography opportunities that could replace or reduce text',
+    '- any other expert-level UI concern worth surfacing',
+    '',
+    'For each finding, include:',
+    '- severity: blocker, high, medium, or low',
+    '- confidence: high, medium, or low',
+    '- affected screenshot numbers',
+    '- likely user impact',
+    '- suggested fix direction',
+    '',
+    'Expected synthesis outputs:',
+    '- summary.md',
+    '- prioritized-findings.md',
+    '- finding-index.json',
+    '- proposed-fix-packets.md when the evidence is strong enough',
+    '',
+    'Treat this as a triage and handoff step, not a second blind review.',
   ].join('\n');
 }

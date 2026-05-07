@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(New-Item -ItemType Directory -Path \"C:\\\\AI\\\\BooleanPractice\\\\reviews\\\\blind-2026-05-06T20-25-07\" -Force)",
+      "Bash(Select-Object FullName)"
+    ]
+  }
+}

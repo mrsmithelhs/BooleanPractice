@@ -3,8 +3,8 @@
     v-if="assignmentSession?.status === 'ready'"
     class="shell"
   >
-    <header class="hero panel panel--hero">
-      <div class="hero__copy">
+    <header class="workspace-bar panel panel--compact">
+      <div class="workspace-bar__copy">
         <p class="eyebrow">
           Boolean Practice
         </p>
@@ -12,73 +12,20 @@
         <p class="lede">
           {{ assignmentHeroText }}
         </p>
-        <div
-          class="hero__chips"
-          aria-label="Assignment details"
-        >
-          <span class="badge">Sheets Assignment</span>
-          <span class="badge badge--subtle">{{ assignmentSession.assignment.itemCount }} items</span>
-          <span class="badge badge--subtle">{{ assignmentStudentLabel }}</span>
-          <span class="badge badge--subtle">{{ assignmentSession.assignment.assignmentId }}</span>
-        </div>
       </div>
-      <aside
-        class="hero-card"
-        aria-label="Current assignment summary"
+      <div
+        class="workspace-bar__chips"
+        aria-label="Assignment details"
       >
-        <span class="hero-card__label">Assignment overview</span>
-        <strong class="hero-card__title">
-          {{ assignmentSession.currentItem ? assignmentSession.currentItem.challenge.title : 'All items complete' }}
-        </strong>
-        <p class="hero-card__description">
-          {{ assignmentSession.currentItem?.challenge.expression ?? 'Every queued item has been completed.' }}
-        </p>
-
-        <div class="hero-card__grid">
-          <article class="hero-stat">
-            <span class="hero-stat__label">Current mode</span>
-            <strong>{{ assignmentSession.currentItem?.challengeMode ?? 'done' }}</strong>
-          </article>
-          <article class="hero-stat">
-            <span class="hero-stat__label">Queue size</span>
-            <strong>{{ assignmentSession.items.length }}</strong>
-          </article>
-          <article class="hero-stat">
-            <span class="hero-stat__label">Student</span>
-            <strong>{{ assignmentStudentLabelShort }}</strong>
-          </article>
-          <article class="hero-stat">
-            <span class="hero-stat__label">Roster</span>
-            <strong>{{ assignmentRosterLabel }}</strong>
-          </article>
-        </div>
-      </aside>
+        <span class="badge">Sheets Assignment</span>
+        <span class="badge badge--subtle">{{ assignmentSession.assignment.itemCount }} items</span>
+        <span class="badge badge--subtle">{{ assignmentStudentLabelShort }}</span>
+        <span class="badge badge--subtle">{{ assignmentSession.assignment.assignmentId }}</span>
+      </div>
     </header>
 
     <main class="layout layout--assignment">
-      <section
-        class="panel panel--primary"
-        aria-labelledby="assignment-heading"
-      >
-        <div class="panel__header">
-          <div>
-            <p class="panel__eyebrow">
-              Assignment queue
-            </p>
-            <h2 id="assignment-heading">
-              Sheets-authored sequence
-            </h2>
-            <p class="panel__lede">
-              The student sees the same shared practice components, but the sequence comes from the
-              spreadsheet and stays locked to the assigned queue.
-            </p>
-          </div>
-        </div>
-
-        <AssignmentPractice
-          :session="assignmentSession"
-        />
-      </section>
+      <AssignmentPractice :session="assignmentSession" />
     </main>
   </div>
 
@@ -86,8 +33,8 @@
     v-else-if="assignmentSession?.status === 'error'"
     class="shell"
   >
-    <header class="hero panel panel--hero">
-      <div class="hero__copy">
+    <header class="workspace-bar panel panel--compact">
+      <div class="workspace-bar__copy">
         <p class="eyebrow">
           Boolean Practice
         </p>
@@ -96,25 +43,11 @@
           The Sheets workbook could not be loaded safely, so the assignment view is blocked until
           the data is corrected.
         </p>
-        <div class="hero__chips">
-          <span class="badge">Sheets Assignment</span>
-          <span class="badge badge--subtle">Validation error</span>
-        </div>
       </div>
-      <aside
-        class="hero-card"
-        aria-label="Assignment errors"
-      >
-        <span class="hero-card__label">Validation details</span>
-        <ul class="assignment-error-list">
-          <li
-            v-for="error in assignmentSession.errors"
-            :key="error"
-          >
-            {{ error }}
-          </li>
-        </ul>
-      </aside>
+      <div class="workspace-bar__chips">
+        <span class="badge">Sheets Assignment</span>
+        <span class="badge badge--subtle">Validation error</span>
+      </div>
     </header>
 
     <main class="layout">
@@ -125,6 +58,23 @@
             Check the workbook schema, item ids, and active rows in the Sheets assignment tabs.
           </p>
         </div>
+
+        <details
+          class="details-card"
+          data-testid="assignment-error-details"
+        >
+          <summary class="details-card__summary">
+            Validation details
+          </summary>
+          <ul class="assignment-error-list">
+            <li
+              v-for="error in assignmentSession.errors"
+              :key="error"
+            >
+              {{ error }}
+            </li>
+          </ul>
+        </details>
       </section>
     </main>
   </div>
@@ -133,75 +83,97 @@
     v-else
     class="shell"
   >
-    <header class="hero panel panel--hero">
-      <div class="hero__copy">
+    <header class="workspace-bar panel panel--compact">
+      <div class="workspace-bar__copy">
         <p class="eyebrow">
           Boolean Practice
         </p>
-        <h1>Practice boolean reasoning with one shared problem source.</h1>
+        <h1>Practice workspace</h1>
         <p class="lede">
-          Choose a difficulty, choose a mode, and work from the same curated catalog that powers
-          truth tables and Venn diagrams.
+          Focus on the active problem first. Controls and details stay available, but they do not
+          compete with the work surface.
         </p>
-        <div
-          class="hero__chips"
-          aria-label="Learning systems"
-        >
-          <span class="badge">Shared semantics</span>
-          <span class="badge badge--subtle">Truth tables</span>
-          <span class="badge badge--subtle">Three-variable Venn</span>
-          <span class="badge badge--subtle">Equivalence proofs</span>
-        </div>
       </div>
-      <aside
-        class="hero-card"
+      <div
+        class="workspace-bar__chips"
         aria-label="Current selection summary"
       >
-        <span class="hero-card__label">Session overview</span>
-        <strong class="hero-card__title">
-          {{ selectedRecord ? `${selectedRecordLabel} #${selectedRecord.sequence}` : `No ${selectedRecordLabel.toLowerCase()} selected` }}
-        </strong>
-        <p class="hero-card__description">
-          {{ selectedRecord?.title ?? 'Adjust the filters to load a compatible record.' }}
-        </p>
-
-        <div class="hero-card__grid">
-          <article class="hero-stat">
-            <span class="hero-stat__label">Mode</span>
-            <strong>{{ selectedModeLabel }}</strong>
-          </article>
-          <article class="hero-stat">
-            <span class="hero-stat__label">Difficulty</span>
-            <strong>{{ selectedDifficultyLabel }}</strong>
-          </article>
-          <article class="hero-stat">
-            <span class="hero-stat__label">Compatible</span>
-            <strong>{{ filteredRecords.length }}</strong>
-          </article>
-          <article class="hero-stat">
-            <span class="hero-stat__label">Concept</span>
-            <strong>{{ selectedConceptTag }}</strong>
-          </article>
-        </div>
-      </aside>
+        <span class="badge">Shared semantics</span>
+        <span class="badge badge--subtle">{{ selectedModeLabel }}</span>
+        <span class="badge badge--subtle">{{ selectedDifficultyLabel }}</span>
+        <span class="badge badge--subtle">{{ selectedConceptTag }}</span>
+      </div>
     </header>
 
-    <main class="layout">
+    <main class="layout layout--practice">
       <section
-        class="panel"
+        class="panel panel--primary panel--practice"
+        aria-labelledby="practice-heading"
+      >
+        <div class="panel__header">
+          <div>
+            <p class="panel__eyebrow">
+              Practice workspace
+            </p>
+            <h2 id="practice-heading">
+              Active problem
+            </h2>
+            <p class="panel__lede">
+              The active learning surface responds to the selected mode while keeping the shared
+              semantics consistent.
+            </p>
+          </div>
+        </div>
+
+        <template v-if="selectedRecord">
+          <TruthTablePractice
+            v-if="selectedMode === 'truth-table'"
+            :problem="selectedRecord"
+          />
+          <VennPractice
+            v-else-if="selectedMode === 'venn'"
+            :problem="selectedRecord"
+          />
+          <EquivalencePractice
+            v-else-if="selectedMode === 'equivalence'"
+            :challenge="selectedRecord"
+          />
+          <SimplificationPractice
+            v-else-if="selectedMode === 'simplification'"
+            :challenge="selectedRecord"
+          />
+        </template>
+
+        <div
+          v-else
+          class="placeholder-state"
+        >
+          <p class="placeholder-copy">
+            The selected practice surface appears here for the current mode, including
+            equivalence and simplification challenges.
+          </p>
+          <p class="placeholder-note">
+            Choose a mode to try the matching practice surface, equivalence challenge, or
+            simplification guess mode.
+          </p>
+        </div>
+      </section>
+
+      <section
+        class="panel panel--context"
         aria-labelledby="controls-heading"
       >
         <div class="panel__header">
           <div>
             <p class="panel__eyebrow">
-              Session controls
+              Student controls
             </p>
             <h2 id="controls-heading">
-              {{ selectedRecordLabel }} Controls
+              Load another problem
             </h2>
             <p class="panel__lede">
-              Filter the shared challenge set by difficulty and mode. The same immutable data powers
-              the practice views and the equivalence mode.
+              Filter the shared challenge set by difficulty and mode. The same immutable data
+              powers the practice views and the equivalence mode.
             </p>
           </div>
         </div>
@@ -242,11 +214,11 @@
           </label>
 
           <label class="field field--full">
-            <span>{{ selectedRecordLabel }}</span>
+            <span>Problem</span>
             <select
               v-model="selectedRecordId"
               name="problem"
-              :aria-label="selectedRecordLabel"
+              aria-label="Problem"
               :disabled="filteredRecords.length === 0"
             >
               <option
@@ -267,183 +239,122 @@
         >
           {{ feedbackMessage }}
         </p>
-      </section>
 
-      <section
-        class="panel panel--primary"
-        aria-labelledby="problem-heading"
-      >
-        <div class="panel__header">
-          <div>
-            <p class="panel__eyebrow">
-              {{ selectedRecordLabel }} card
-            </p>
-            <h2 id="problem-heading">
-              Current {{ selectedRecordLabel }}
-            </h2>
-            <p class="panel__lede">
-              The expression pair, mode support, and hints stay attached to the same immutable
-              record.
-            </p>
-          </div>
-        </div>
-
-        <template v-if="selectedRecord">
-          <div
-            class="expression-card"
-            data-testid="expression-card"
-          >
-            <div class="expression-card__meta">
-              <span class="badge">#{{ selectedRecord.sequence }}</span>
-              <span class="badge badge--subtle">{{ selectedRecord.difficulty }}</span>
-            </div>
-            <h3>{{ selectedRecord.title }}</h3>
-            <p class="expression">
-              {{ selectedRecord.expression }}
-            </p>
-          </div>
-
-          <div class="info-grid">
-            <article class="mini-card">
-              <h3>Concept Tags</h3>
-              <ul>
-                <li
-                  v-for="tag in selectedRecord.conceptTags"
-                  :key="tag"
-                >
-                  {{ tag }}
-                </li>
-              </ul>
-            </article>
-
-            <article class="mini-card">
-              <h3>Supported Modes</h3>
-              <ul>
-                <li
-                  v-for="mode in selectedRecord.supportedModes"
-                  :key="mode"
-                >
-                  {{ mode }}
-                </li>
-              </ul>
-            </article>
-
-            <article class="mini-card">
-              <h3>Variables</h3>
-              <p>{{ selectedRecord.variables.join(', ') }}</p>
-            </article>
-
-            <article
-              class="mini-card"
-              data-testid="numeric-variable-note"
-            >
-              <h3>Numeric Variables</h3>
-              <p>{{ numericVariableTeachingCopy.lede }}</p>
-              <ul>
-                <li
-                  v-for="point in numericVariableTeachingCopy.points"
-                  :key="point"
-                >
-                  {{ point }}
-                </li>
-              </ul>
-            </article>
-
-            <article
-              v-if="selectedRecord.predicateAtoms?.length"
-              class="mini-card"
-            >
-              <h3>Predicate Atoms</h3>
-              <ul>
-                <li
-                  v-for="atom in selectedRecord.predicateAtoms"
-                  :key="atom.variable"
-                >
-                  <strong>{{ atom.alias }}:</strong> {{ atom.predicate }}
-                </li>
-              </ul>
-            </article>
-
-            <article class="mini-card">
-              <h3>Catalog Metadata</h3>
-              <ul>
-                <li>Variable count: {{ selectedRecord.variableCount }}</li>
-                <li>Law family: {{ selectedRecord.lawFamily }}</li>
-                <li>Estimated complexity: {{ selectedRecord.estimatedComplexity }}/5</li>
-                <li>Equivalence ready: {{ booleanLabel(selectedRecord.equivalenceReady) }}</li>
-                <li>Simplification ready: {{ booleanLabel(selectedRecord.simplificationReady) }}</li>
-              </ul>
-            </article>
-          </div>
-
-          <div class="hints">
-            <h3>Hints</h3>
-            <ol>
-              <li
-                v-for="hint in selectedRecord.hints"
-                :key="hint"
-              >
-                {{ hint }}
-              </li>
-            </ol>
-          </div>
-        </template>
-
-        <template v-else>
-          <p class="empty-state">
-            No problems match the current filters.
-          </p>
-        </template>
-      </section>
-
-      <section
-        class="panel"
-        aria-labelledby="practice-heading"
-      >
-        <div class="panel__header">
-          <div>
-            <p class="panel__eyebrow">
-              Practice workspace
-            </p>
-            <h2 id="practice-heading">
-              Practice Panel
-            </h2>
-            <p class="panel__lede">
-              The active learning surface responds to the selected mode while keeping the shared
-              semantics consistent.
-            </p>
-          </div>
-        </div>
-        <TruthTablePractice
-          v-if="selectedMode === 'truth-table' && selectedRecord"
-          :problem="selectedRecord"
-        />
-        <VennPractice
-          v-else-if="selectedMode === 'venn' && selectedRecord"
-          :problem="selectedRecord"
-        />
-        <EquivalencePractice
-          v-else-if="selectedMode === 'equivalence' && selectedRecord"
-          :challenge="selectedRecord"
-        />
-        <SimplificationPractice
-          v-else-if="selectedMode === 'simplification' && selectedRecord"
-          :challenge="selectedRecord"
-        />
-
-        <div
-          v-else
-          class="placeholder-state"
+        <details
+          class="details-card"
+          data-testid="problem-details"
         >
-          <p class="placeholder-copy">
-            The selected practice surface appears here for the current mode, including
-            equivalence and simplification challenges.
-          </p>
-          <p class="placeholder-note">
-            Choose a mode to try the matching practice surface, equivalence challenge, or
-            simplification guess mode.
-          </p>
-        </div>
+          <summary class="details-card__summary">
+            Problem details
+          </summary>
+
+          <template v-if="selectedRecord">
+            <div
+              class="expression-card expression-card--compact"
+              data-testid="expression-card"
+            >
+              <div class="expression-card__meta">
+                <span class="badge">#{{ selectedRecord.sequence }}</span>
+                <span class="badge badge--subtle">{{ selectedRecord.difficulty }}</span>
+              </div>
+              <h3>{{ selectedRecord.title }}</h3>
+              <p class="expression">
+                {{ selectedRecord.expression }}
+              </p>
+            </div>
+
+            <div class="info-grid">
+              <article class="mini-card">
+                <h3>Concept Tags</h3>
+                <ul>
+                  <li
+                    v-for="tag in selectedRecord.conceptTags"
+                    :key="tag"
+                  >
+                    {{ tag }}
+                  </li>
+                </ul>
+              </article>
+
+              <article class="mini-card">
+                <h3>Supported Modes</h3>
+                <ul>
+                  <li
+                    v-for="mode in selectedRecord.supportedModes"
+                    :key="mode"
+                  >
+                    {{ mode }}
+                  </li>
+                </ul>
+              </article>
+
+              <article class="mini-card">
+                <h3>Variables</h3>
+                <p>{{ selectedRecord.variables.join(', ') }}</p>
+              </article>
+
+              <article
+                class="mini-card"
+                data-testid="numeric-variable-note"
+              >
+                <h3>Numeric Variables</h3>
+                <p>{{ numericVariableTeachingCopy.lede }}</p>
+                <ul>
+                  <li
+                    v-for="point in numericVariableTeachingCopy.points"
+                    :key="point"
+                  >
+                    {{ point }}
+                  </li>
+                </ul>
+              </article>
+
+              <article
+                v-if="selectedRecord.predicateAtoms?.length"
+                class="mini-card"
+              >
+                <h3>Predicate Atoms</h3>
+                <ul>
+                  <li
+                    v-for="atom in selectedRecord.predicateAtoms"
+                    :key="atom.variable"
+                  >
+                    <strong>{{ atom.alias }}:</strong> {{ atom.predicate }}
+                  </li>
+                </ul>
+              </article>
+
+              <article class="mini-card">
+                <h3>Catalog Metadata</h3>
+                <ul>
+                  <li>Variable count: {{ selectedRecord.variableCount }}</li>
+                  <li>Law family: {{ selectedRecord.lawFamily }}</li>
+                  <li>Estimated complexity: {{ selectedRecord.estimatedComplexity }}/5</li>
+                  <li>Equivalence ready: {{ booleanLabel(selectedRecord.equivalenceReady) }}</li>
+                  <li>Simplification ready: {{ booleanLabel(selectedRecord.simplificationReady) }}</li>
+                </ul>
+              </article>
+            </div>
+
+            <div class="hints">
+              <h3>Hints</h3>
+              <ol>
+                <li
+                  v-for="hint in selectedRecord.hints"
+                  :key="hint"
+                >
+                  {{ hint }}
+                </li>
+              </ol>
+            </div>
+          </template>
+
+          <template v-else>
+            <p class="empty-state">
+              No problems match the current filters.
+            </p>
+          </template>
+        </details>
       </section>
     </main>
   </div>
@@ -523,46 +434,14 @@ const selectedModeLabel = computed(
     modeOptions.find((option) => option.value === selectedMode.value)?.label ?? selectedMode.value,
 );
 
-const selectedRecordLabel = computed(() =>
-  selectedMode.value === 'truth-table' || selectedMode.value === 'venn' ? 'Problem' : 'Challenge',
-);
-
 const selectedConceptTag = computed(() => selectedRecord.value?.conceptTags[0] ?? '—');
 const numericVariableTeachingCopy = getNumericVariableTeachingCopy();
-const assignmentStudentLabel = computed(() => {
-  if (!assignmentSession || assignmentSession.status !== 'ready') {
-    return '—';
-  }
-
-  if (assignmentSession.student.name && assignmentSession.student.email) {
-    return `${assignmentSession.student.name} <${assignmentSession.student.email}>`;
-  }
-
-  if (assignmentSession.student.name) {
-    return assignmentSession.student.name;
-  }
-
-  return assignmentSession.student.email || 'No roster match';
-});
 const assignmentStudentLabelShort = computed(() => {
   if (!assignmentSession || assignmentSession.status !== 'ready') {
     return '—';
   }
 
   return assignmentSession.student.email || assignmentSession.student.name || 'No roster match';
-});
-const assignmentRosterLabel = computed(() => {
-  if (!assignmentSession || assignmentSession.status !== 'ready') {
-    return '—';
-  }
-
-  if (assignmentSession.student.className || assignmentSession.student.section) {
-    return [assignmentSession.student.className, assignmentSession.student.section]
-      .filter(Boolean)
-      .join(' · ');
-  }
-
-  return 'No roster fields';
 });
 const assignmentHeroText = computed(() => {
   if (!assignmentSession || assignmentSession.status !== 'ready') {

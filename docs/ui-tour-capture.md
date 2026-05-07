@@ -13,6 +13,7 @@ The command builds or reuses the local preview target, captures screenshots into
 - `tour.md`
 - `manifest.json`
 - `review-starting-prompt.md`
+- `synthesis-starting-prompt.md`
 - `reviews/`
 
 The `local/` directory is ignored by git, so these review packets stay local-only.
@@ -63,8 +64,13 @@ The generated `review-starting-prompt.md` tells a fresh reviewer to:
 - ignore review subfolders created by other agents
 - create a unique subfolder under `reviews/`
 - write per-screenshot notes before writing a summary
+- review the UI like an expert in data-driven educational web apps
+- consider confusing UI, overwhelming UI, missing UI, poor transitions, labeling issues, excessive text, show-vs-tell opportunities, color, cohesiveness, iconography, accessibility, and other expert-level concerns
+- include severity, confidence, affected screenshot numbers, likely user impact, and suggested fix direction in each finding
 
 That separation is the integrity boundary of the workflow.
+
+The generated `synthesis-starting-prompt.md` gives a synthesis agent a separate handoff prompt that assumes full app context and asks for prioritized, implementation-ready triage output from the review folders.
 
 ## Related Docs
 

@@ -36,7 +36,8 @@ describe('equivalence practice', () => {
     await nextTick();
 
     expect(wrapper.get('[data-testid="equivalence-first-difference"]').text()).toContain('Region');
-    expect(wrapper.findAll('[data-testid^="equivalence-proof-region-"]')).toHaveLength(4);
+    expect(wrapper.findAll('[data-testid^="equivalence-proof-left-region-"]')).toHaveLength(4);
+    expect(wrapper.findAll('[data-testid^="equivalence-proof-right-region-"]')).toHaveLength(4);
 
     await wrapper.get('[data-testid="equivalence-choice-not-equivalent"]').trigger('click');
     await wrapper.get('[data-testid="equivalence-check"]').trigger('click');

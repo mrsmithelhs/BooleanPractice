@@ -10,6 +10,7 @@ test('completes a truth-table step', async ({ page }) => {
 
   await expect(page.locator('[data-testid="truth-table-practice"]')).toBeVisible();
   await expect(page.locator('[data-testid="expression-card"] .expression')).toContainText('a');
+  await expect(page.getByTestId('truth-table-check-step')).toBeInViewport();
 
   const cell0 = page.getByTestId('truth-cell-result-0');
   const cell1 = page.getByTestId('truth-cell-result-1');
@@ -21,11 +22,32 @@ test('completes a truth-table step', async ({ page }) => {
   await page.getByTestId('truth-table-check-step').click();
 
   await expect(page.getByTestId('truth-table-feedback')).toContainText('truth table is finished');
+  await page.getByTestId('comparison-surface').evaluate((element) => {
+    const disclosure = element.closest('details');
+    if (disclosure) {
+      disclosure.open = true;
+    }
+  });
   await expect(page.getByTestId('comparison-surface')).toBeVisible();
 
   await page.getByTestId('comparison-pair-1').click();
   await expect(page.getByTestId('comparison-row-1')).toContainText('Truth Table Row 2');
   await expect(page.getByTestId('comparison-region-1')).toContainText('Matching Venn Region 1');
+});
+
+test('surfaces targeted truth-table feedback after an incorrect check', async ({ page }) => {
+  await page.goto('/');
+
+  const cell0 = page.getByTestId('truth-cell-result-0');
+  const cell1 = page.getByTestId('truth-cell-result-1');
+
+  await cell0.evaluate((button) => button.click());
+  await cell1.evaluate((button) => button.click());
+
+  await page.getByTestId('truth-table-check-step').click();
+
+  await expect(page.getByTestId('truth-table-feedback')).toContainText('does not match yet');
+  await expect(page.getByTestId('truth-table-feedback')).not.toContainText('Correct for');
 });
 
 test('uses truth-table bulk controls without skipping checks', async ({ page }) => {
@@ -80,7 +102,8 @@ test('completes an equivalence proof in both proof modes', async ({ page }) => {
   );
 
   await page.getByTestId('equivalence-proof-venn').click();
-  await expect(page.getByTestId('equivalence-proof-region-0')).toBeVisible();
+  await expect(page.getByTestId('equivalence-proof-left-region-0')).toBeVisible();
+  await expect(page.getByTestId('equivalence-proof-right-region-0')).toBeVisible();
 });
 
 test('checks a simplification guess and surfaces the proof', async ({ page }) => {
@@ -101,8 +124,9 @@ test('checks a simplification guess and surfaces the proof', async ({ page }) =>
 
 test('desktop shell stays readable and supports mode switching', async ({ page }) => {
   await page.goto('/');
-  await expect(page.locator('h1')).toContainText('Practice boolean reasoning');
+  await expect(page.locator('h1')).toContainText('Practice workspace');
   await expect(page.locator('[data-testid="shell-status"]')).toBeVisible();
+  await expect(page.locator('[data-testid="problem-details"]')).toBeVisible();
 
   await expect(page.locator('[data-testid="truth-table-practice"]')).toBeVisible();
 
@@ -118,8 +142,9 @@ test('mobile shell stacks without horizontal overflow', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
 
-  await expect(page.locator('h1')).toContainText('Practice boolean reasoning');
+  await expect(page.locator('h1')).toContainText('Practice workspace');
   await expect(page.locator('[data-testid="truth-table-practice"]')).toBeVisible();
+  await expect(page.getByTestId('truth-table-check-step')).toBeInViewport();
 
   const shell = page.locator('.shell');
   const overflow = await shell.evaluate((element) => element.scrollWidth - element.clientWidth);

@@ -26,7 +26,8 @@ describe('simplification practice', () => {
     await wrapper.get('[data-testid="simplification-proof-venn"]').trigger('click');
     await nextTick();
 
-    expect(wrapper.findAll('[data-testid^="simplification-proof-region-"]')).toHaveLength(2);
+    expect(wrapper.findAll('[data-testid^="simplification-proof-original-region-"]')).toHaveLength(2);
+    expect(wrapper.findAll('[data-testid^="simplification-proof-guess-region-"]')).toHaveLength(2);
   });
 
   it('reports parser feedback for invalid syntax and a counterexample for a wrong guess', async () => {

@@ -18,6 +18,7 @@ The console is meant for local development only.
 - Shows the built preview URL and local preview status.
 - Runs the common validation commands used in this repo.
 - Launches the UI tour capture workflow and writes local-only review folders.
+- Launches the UI review synthesis workflow and defaults to the latest capture folder.
 - Shows the local port and config values that matter for development.
 
 ## Port Convention
@@ -47,10 +48,12 @@ The console uses plain-language menu choices:
 6. Open preview
 7. Run checks
 8. Capture UI tours
-9. Show config
-10. Exit
+9. Synthesize UI reviews
+10. Show config
+11. Exit
 
-The UI tour capture option is a convenience wrapper around `npm run capture:ui-tour` and keeps the resulting screenshot packets under `local/ui-reviews/`.
+The UI tour capture option is a convenience wrapper around `npm run capture:ui-tour` and keeps the resulting screenshot packets under `local/ui-reviews/`. Each capture run now writes both `review-starting-prompt.md` and `synthesis-starting-prompt.md` into the dated output folder.
+The UI review synthesis option is a convenience wrapper around `npm run synthesize:ui-reviews` and uses the newest capture folder unless you override it.
 
 ## Recovery Notes
 
@@ -59,6 +62,7 @@ The UI tour capture option is a convenience wrapper around `npm run capture:ui-t
 - If the browser still shows an old page after switching local files, refresh the tab.
 - If preview is not running yet, build the app and start preview in another terminal before using the preview shortcut.
 - If you want a screenshot packet for blind review, use the capture option instead of running the workflow by hand.
+- If you already have review folders, use the synthesis option to combine them into a triage report instead of reading the raw notes one reviewer at a time.
 
 ## Related Docs
 

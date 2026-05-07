@@ -8,9 +8,10 @@ Use these commands from the repository root:
 - `npm run build:gas` - produce the static build and assemble the GAS-friendly output in `gas-dist/`.
 - `npm run test:e2e` - run the Playwright browser checks against the local app.
 - `npm run dev` - start the Vite dev server for manual browser inspection.
-- `npm run dev:control` - open the local console for starting/stopping the dev server, checking ports, opening the app or preview, and launching UI tour captures.
+- `npm run dev:control` - open the local console for starting/stopping the dev server, checking ports, opening the app or preview, and launching UI tour captures or synthesis.
 - `npm run preview` - serve the production build locally after `npm run build`.
-- `npm run capture:ui-tour` - capture local-only UI tour screenshots and write a blind-review packet under `local/ui-reviews/`.
+- `npm run capture:ui-tour` - capture local-only UI tour screenshots and write a blind-review packet under `local/ui-reviews/`, including `review-starting-prompt.md` and `synthesis-starting-prompt.md`.
+- `npm run synthesize:ui-reviews` - read a capture folder's blind-review subfolders and write a synthesized triage report under `synthesis/`.
 
 Recommended validation order:
 
@@ -21,13 +22,16 @@ Recommended validation order:
 
 Notes:
 
-- Browser coverage should confirm the shell loads, truth-table and Venn practice are reachable, and the layout remains readable on mobile widths.
+- Browser coverage should confirm the shell loads, truth-table and Venn practice are reachable, the practice surface appears before dense metadata on mobile, the visual Venn diagram is visible, and the layout remains readable on mobile widths.
 - UI tour capture packets should be rerunnable, local-only, and documented in [`docs/ui-tour-capture.md`](./ui-tour-capture.md).
+- UI review synthesis packets should stay inside the capture folder, preserve raw reviewer notes, and be documented in [`docs/ui-review-synthesis.md`](./ui-review-synthesis.md).
 - Base-path checks should stay relative so the app remains deployable to GitHub Pages without hardcoded root paths.
 - The local dev server defaults to port `5177` and can be overridden with a repo-local `.env` or `.env.local` file.
 - Review-summary coverage should confirm the end-of-problem panel appears after completion, reports attempts and hints, and offers a deterministic next-practice suggestion.
+- Review-summary coverage should confirm the end-of-problem panel keeps its detailed step review, cross-representation comparison, next-practice rationale, and submission metrics behind disclosure controls while leaving the completion banner and next action visible.
 - Equivalence coverage should confirm curated pairs validate across truth-table and Venn proof modes, and that near-miss pairs surface the first differing row or region.
 - Simplification coverage should confirm valid guesses parse, equivalent guesses are compared against the original, longer equivalent guesses are not marked simpler, and invalid syntax surfaces parser feedback.
+- Venn diagram coverage should confirm the overlapping-circle renderer exposes the canonical region ids exactly once, the fallback region list remains available, and proof views show paired visual diagrams for left/right or original/guess comparisons.
 - Predicate-atom coverage should confirm aliases and full predicate labels appear together, the legend matches the catalog metadata, and evaluation still runs through the shared boolean engine.
 - Numeric relational coverage should confirm the knowledge graph exposes the six authored inverse pairs, supported shapes reject dot notation and other unsupported forms, and the shell copy explains that numeric variables stand in for unknown numbers.
 - Bulk-control coverage should confirm the truth-table and Venn edit helpers only change the current step, never increment attempt counts, and still require an explicit check before feedback advances.

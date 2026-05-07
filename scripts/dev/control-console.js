@@ -1,5 +1,6 @@
 import { createInterface } from 'node:readline/promises';
 import process from 'node:process';
+import { resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { pathToFileURL } from 'node:url';
 
@@ -17,6 +18,10 @@ import {
   startManagedRuntime,
   stopManagedRuntime,
 } from '../lib/dev-control.js';
+import {
+  buildSynthesisCommandArgs,
+  findLatestCaptureFolder,
+} from '../lib/ui-review-synthesis.js';
 import { getUiTourDefinitions } from '../lib/ui-tour-capture.js';
 
 function separator(title) {
@@ -28,14 +33,28 @@ function printBlock(text) {
 }
 
 async function promptChoice(rl, message, defaultValue = '') {
-  const answer = await rl.question(`${message}${defaultValue ? ` [${defaultValue}]` : ''}: `);
-  const trimmed = answer.trim();
-  return trimmed || defaultValue;
+  try {
+    const answer = await rl.question(`${message}${defaultValue ? ` [${defaultValue}]` : ''}: `);
+    const trimmed = answer.trim();
+    return trimmed || defaultValue;
+  } catch (error) {
+    if (error?.code === 'ERR_USE_AFTER_CLOSE' || error?.code === 'EPIPE' || error?.code === 'ABORT_ERR') {
+      return '__closed__';
+    }
+    throw error;
+  }
 }
 
 async function promptConfirm(rl, message) {
-  const answer = (await rl.question(`${message} [y/N]: `)).trim().toLowerCase();
-  return answer === 'y' || answer === 'yes';
+  try {
+    const answer = (await rl.question(`${message} [y/N]: `)).trim().toLowerCase();
+    return answer === 'y' || answer === 'yes';
+  } catch (error) {
+    if (error?.code === 'ERR_USE_AFTER_CLOSE' || error?.code === 'EPIPE' || error?.code === 'ABORT_ERR') {
+      return false;
+    }
+    throw error;
+  }
 }
 
 async function waitForHealthySnapshot(repoRoot, target, timeoutMs = 15_000) {
@@ -267,6 +286,37 @@ async function captureUiTours(repoRoot, rl) {
   printBlock(`Exit code: ${result.code ?? 0}`);
 }
 
+async function synthesizeUiReviews(repoRoot, rl) {
+  const latestCaptureFolder = await findLatestCaptureFolder(resolve(repoRoot, 'local/ui-reviews'));
+  let captureFolder = latestCaptureFolder;
+
+  printBlock(separator('UI review synthesis').trimEnd());
+
+  if (captureFolder) {
+    printBlock(`Latest capture folder: ${captureFolder}`);
+    if (!(await promptConfirm(rl, 'Use the latest capture folder?'))) {
+      captureFolder = await promptChoice(
+        rl,
+        'Capture folder path',
+        'local/ui-reviews/<timestamp>',
+      );
+    }
+  } else {
+    printBlock('No capture folder was found under local/ui-reviews.');
+    captureFolder = await promptChoice(rl, 'Capture folder path', 'local/ui-reviews/<timestamp>');
+  }
+
+  if (!captureFolder || captureFolder.includes('<timestamp>')) {
+    printBlock('No capture folder selected.');
+    return;
+  }
+
+  const args = buildSynthesisCommandArgs(captureFolder);
+  printBlock(`Running: npm run synthesize:ui-reviews${args.length ? ` -- ${args.join(' ')}` : ''}`);
+  const result = await runPackageScript('synthesize:ui-reviews', args, { repoRoot });
+  printBlock(`Exit code: ${result.code ?? 0}`);
+}
+
 async function main() {
   const repoRoot = process.cwd();
   await ensureLocalControlDirs(repoRoot);
@@ -293,11 +343,16 @@ async function main() {
       printBlock('6. Open preview');
       printBlock('7. Run checks');
       printBlock('8. Capture UI tours');
-      printBlock('9. Show config');
-      printBlock('10. Exit');
+      printBlock('9. Synthesize UI reviews');
+      printBlock('10. Show config');
+      printBlock('11. Exit');
 
       const choice = await promptChoice(rl, 'Choose an action', '1');
-      if (choice === '10') {
+      if (choice === '__closed__') {
+        running = false;
+        continue;
+      }
+      if (choice === '11') {
         running = false;
         continue;
       }
@@ -333,6 +388,10 @@ async function main() {
         continue;
       }
       if (choice === '9') {
+        await synthesizeUiReviews(repoRoot, rl);
+        continue;
+      }
+      if (choice === '10') {
         await showConfig(repoRoot);
         continue;
       }

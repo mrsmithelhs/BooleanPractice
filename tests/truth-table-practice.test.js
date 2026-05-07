@@ -54,6 +54,9 @@ describe('truth table practice', () => {
     expect(wrapper.get('[data-testid="truth-table-feedback"]').text()).not.toContain(
       'The NOT operator flips the operand.',
     );
+    expect(wrapper.get('.truth-table-practice__review > ul').text()).not.toContain(
+      'Correct for',
+    );
 
     await wrapper.get('[data-testid="truth-table-check-step"]').trigger('click');
     await nextTick();

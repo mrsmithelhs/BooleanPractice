@@ -16,6 +16,52 @@
       </p>
     </article>
 
+    <article
+      v-if="submissionPayload"
+      class="mini-card problem-review-summary__submission"
+      data-testid="submission-output"
+    >
+      <h4>Submission Output</h4>
+      <p class="problem-review-summary__submission-note">
+        {{ submissionStatusText }}
+      </p>
+
+      <div class="problem-review-summary__submission-actions">
+        <button
+          type="button"
+          class="action-button"
+          data-testid="submission-submit"
+          :disabled="!submissionGateway.available || submissionStatus === 'sending' || submissionStatus === 'sent'"
+          @click="submitSubmission"
+        >
+          {{ submissionButtonLabel }}
+        </button>
+      </div>
+
+      <details class="details-card problem-review-summary__disclosure">
+        <summary class="details-card__summary">
+          Submission details
+        </summary>
+        <div class="problem-review-summary__submission-grid problem-review-summary__disclosure-content">
+          <p v-if="submissionPayload.assignmentId">
+            Assignment: {{ submissionPayload.assignmentTitle || submissionPayload.assignmentId }}
+          </p>
+          <p v-if="submissionPayload.assignmentItemId">
+            Item: {{ submissionPayload.assignmentItemId }} #{{ submissionPayload.assignmentSequence }}
+          </p>
+          <p v-if="submissionPayload.studentEmail">
+            Student: {{ submissionPayload.studentEmail }}
+          </p>
+          <p>Attempts: {{ submissionPayload.attempts }}</p>
+          <p>Hints used: {{ submissionPayload.hintsUsed }}</p>
+          <p>Autofill uses: {{ submissionPayload.autofillUses }}</p>
+          <p>Bulk actions: {{ submissionPayload.bulkActionUses }}</p>
+          <p>Build target: {{ submissionPayload.buildTarget }}</p>
+          <p>Mode: {{ submissionPayload.mode }}</p>
+        </div>
+      </details>
+    </article>
+
     <div class="problem-review-summary__grid">
       <article class="mini-card">
         <h4>Concept Tags</h4>
@@ -36,97 +82,80 @@
       </article>
     </div>
 
-    <article
+    <details
       v-if="summary.stepSummaries.length > 0"
-      class="mini-card"
+      class="details-card problem-review-summary__disclosure"
     >
-      <h4>Step Review</h4>
-      <ul class="problem-review-summary__step-list">
-        <li
-          v-for="step in summary.stepSummaries"
-          :key="step.key"
-        >
-          <strong>{{ step.label }}</strong>
-          <span>{{ step.attemptSummary }}</span>
-          <span>{{ step.detail }}</span>
-        </li>
-      </ul>
-    </article>
+      <summary class="details-card__summary">
+        Step Review
+      </summary>
+      <div class="problem-review-summary__disclosure-content">
+        <ul class="problem-review-summary__step-list">
+          <li
+            v-for="step in summary.stepSummaries"
+            :key="step.key"
+          >
+            <strong>{{ step.label }}</strong>
+            <span>{{ step.attemptSummary }}</span>
+            <span>{{ step.detail }}</span>
+          </li>
+        </ul>
+      </div>
+    </details>
 
-    <article
+    <details
       v-if="summary.reviewHighlights.length > 0"
-      class="mini-card"
+      class="details-card problem-review-summary__disclosure"
     >
-      <h4>What To Review</h4>
-      <ul class="problem-review-summary__highlight-list">
-        <li
-          v-for="highlight in summary.reviewHighlights"
-          :key="highlight"
-        >
-          {{ highlight }}
-        </li>
-      </ul>
-    </article>
+      <summary class="details-card__summary">
+        What To Review
+      </summary>
+      <div class="problem-review-summary__disclosure-content">
+        <ul class="problem-review-summary__highlight-list">
+          <li
+            v-for="highlight in summary.reviewHighlights"
+            :key="highlight"
+          >
+            {{ highlight }}
+          </li>
+        </ul>
+      </div>
+    </details>
 
-    <AssignmentRegionComparison
+    <details
       v-if="summary.comparison"
-      :comparison="summary.comparison"
-      test-id="comparison-surface"
-    />
+      class="details-card problem-review-summary__disclosure"
+    >
+      <summary class="details-card__summary">
+        Cross-representation comparison
+      </summary>
+      <div class="problem-review-summary__disclosure-content">
+        <AssignmentRegionComparison
+          :comparison="summary.comparison"
+          test-id="comparison-surface"
+        />
+      </div>
+    </details>
 
     <article class="mini-card">
       <h4>Next Practice</h4>
       <p>{{ summary.nextPracticeText }}</p>
-      <p
-        v-if="summary.nextPracticeExpression"
-        class="problem-review-summary__expression"
-      >
-        {{ summary.nextPracticeExpression }}
-      </p>
-      <p class="problem-review-summary__reason">
-        {{ summary.nextPracticeReason }}
-      </p>
-    </article>
-
-    <article
-      v-if="submissionPayload"
-      class="mini-card problem-review-summary__submission"
-      data-testid="submission-output"
-    >
-      <h4>Submission Output</h4>
-      <p class="problem-review-summary__submission-note">
-        {{ submissionStatusText }}
-      </p>
-
-      <div class="problem-review-summary__submission-grid">
-        <p v-if="submissionPayload.assignmentId">
-          Assignment: {{ submissionPayload.assignmentTitle || submissionPayload.assignmentId }}
-        </p>
-        <p v-if="submissionPayload.assignmentItemId">
-          Item: {{ submissionPayload.assignmentItemId }} #{{ submissionPayload.assignmentSequence }}
-        </p>
-        <p v-if="submissionPayload.studentEmail">
-          Student: {{ submissionPayload.studentEmail }}
-        </p>
-        <p>Attempts: {{ submissionPayload.attempts }}</p>
-        <p>Hints used: {{ submissionPayload.hintsUsed }}</p>
-        <p>Autofill uses: {{ submissionPayload.autofillUses }}</p>
-        <p>Bulk actions: {{ submissionPayload.bulkActionUses }}</p>
-        <p>Build target: {{ submissionPayload.buildTarget }}</p>
-        <p>Mode: {{ submissionPayload.mode }}</p>
-      </div>
-
-      <div class="problem-review-summary__submission-actions">
-        <button
-          type="button"
-          class="action-button"
-          data-testid="submission-submit"
-          :disabled="!submissionGateway.available || submissionStatus === 'sending' || submissionStatus === 'sent'"
-          @click="submitSubmission"
-        >
-          {{ submissionButtonLabel }}
-        </button>
-      </div>
+      <details class="details-card problem-review-summary__disclosure">
+        <summary class="details-card__summary">
+          Why this next?
+        </summary>
+        <div class="problem-review-summary__disclosure-content">
+          <p
+            v-if="summary.nextPracticeExpression"
+            class="problem-review-summary__expression"
+          >
+            {{ summary.nextPracticeExpression }}
+          </p>
+          <p class="problem-review-summary__reason">
+            {{ summary.nextPracticeReason }}
+          </p>
+        </div>
+      </details>
     </article>
   </article>
 </template>

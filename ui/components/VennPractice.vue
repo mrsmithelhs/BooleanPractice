@@ -178,30 +178,20 @@
       </ul>
     </div>
 
-    <div
-      class="venn-practice__diagram"
-      :class="`venn-practice__diagram--${vennBlueprint.regions.length}`"
-      role="group"
-      :aria-label="`Venn regions for ${problem.title}`"
-    >
-      <button
-        v-for="region in vennBlueprint.regions"
-        :key="region.id"
-        type="button"
-        class="venn-region"
-        :class="regionClasses(region.id)"
-        :data-testid="`venn-region-${region.id}`"
-        :aria-pressed="isRegionSelected(region.id)"
-        :aria-label="regionAriaLabel(region)"
-        @click="toggleRegion(region.id)"
-        @keydown.enter.prevent="toggleRegion(region.id)"
-        @keydown.space.prevent="toggleRegion(region.id)"
-      >
-        <span class="venn-region__bits">{{ region.bits }}</span>
-        <span class="venn-region__label">{{ region.label }}</span>
-        <span class="venn-region__state">{{ regionStateLabel(region.id) }}</span>
-      </button>
-    </div>
+    <VennDiagram
+      :variables="vennBlueprint.variables"
+      :regions="vennBlueprint.regions"
+      :state-by-region-id="diagramStateByRegionId"
+      :focus-region-ids="diagramFocusRegionIds"
+      aria-label="Interactive Venn diagram"
+      diagram-label="Interactive Venn diagram"
+      test-id-prefix="venn-region"
+      :interactive="true"
+      :show-legend="true"
+      :show-fallback-list="true"
+      fallback-label="Exact region list"
+      @toggle-region="toggleRegion"
+    />
 
     <div class="venn-practice__footer">
       <article class="mini-card">
@@ -242,6 +232,7 @@ import {
 } from '@shared/index';
 import ProblemReviewSummary from './ProblemReviewSummary.vue';
 import PredicateAtomLegend from './PredicateAtomLegend.vue';
+import VennDiagram from './VennDiagram.vue';
 
 const emit = defineEmits(['complete']);
 
@@ -343,6 +334,40 @@ const currentStepPreview = computed(() => {
 
   return describeStepPreview(currentStep.value.node);
 });
+
+const diagramStateByRegionId = computed(() => {
+  const stateByRegionId = {};
+  const currentStepId = currentStep.value?.id ?? null;
+  const currentSelectionSet = new Set(currentSelection.value);
+  const missedSet = new Set(latestCheck.value?.missedRegionIds ?? []);
+  const extraSet = new Set(latestCheck.value?.extraRegionIds ?? []);
+
+  for (const region of vennBlueprint.value.regions) {
+    if (missedSet.has(region.id)) {
+      stateByRegionId[region.id] = 'missed';
+      continue;
+    }
+
+    if (extraSet.has(region.id)) {
+      stateByRegionId[region.id] = 'extra';
+      continue;
+    }
+
+    if (stepStatuses[currentStepId] === 'correct') {
+      stateByRegionId[region.id] = 'correct';
+      continue;
+    }
+
+    stateByRegionId[region.id] = currentSelectionSet.has(region.id) ? 'selected' : 'available';
+  }
+
+  return stateByRegionId;
+});
+
+const diagramFocusRegionIds = computed(() => [
+  ...(latestCheck.value?.missedRegionIds ?? []),
+  ...(latestCheck.value?.extraRegionIds ?? []),
+]);
 
 watch(
   () => props.problem?.id,
@@ -536,45 +561,6 @@ function forgetRememberedSelection() {
     delete memoryAutoAppliedByStep[currentStep.value.id];
   }
   feedbackMessage.value = `Forgot the remembered regions for ${currentStep.value?.label ?? 'this step'}.`;
-}
-
-function isRegionSelected(regionId) {
-  return currentSelection.value.includes(regionId);
-}
-
-function regionStateLabel(regionId) {
-  if (!currentStep.value) {
-    return 'complete';
-  }
-
-  if (latestCheck.value?.missedRegionIds.includes(regionId)) {
-    return 'missed';
-  }
-
-  if (latestCheck.value?.extraRegionIds.includes(regionId)) {
-    return 'extra';
-  }
-
-  if (stepStatuses[currentStep.value.id] === 'correct') {
-    return 'correct';
-  }
-
-  return isRegionSelected(regionId) ? 'selected' : 'available';
-}
-
-function regionClasses(regionId) {
-  return {
-    'venn-region--selected': isRegionSelected(regionId),
-    'venn-region--missed': latestCheck.value?.missedRegionIds.includes(regionId),
-    'venn-region--extra': latestCheck.value?.extraRegionIds.includes(regionId),
-    'venn-region--correct':
-      stepStatuses[currentStep.value?.id] === 'correct' && isRegionSelected(regionId),
-  };
-}
-
-function regionAriaLabel(region) {
-  const state = isRegionSelected(region.id) ? 'selected' : 'not selected';
-  return `${region.accessibleLabel}, ${state}`;
 }
 
 function expectedRegionIdsForStep(step) {

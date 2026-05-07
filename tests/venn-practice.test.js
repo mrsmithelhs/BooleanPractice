@@ -30,6 +30,8 @@ describe('venn practice', () => {
 
     expect(wrapper.get('[data-testid="venn-current-step"]').text()).toContain('1/2');
     expect(wrapper.findAll('[data-testid^="venn-region-"]')).toHaveLength(8);
+    expect(wrapper.find('.venn-diagram__stage').exists()).toBe(true);
+    expect(wrapper.find('.venn-diagram__legend').exists()).toBe(true);
 
     const region = wrapper.get('[data-testid="venn-region-0"]');
     expect(region.attributes('aria-pressed')).toBe('false');
@@ -183,7 +185,11 @@ describe('venn practice', () => {
 
     expect(wrapper.get('[data-testid="venn-feedback"]').text()).toContain('does not match');
 
-    for (const region of regions) {
+    await wrapper.get('[data-testid="venn-reset"]').trigger('click');
+    await nextTick();
+
+    const correctedRegions = wrapper.findAll('[data-testid^="venn-region-"]');
+    for (const region of correctedRegions) {
       const regionId = Number(region.attributes('data-testid').replace('venn-region-', ''));
       await setRegionPressed(region, expectedRegionIds.includes(regionId));
     }
@@ -193,8 +199,8 @@ describe('venn practice', () => {
 
     const summary = wrapper.get('[data-testid="venn-review-summary"]');
     expect(summary.text()).toContain('Problem Review');
-    expect(summary.text()).toContain('Hints used: 1 hint used.');
-    expect(summary.text()).toContain('What To Review');
+    expect(summary.text()).toContain('Hints used: 0 hints used.');
+    expect(summary.text()).toContain('Step Review');
     expect(summary.text()).toContain('Next Practice');
   });
 

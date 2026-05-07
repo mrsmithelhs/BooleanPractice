@@ -28,6 +28,28 @@
 
     <div class="assignment-practice__summary-grid">
       <article class="mini-card">
+        <h3>Current Item</h3>
+        <p>{{ currentItem ? currentItem.challenge.title : 'Assignment complete' }}</p>
+        <p class="assignment-practice__subtle">
+          {{ currentItem ? currentItem.challenge.expression : 'All assigned challenges are finished.' }}
+        </p>
+      </article>
+
+      <article class="mini-card">
+        <h3>Progress</h3>
+        <p>{{ completedCount }}/{{ session.items.length }} complete</p>
+        <p class="assignment-practice__subtle">
+          {{ assignmentLede }}
+        </p>
+      </article>
+    </div>
+
+    <details class="details-card assignment-practice__details">
+      <summary class="details-card__summary">
+        Queue and student info
+      </summary>
+
+      <article class="mini-card">
         <h3>Student</h3>
         <p>{{ studentLabel }}</p>
         <p
@@ -52,15 +74,7 @@
           </li>
         </ul>
       </article>
-
-      <article class="mini-card">
-        <h3>Current Item</h3>
-        <p>{{ currentItem ? currentItem.challenge.title : 'Assignment complete' }}</p>
-        <p class="assignment-practice__subtle">
-          {{ currentItem ? currentItem.challenge.expression : 'All assigned challenges are finished.' }}
-        </p>
-      </article>
-    </div>
+    </details>
 
     <div
       v-if="currentItem"

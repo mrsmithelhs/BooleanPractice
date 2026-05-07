@@ -190,28 +190,42 @@
         </template>
 
         <template v-else-if="proof?.mode === 'venn'">
-          <div
-            class="equivalence-practice__diagram"
-            :class="`equivalence-practice__diagram--${proof.regions.length}`"
-          >
-            <button
-              v-for="region in proof.regions"
-              :key="region.id"
-              type="button"
-              class="equivalence-region"
-              :class="{
-                'equivalence-region--match': region.matches,
-                'equivalence-region--diff': !region.matches,
-                'equivalence-region--focus': proof.firstDifference?.id === region.id,
-              }"
-              :data-testid="`simplification-proof-region-${region.id}`"
-            >
-              <span class="equivalence-region__bits">{{ region.bits }}</span>
-              <span class="equivalence-region__label">{{ region.label }}</span>
-              <span class="equivalence-region__state">
-                Original {{ booleanLabel(region.leftResult) }} · Guess {{ booleanLabel(region.rightResult) }}
-              </span>
-            </button>
+          <div class="equivalence-practice__venn-pair">
+            <article class="mini-card">
+              <p class="equivalence-practice__card-eyebrow">
+                Original Expression
+              </p>
+              <VennDiagram
+                :variables="proof.variables"
+                :regions="proof.regions"
+                :state-by-region-id="originalRegionStates"
+                :focus-region-ids="proof.firstDifference ? [proof.firstDifference.id] : []"
+                aria-label="Original expression Venn diagram"
+                diagram-label="Original expression Venn diagram"
+                test-id-prefix="simplification-proof-original-region"
+                :interactive="false"
+                :show-legend="false"
+                :show-fallback-list="false"
+              />
+            </article>
+
+            <article class="mini-card">
+              <p class="equivalence-practice__card-eyebrow">
+                Guess Expression
+              </p>
+              <VennDiagram
+                :variables="proof.variables"
+                :regions="proof.regions"
+                :state-by-region-id="guessRegionStates"
+                :focus-region-ids="proof.firstDifference ? [proof.firstDifference.id] : []"
+                aria-label="Guess expression Venn diagram"
+                diagram-label="Guess expression Venn diagram"
+                test-id-prefix="simplification-proof-guess-region"
+                :interactive="false"
+                :show-legend="false"
+                :show-fallback-list="false"
+              />
+            </article>
           </div>
         </template>
       </div>
@@ -222,6 +236,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
 import { buildSimplificationCheck } from '@shared/index';
+import VennDiagram from './VennDiagram.vue';
 
 const emit = defineEmits(['complete']);
 
@@ -239,6 +254,20 @@ const lastCheckedGuess = ref('');
 const analysis = ref(null);
 
 const proof = computed(() => analysis.value?.proof ?? null);
+const originalRegionStates = computed(() =>
+  proof.value
+    ? Object.fromEntries(
+        proof.value.regions.map((region) => [region.id, region.leftResult ? 'selected' : 'available']),
+      )
+    : {},
+);
+const guessRegionStates = computed(() =>
+  proof.value
+    ? Object.fromEntries(
+        proof.value.regions.map((region) => [region.id, region.rightResult ? 'selected' : 'available']),
+      )
+    : {},
+);
 const proofModeLabel = computed(() =>
   proofMode.value === 'truth-table' ? 'Truth Table' : 'Venn Diagram',
 );

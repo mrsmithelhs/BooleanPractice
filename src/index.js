@@ -11,6 +11,7 @@ export * from './feedback/index.js';
 export * from './summary/index.js';
 export * from './catalog/index.js';
 export * from './venn/index.js';
+export * from './venn/diagram.js';
 export * from './equivalence/index.js';
 export * from './simplification/index.js';
 export * from './session-memory/index.js';

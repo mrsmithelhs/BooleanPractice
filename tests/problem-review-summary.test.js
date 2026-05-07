@@ -181,6 +181,10 @@ describe('problem review summary', () => {
     expect(wrapper.get('[data-testid="submission-output"]').text()).toContain(
       'google.script.run is unavailable in this build.',
     );
+    expect(wrapper.findAll('details.details-card').length).toBeGreaterThan(0);
+    expect(wrapper.get('[data-testid="submission-output"] details').text()).toContain(
+      'Submission details',
+    );
     expect(wrapper.get('[data-testid="submission-submit"]').attributes('disabled')).toBeDefined();
   });
 

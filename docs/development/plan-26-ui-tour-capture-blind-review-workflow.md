@@ -69,7 +69,7 @@ In scope:
 - Support viewport variants, at minimum desktop/laptop and narrow/mobile. Add projector/classroom viewport if feasible.
 - Generate `tour.md` explaining each numbered screenshot and grouping screenshots by coherent UI story.
 - Generate `manifest.json` with structured tour and screenshot metadata.
-- Generate `review-starting-prompt.md` for blind review agents.
+- Generate `review-starting-prompt.md` for blind review agents and `synthesis-starting-prompt.md` for synthesis handoff.
 - Document how future agents can modify or add tours without weakening the blind-review concept.
 
 Out of scope:
@@ -97,6 +97,7 @@ The folder should contain:
 tour.md
 manifest.json
 review-starting-prompt.md
+synthesis-starting-prompt.md
 reviews/
 ```
 
@@ -206,7 +207,7 @@ Do not include secrets, student emails, live Sheet ids, or personally identifyin
 
 ## Blind Review Starting Prompt Requirements
 
-Generate a single `review-starting-prompt.md` inside the capture folder. It should instruct a fresh agent to:
+Generate `review-starting-prompt.md` and `synthesis-starting-prompt.md` inside the capture folder. The blind-review prompt should instruct a fresh agent to:
 
 - Act as a UI expert and first-time consultant.
 - Review only files in the screenshot capture folder.
@@ -263,7 +264,7 @@ Future agents should be able to:
 - Run the capture workflow locally.
 - Confirm a new timestamped folder is created.
 - Confirm screenshots are non-empty and openable.
-- Confirm `tour.md`, `manifest.json`, and `review-starting-prompt.md` exist.
+- Confirm `tour.md`, `manifest.json`, `review-starting-prompt.md`, and `synthesis-starting-prompt.md` exist.
 - Confirm generated output is under local-only ignored paths.
 - Confirm the workflow can be rerun without overwriting a prior capture.
 - Confirm at least one desktop and one mobile/narrow screenshot are captured.
@@ -306,4 +307,3 @@ Stop and report if:
 - the only feasible review prompt would require codebase context
 - local server management is unsafe or flaky in a way that would make repeated reviews unreliable
 - adding/modifying tours would require reinventing the workflow rather than extending it
-

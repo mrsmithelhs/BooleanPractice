@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildDashboardText,
+  buildPackageManagerInvocation,
   buildRuntimeTargets,
   buildUiTourCaptureArgs,
   classifyRuntimeStatus,
@@ -138,6 +139,18 @@ Active Connections
     expect(text).toContain('Dev port: 5177');
     expect(text).toContain('healthy');
     expect(text).toContain('healthy-response');
+  });
+
+  it('builds a windows-safe package manager invocation', () => {
+    expect(buildPackageManagerInvocation(['run', 'test'], 'win32')).toEqual({
+      command: 'cmd.exe',
+      args: ['/c', 'npm', 'run', 'test'],
+    });
+
+    expect(buildPackageManagerInvocation(['run', 'test'], 'linux')).toEqual({
+      command: 'npm',
+      args: ['run', 'test'],
+    });
   });
 
   it('builds capture command arguments for the ui tour workflow', () => {

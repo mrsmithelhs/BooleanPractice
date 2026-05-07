@@ -49,6 +49,8 @@ describe('app shell', () => {
 
     expect(wrapper.get('[data-testid="expression-card"] .expression').text()).toBe('a');
     expect(wrapper.get('[data-testid="truth-table-practice"]').exists()).toBe(true);
+    expect(wrapper.find('header.hero').exists()).toBe(false);
+    expect(wrapper.get('[data-testid="problem-details"]').exists()).toBe(true);
     expect(wrapper.get('[data-testid="truth-table-feedback"]').text()).toContain(
       'Work through a.',
     );
@@ -66,6 +68,7 @@ describe('app shell', () => {
     expect(wrapper.get('[data-testid="expression-card"] .expression').text()).toBe('!(a || b)');
     expect(wrapper.find('[data-testid="truth-table-practice"]').exists()).toBe(false);
     expect(wrapper.get('[data-testid="venn-practice"]').exists()).toBe(true);
+    expect(wrapper.get('[data-testid="venn-practice"] .venn-diagram__stage').exists()).toBe(true);
   });
 
   it('loads the equivalence practice panel and swaps challenge sets by filter', async () => {
@@ -130,6 +133,9 @@ describe('app shell', () => {
     );
     expect(wrapper.get('[data-testid="assignment-practice"] .assignment-practice__item-card h3').text()).toBe(
       'Literal Practice: A',
+    );
+    expect(wrapper.get('[data-testid="assignment-practice"] .assignment-practice__details').exists()).toBe(
+      true,
     );
     expect(wrapper.find('select[name="mode"]').exists()).toBe(false);
   });

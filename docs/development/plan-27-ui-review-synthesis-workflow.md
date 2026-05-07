@@ -32,6 +32,7 @@ The synthesis agent may read:
 - `manifest.json`
 - screenshots in the capture folder
 - `review-starting-prompt.md`
+- `synthesis-starting-prompt.md`
 - review subfolders under `reviews/`
 
 The synthesis agent should not need to read app source code. The point is to synthesize what blind reviewers experienced, not to explain UI choices from implementation context.
@@ -50,6 +51,7 @@ In scope:
 - Add a command or documented workflow to synthesize review folders from a chosen capture folder.
 - Read multiple review outputs from `reviews/<reviewer-id>/`.
 - Support both Markdown notes and optional structured `findings.json`.
+- Tolerate additional review-relevant markdown or JSON filenames inside each reviewer folder.
 - Produce a synthesis folder under the same capture folder, such as:
   - `synthesis/summary.md`
   - `synthesis/prioritized-findings.md`
@@ -212,4 +214,3 @@ Stop and report if:
 - generated synthesis would overwrite raw reviews
 - the workflow cannot distinguish reviewer consensus from one-off opinions
 - proposed fix packets would require product decisions outside the evidence
-

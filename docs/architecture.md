@@ -50,6 +50,7 @@ The app has NO runtime dependencies on a backend. All problem data and logic are
 - The app should use a cohesive dark classroom theme with shared tokens for surfaces, lines, spacing, radii, and accent colors.
 - Visual treatments should reinforce learning state rather than disguise it; correct, incorrect, missed, and extra states must remain legible.
 - Responsive layouts must stay readable on narrow mobile screens, laptop widths, and wide projector displays without hiding controls.
+- The active practice surface should be the first thing a student sees in practice mode; metadata, hints, history, and reference details should move behind compact or collapsed disclosure by default.
 
 ### Testing And Validation
 
@@ -99,17 +100,20 @@ The app has NO runtime dependencies on a backend. All problem data and logic are
 
 ### Venn Learning Contract
 
+- Venn practice should present an actual overlapping-circle diagram as the primary interaction surface, while keeping a compact exact-region list or other fallback available for accessibility and precision.
 - Venn practice should keep keyboard-accessible region buttons available at all times, even when the region layout is presented visually.
-- The visual region grid and the accessible controls should both read from the same shared region list and selected-region state.
+- The visual diagram, fallback region list, and accessible controls should all read from the same shared region list and selected-region state.
 - Feedback should name missed and extra regions explicitly and should explain the current operator in plain language.
 - Step progression should come from the shared truth-table subexpression order so the same expression teaches the same sequence in both learning modes.
 - Bulk edit helpers may shade all, clear, or copy the current step, but they are edit-only actions and must never count as a check attempt or auto-complete a step.
+- Equivalence and simplification proof views should reuse the same visual diagram contract so left/right or original/guess comparisons remain spatial instead of falling back to the old region grid.
 
 ### Truth Table Learning Contract
 
 - Truth table practice should render fixed assignment columns as read-only text and reserve editing for the currently revealed subexpression column only.
 - Step reveal order should come from the shared truth-table subexpression order so the same expression always teaches the same reasoning path.
 - Feedback should name the current row or rows, say whether they are correct or incorrect, and include a row-specific next reasoning move instead of relying on a generic score.
+- Primary row feedback should stay focused on the rows that still need attention; complete row dumps belong behind an explicit disclosure control or auxiliary details surface.
 - Keyboard support should work on the active answer column with button-based toggles and visible focus states.
 - Bulk edit helpers may fill, clear, or copy the current step, but they are edit-only actions and must never count as a check attempt or auto-complete a step.
 
@@ -159,6 +163,7 @@ The app has NO runtime dependencies on a backend. All problem data and logic are
 - The summary should surface the problem's concept tags, total attempts, total hints used, and a short note about the final correctness state.
 - Step summaries should preserve the last meaningful row or region mistake so students can review what changed before they solved the step.
 - Next-practice suggestions should be deterministic and catalog-driven, using concept metadata and the most challenging step as the primary heuristic rather than a persisted adaptive model.
+- Detailed step review, cross-representation comparison, next-practice rationale, and submission metrics should be progressively disclosed so the completion state stays short at first glance.
 - The summary should work for both truth-table and Venn modes through the same shared helper so the wording stays consistent across representations.
 
 ### Cross-Representation Comparison Contract

@@ -14,6 +14,7 @@ import {
   buildManifest,
   buildReviewStartingPrompt,
   buildTourMarkdown,
+  buildSynthesisStartingPrompt,
   getUiTourDefinitions,
   normalizeTourSelection,
   normalizeViewportSelection,
@@ -169,6 +170,7 @@ try {
   await writeJsonFile(join(runFolder, 'manifest.json'), manifest);
   await writeTextFile(join(runFolder, 'tour.md'), buildTourMarkdown(manifest));
   await writeTextFile(join(runFolder, 'review-starting-prompt.md'), buildReviewStartingPrompt(manifest));
+  await writeTextFile(join(runFolder, 'synthesis-starting-prompt.md'), buildSynthesisStartingPrompt(manifest));
   await mkdir(runReviewsFolder, { recursive: true });
 
   console.log(`Capture complete: ${runFolder}`);

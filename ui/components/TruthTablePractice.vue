@@ -106,12 +106,29 @@
       <h3>Row Feedback</h3>
       <ul>
         <li
-          v-for="entry in latestCheck.details"
+          v-for="entry in latestCheck.problemDetails"
           :key="entry.rowNumber"
         >
           Row {{ entry.rowNumber }}: {{ entry.message }}
         </li>
       </ul>
+
+      <details
+        v-if="latestCheck.allDetails.length > latestCheck.problemDetails.length"
+        class="details-card truth-table-practice__review-details"
+      >
+        <summary class="details-card__summary">
+          Show all row notes
+        </summary>
+        <ul>
+          <li
+            v-for="entry in latestCheck.allDetails"
+            :key="`all-${entry.rowNumber}`"
+          >
+            Row {{ entry.rowNumber }}: {{ entry.message }}
+          </li>
+        </ul>
+      </details>
     </div>
 
     <div class="truth-table-practice__table-wrap">
@@ -688,7 +705,13 @@ function checkCurrentStep() {
     });
     latestCheck.value = {
       message: feedbackMessage.value,
-      details: [
+      problemDetails: [
+        {
+          rowNumber,
+          message: feedbackMessage.value,
+        },
+      ],
+      allDetails: [
         {
           rowNumber,
           message: feedbackMessage.value,
@@ -754,7 +777,10 @@ function checkCurrentStep() {
 
   latestCheck.value = {
     message: '',
-    details,
+    problemDetails: details.filter((entry) =>
+      incorrectRowIndexes.includes(entry.rowNumber - 1),
+    ),
+    allDetails: details,
     incorrectRowIndexes,
     correctRowIndexes,
   };

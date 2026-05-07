@@ -33,14 +33,17 @@ This sequence migrates Boolean Practice from the archived Google Apps Script for
 | [Plan 25](plan-25-local-dev-console.md) | ready | Add a human-facing local dev console for the editable dev server and preview workflow. |
 | [Plan 26](plan-26-ui-tour-capture-blind-review-workflow.md) | ready | Capture Playwright UI tours into local-only folders for blind UI review. |
 | [Plan 27](plan-27-ui-review-synthesis-workflow.md) | ready | Synthesize multiple blind UI reviews into prioritized UI triage. |
+| [Plan 28](plan-28-practice-first-information-architecture.md) | ready | Reduce first-load density and make the active practice workspace primary. |
+| [Plan 29](plan-29-interactive-visual-venn-diagrams.md) | ready | Replace region-grid-only Venn practice with actual interactive visual Venn diagrams. |
+| [Plan 30](plan-30-student-facing-copy-feedback-and-submission-polish.md) | ready | Polish student-facing labels, progress, affordances, feedback, and submission states. |
 
 ## Suggested Execution Order
 
-Plans 01 through 11 establish the migrated static app. Plans 12 through 19 deepen standalone learning and interaction. Plans 20 and 21 add the optional GAS/Sheets classroom surface. Plan 22 should design and prove adaptive assignment before implementation. Plans 23 and 24 connect the app to AP CSA numeric predicate and comparison reasoning. Plan 25 adds a human-facing local development console for the editable dev server and preview workflow. Plans 26 and 27 add a reusable blind UI review workflow: first capturing coherent UI tours as local-only screenshot packets, then synthesizing reviews from multiple model providers.
+Plans 01 through 11 establish the migrated static app. Plans 12 through 19 deepen standalone learning and interaction. Plans 20 and 21 add the optional GAS/Sheets classroom surface. Plan 22 should design and prove adaptive assignment before implementation. Plans 23 and 24 connect the app to AP CSA numeric predicate and comparison reasoning. Plan 25 adds a human-facing local development console for the editable dev server and preview workflow. Plans 26 and 27 add a reusable blind UI review workflow: first capturing coherent UI tours as local-only screenshot packets, then synthesizing reviews from multiple model providers. Plans 28 through 30 are follow-up UI quality packets derived from the first blind review batch: reduce density, make Venn diagrams genuinely visual, and polish student-facing copy/states.
 
 Plans 02 through 11 now carry explicit required-behavior, stop-condition, and validation language to reduce drift. Treat those sections as part of the contract, not optional guidance.
 
-Plans 03, 05, 07, 08, 10, 11, 16, 17, 20, 21, 22, 23, 24, 26, and 27 are the highest correctness-risk packets. Use a stronger model or closer integration-owner review if those packets expose ambiguity in boolean semantics, Venn representation, feedback behavior, deployment assumptions, GAS identity, assignment data, AP CSA predicate presentation, numeric relational equivalence rules, or blind-review workflow integrity.
+Plans 03, 05, 07, 08, 10, 11, 16, 17, 20, 21, 22, 23, 24, 26, 27, 28, and 29 are the highest correctness-risk packets. Use a stronger model or closer integration-owner review if those packets expose ambiguity in boolean semantics, Venn representation, feedback behavior, deployment assumptions, GAS identity, assignment data, AP CSA predicate presentation, numeric relational equivalence rules, blind-review workflow integrity, practice-first information architecture, or visual Venn region mapping.
 
 ## Cross-Packet Contracts
 
@@ -56,5 +59,9 @@ Plans 03, 05, 07, 08, 10, 11, 16, 17, 20, 21, 22, 23, 24, 26, and 27 are the hig
 - The local dev console, when implemented, should be documented as a human-facing maintainer tool with explicit local port conventions rather than as an agent-only workflow.
 - UI tour capture artifacts belong in local-only ignored folders, not tracked source.
 - The reusable capture workflow is documented in [`docs/ui-tour-capture.md`](../ui-tour-capture.md) and should be extended there rather than pointing future review batches back at the packet document.
+- UI review synthesis artifacts belong in the same capture folder under `synthesis/`, and the reusable synthesis workflow is documented in [`docs/ui-review-synthesis.md`](../ui-review-synthesis.md).
 - Blind UI review agents must be constrained to screenshots and tour metadata, not source code or project docs outside the capture folder.
 - UI review synthesis should preserve reviewer disagreement and raw notes while identifying repeated patterns and prioritized follow-up work.
+- First-load and in-practice UI should prioritize the active student workspace over metadata, hints, history, and implementation detail.
+- Venn mode should be spatially visual, with region-grid/textual representations treated as support or fallback rather than the only diagram.
+- Student-facing submission states must not expose raw GAS implementation errors; diagnostics should stay in developer surfaces.

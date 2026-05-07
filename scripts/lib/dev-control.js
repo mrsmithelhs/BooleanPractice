@@ -442,8 +442,22 @@ export function buildDashboardText(snapshots, { config, envFileLabel } = {}) {
   return lines.join('\n').trimEnd();
 }
 
-export function resolveNpmCommand() {
-  return process.platform === 'win32' ? 'npm.cmd' : 'npm';
+export function resolveNpmCommand(platform = process.platform) {
+  return platform === 'win32' ? 'npm.cmd' : 'npm';
+}
+
+export function buildPackageManagerInvocation(args = [], platform = process.platform) {
+  if (platform === 'win32') {
+    return {
+      command: 'cmd.exe',
+      args: ['/c', 'npm', ...args],
+    };
+  }
+
+  return {
+    command: resolveNpmCommand(platform),
+    args,
+  };
 }
 
 export function resolveTaskkillCommand() {
@@ -464,8 +478,9 @@ export async function startManagedRuntime(target, {
     `${target.id}-${formatClockLabel(new Date())}.log`,
   );
   const logStream = createWriteStream(logFile, { flags: 'a' });
+  const invocation = buildPackageManagerInvocation(target.command.slice(1));
   return new Promise((resolvePromise, rejectPromise) => {
-    const child = spawn(resolveNpmCommand(), target.command.slice(1), {
+    const child = spawn(invocation.command, invocation.args, {
       cwd: repoRoot,
       env,
       detached: true,
@@ -561,8 +576,9 @@ export async function openUrlInBrowser(url) {
 }
 
 export async function runPackageScript(scriptName, args = [], { repoRoot = process.cwd(), env = process.env } = {}) {
+  const invocation = buildPackageManagerInvocation(['run', scriptName, ...args]);
   return new Promise((resolvePromise, rejectPromise) => {
-    const child = spawn(resolveNpmCommand(), ['run', scriptName, ...args], {
+    const child = spawn(invocation.command, invocation.args, {
       cwd: repoRoot,
       env,
       stdio: 'inherit',

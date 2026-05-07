@@ -4,6 +4,7 @@ import {
   buildManifest,
   buildReviewStartingPrompt,
   buildTourMarkdown,
+  buildSynthesisStartingPrompt,
   getUiTourDefinitions,
   normalizeTourSelection,
   normalizeViewportSelection,
@@ -93,13 +94,29 @@ describe('ui tour capture workflow', () => {
 
     const guide = buildTourMarkdown(manifest);
     const prompt = buildReviewStartingPrompt(manifest);
+    const synthesisPrompt = buildSynthesisStartingPrompt(manifest);
 
     expect(guide).toContain('# Boolean Practice UI Tour Capture');
     expect(guide).toContain('Truth Table Practice');
     expect(guide).toContain('001-truth-table-default-desktop.png');
     expect(guide).toContain('Initial page load.');
+    expect(prompt).toContain('deep experience reviewing data-driven educational web apps');
     expect(prompt).toContain('Do not inspect the codebase');
+    expect(prompt).toContain('Capture folder: `local/ui-reviews/2026-05-06T15-42-11`');
+    expect(prompt).toContain('Review subfolders: `local/ui-reviews/2026-05-06T15-42-11/reviews/`');
     expect(prompt).toContain('ignore review subfolders created by other agents');
-    expect(prompt).toContain('create a unique subfolder under `reviews/`');
+    expect(prompt).toContain(
+      'create a unique subfolder under `local/ui-reviews/2026-05-06T15-42-11/reviews/`',
+    );
+    expect(prompt).toContain('confusing UI, overwhelming UI, missing but expected UI elements');
+    expect(prompt).toContain('severity: blocker, high, medium, or low');
+    expect(prompt).toContain('affected screenshot numbers');
+    expect(prompt).toContain('suggested fix direction');
+    expect(synthesisPrompt).toContain('senior UI review synthesizer');
+    expect(synthesisPrompt).toContain('implementation-ready handoff');
+    expect(synthesisPrompt).toContain('Capture folder: `local/ui-reviews/2026-05-06T15-42-11`');
+    expect(synthesisPrompt).toContain('Review subfolders: `local/ui-reviews/2026-05-06T15-42-11/reviews/`');
+    expect(synthesisPrompt).toContain('proposed-fix-packets.md');
+    expect(synthesisPrompt).toContain('Preserve reviewer disagreement');
   });
 });
