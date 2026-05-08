@@ -135,37 +135,51 @@
       <table class="truth-table">
         <thead>
           <tr>
-            <th scope="col">
+            <th
+              scope="col"
+              class="truth-table__row-header"
+            >
               Row
             </th>
             <th
               v-for="variable in truthTable.variables"
               :key="variable"
               scope="col"
-              class="truth-table__predicate-header"
+              class="truth-table__variable-header truth-table__predicate-header"
+              :title="variableHeaderLabel(variable)"
+              :aria-label="variableHeaderLabel(variable)"
             >
-              <span class="truth-table__predicate-header-alias">
-                {{ displayVariableLabel(variable) }}
-              </span>
-              <span
-                v-if="displayPredicateLabel(variable)"
-                class="truth-table__predicate-header-predicate"
-              >
-                {{ displayPredicateLabel(variable) }}
+              <span class="truth-table__variable-header-content">
+                <span class="truth-table__variable-header-alias">
+                  {{ displayVariableLabel(variable) }}
+                </span>
+                <span
+                  v-if="shouldShowPredicateInHeader(variable)"
+                  class="truth-table__variable-header-predicate"
+                >
+                  {{ displayPredicateLabel(variable) }}
+                </span>
               </span>
             </th>
             <th
               v-for="step in completedSteps"
               :key="step.id"
               scope="col"
+              class="truth-table__step-header truth-table__step-header--complete"
             >
-              {{ step.label }}
+              <span class="truth-table__step-label">
+                {{ step.label }}
+              </span>
             </th>
             <th
               v-if="activeStep"
               scope="col"
+              class="truth-table__step-header truth-table__step-header--active"
+              data-testid="truth-active-step-header"
             >
-              {{ activeStep.label }}
+              <span class="truth-table__step-label">
+                {{ activeStep.label }}
+              </span>
             </th>
           </tr>
         </thead>
@@ -635,6 +649,18 @@ function displayVariableLabel(variable) {
 
 function displayPredicateLabel(variable) {
   return predicateAtomLegend.value.find((atom) => atom.variable === variable)?.predicate ?? '';
+}
+
+function variableHeaderLabel(variable) {
+  const alias = displayVariableLabel(variable);
+  const predicate = displayPredicateLabel(variable);
+
+  return predicate ? `${alias}: ${predicate}` : alias;
+}
+
+function shouldShowPredicateInHeader(variable) {
+  void variable;
+  return false;
 }
 
 function formatAnswer(value) {

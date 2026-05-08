@@ -197,8 +197,10 @@ describe('truth table practice', () => {
     expect(wrapper.get('[data-testid="truth-table-predicate-legend"]').text()).toMatch(
       /Q:\s+count == 0/,
     );
-    expect(wrapper.get('th.truth-table__predicate-header').text()).toContain('P');
-    expect(wrapper.get('th.truth-table__predicate-header').text()).toContain('score > 10');
+    const variableHeaders = wrapper.findAll('th.truth-table__variable-header');
+    expect(variableHeaders.map((header) => header.text())).toEqual(['P', 'Q']);
+    expect(variableHeaders[0].attributes('title')).toContain('score > 10');
+    expect(variableHeaders[0].attributes('aria-label')).toContain('score > 10');
   });
 
   it('shows a review summary after correcting a mistaken truth-table step', async () => {
