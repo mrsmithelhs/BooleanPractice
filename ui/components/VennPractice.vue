@@ -106,6 +106,7 @@
         type="button"
         class="action-button"
         data-testid="venn-check-selection"
+        :disabled="!currentStep || currentStepHasNeutralRegions"
         @click="checkCurrentStep"
       >
         Check Regions
@@ -141,6 +142,10 @@
         :disabled="!currentStep"
         @click="clearCurrentSelection"
       >
+        <span
+          class="venn-practice__neutral-swatch"
+          aria-hidden="true"
+        />
         Clear / Neutral
       </button>
       <button
@@ -189,20 +194,8 @@
       test-id-prefix="venn-region"
       :interactive="true"
       :show-legend="true"
-      :show-fallback-list="true"
-      fallback-label="Exact region list"
       @toggle-region="toggleRegion"
     />
-
-    <div class="venn-practice__footer">
-      <article class="mini-card">
-        <h3>Selection Guide</h3>
-        <p>
-          Select every region that makes {{ currentStepLabel }} true. The SVG regions are
-          keyboard-accessible and stay in sync with the feedback below.
-        </p>
-      </article>
-    </div>
 
     <ProblemReviewSummary
       v-if="completionSummary"
@@ -278,6 +271,7 @@ const completionSummary = ref(null);
 const submissionPayload = ref(null);
 const stepStatuses = reactive({});
 const selectionsByStep = reactive({});
+const regionStatesByStep = reactive({});
 const attemptCountsByStep = reactive({});
 const stepReviewHistory = reactive({});
 const memoryAutoAppliedByStep = reactive({});
@@ -332,6 +326,15 @@ const currentSelection = computed(() => {
   return ensureSelectionForStep(currentStep.value.id);
 });
 
+const currentStepHasNeutralRegions = computed(() => {
+  if (!currentStep.value) {
+    return false;
+  }
+
+  const stateByRegionId = ensureRegionStatesForStep(currentStep.value.id);
+  return vennBlueprint.value.regions.some((region) => stateByRegionId[region.id] === 'neutral');
+});
+
 const currentStepPreview = computed(() => {
   if (!currentStep.value) {
     return [];
@@ -340,10 +343,12 @@ const currentStepPreview = computed(() => {
   return describeStepPreview(currentStep.value.node);
 });
 
+// Region states should be understood as a three-way interaction contract:
+// selected = true/shaded, available = false/unselected, neutral = unset/pending.
 const diagramStateByRegionId = computed(() => {
   const stateByRegionId = {};
   const currentStepId = currentStep.value?.id ?? null;
-  const currentSelectionSet = new Set(currentSelection.value);
+  const currentRegionStates = currentStepId ? ensureRegionStatesForStep(currentStepId) : {};
   const missedSet = new Set(latestCheck.value?.missedRegionIds ?? []);
   const extraSet = new Set(latestCheck.value?.extraRegionIds ?? []);
 
@@ -363,7 +368,7 @@ const diagramStateByRegionId = computed(() => {
       continue;
     }
 
-    stateByRegionId[region.id] = currentSelectionSet.has(region.id) ? 'selected' : 'available';
+    stateByRegionId[region.id] = currentRegionStates[region.id] ?? 'neutral';
   }
 
   return stateByRegionId;
@@ -404,6 +409,10 @@ function resetPractice() {
     delete selectionsByStep[key];
   });
 
+  Object.keys(regionStatesByStep).forEach((key) => {
+    delete regionStatesByStep[key];
+  });
+
   Object.keys(attemptCountsByStep).forEach((key) => {
     delete attemptCountsByStep[key];
   });
@@ -433,7 +442,70 @@ function ensureSelectionForStep(stepId) {
     selectionsByStep[stepId] = [];
   }
 
+  ensureRegionStatesForStep(stepId);
   return selectionsByStep[stepId];
+}
+
+function ensureRegionStatesForStep(stepId) {
+  if (!regionStatesByStep[stepId]) {
+    const stateByRegionId = {};
+
+    for (const region of vennBlueprint.value.regions) {
+      stateByRegionId[region.id] = 'neutral';
+    }
+
+    regionStatesByStep[stepId] = stateByRegionId;
+  }
+
+  return regionStatesByStep[stepId];
+}
+
+function syncSelectionFromRegionStates(stepId) {
+  const selection = ensureSelectionForStep(stepId);
+  const stateByRegionId = ensureRegionStatesForStep(stepId);
+  const selectedRegionIds = vennBlueprint.value.regions
+    .filter((region) => stateByRegionId[region.id] === 'selected')
+    .map((region) => region.id);
+
+  selection.splice(0, selection.length, ...selectedRegionIds);
+}
+
+function setCurrentStepRegionState(regionId, state) {
+  if (!currentStep.value) {
+    return;
+  }
+
+  const stateByRegionId = ensureRegionStatesForStep(currentStep.value.id);
+  stateByRegionId[regionId] = state;
+  syncSelectionFromRegionStates(currentStep.value.id);
+}
+
+function copyStatesToCurrentStep(stateByRegionId) {
+  if (!currentStep.value) {
+    return;
+  }
+
+  const currentStateByRegionId = ensureRegionStatesForStep(currentStep.value.id);
+
+  for (const region of vennBlueprint.value.regions) {
+    currentStateByRegionId[region.id] = stateByRegionId[region.id] ?? 'neutral';
+  }
+
+  syncSelectionFromRegionStates(currentStep.value.id);
+}
+
+function setCurrentStepAllRegions(state) {
+  if (!currentStep.value) {
+    return;
+  }
+
+  const stateByRegionId = ensureRegionStatesForStep(currentStep.value.id);
+
+  for (const region of vennBlueprint.value.regions) {
+    stateByRegionId[region.id] = state;
+  }
+
+  syncSelectionFromRegionStates(currentStep.value.id);
 }
 
 function toggleRegion(regionId) {
@@ -441,17 +513,13 @@ function toggleRegion(regionId) {
     return;
   }
 
-  const selection = ensureSelectionForStep(currentStep.value.id);
-  const index = selection.indexOf(regionId);
-
-  if (index === -1) {
-    selection.push(regionId);
-  } else {
-    selection.splice(index, 1);
-  }
+  const stateByRegionId = ensureRegionStatesForStep(currentStep.value.id);
+  const currentState = stateByRegionId[regionId] ?? 'neutral';
+  const nextState = currentState === 'neutral' ? 'selected' : currentState === 'selected' ? 'available' : 'neutral';
+  setCurrentStepRegionState(regionId, nextState);
 
   latestCheck.value = null;
-  feedbackMessage.value = `Select the regions that make ${currentStepLabel.value} true, then check your work.`;
+  feedbackMessage.value = `Click each region to cycle it through neutral, selected, and available, then check your work.`;
 }
 
 function replaceCurrentSelection(regionIds) {
@@ -459,8 +527,22 @@ function replaceCurrentSelection(regionIds) {
     return;
   }
 
-  const selection = ensureSelectionForStep(currentStep.value.id);
-  selection.splice(0, selection.length, ...regionIds);
+  const stateByRegionId = ensureRegionStatesForStep(currentStep.value.id);
+
+  for (const region of vennBlueprint.value.regions) {
+    stateByRegionId[region.id] = regionIds.includes(region.id) ? 'selected' : 'available';
+  }
+
+  syncSelectionFromRegionStates(currentStep.value.id);
+  latestCheck.value = null;
+}
+
+function replaceCurrentRegionStates(stateByRegionId) {
+  if (!currentStep.value) {
+    return;
+  }
+
+  copyStatesToCurrentStep(stateByRegionId);
   latestCheck.value = null;
 }
 
@@ -469,7 +551,8 @@ function shadeAllRegions() {
     return;
   }
 
-  replaceCurrentSelection(vennBlueprint.value.regions.map((region) => region.id));
+  setCurrentStepAllRegions('selected');
+  latestCheck.value = null;
   bulkActionCount.value += 1;
   feedbackMessage.value = `Shaded all regions for ${currentStepLabel.value}. Check your work when you are ready.`;
 }
@@ -479,7 +562,7 @@ function clearCurrentSelection() {
     return;
   }
 
-  replaceCurrentSelection([]);
+  setCurrentStepAllRegions('neutral');
   bulkActionCount.value += 1;
   feedbackMessage.value = `Cleared ${currentStepLabel.value}. Build the selection again when you are ready.`;
 }
@@ -490,8 +573,8 @@ function copyPreviousStepSelection() {
   }
 
   const previousStep = stepDefinitions.value[currentStepIndex.value - 1];
-  const previousSelection = ensureSelectionForStep(previousStep.id);
-  replaceCurrentSelection(previousSelection);
+  const previousStates = ensureRegionStatesForStep(previousStep.id);
+  replaceCurrentRegionStates(previousStates);
   bulkActionCount.value += 1;
   feedbackMessage.value = `Copied ${previousStep.label} into ${currentStepLabel.value}. Check your work when you are ready.`;
 }
@@ -613,6 +696,13 @@ function checkCurrentStep() {
 
   if (!step) {
     feedbackMessage.value = 'All Venn regions are complete.';
+    return;
+  }
+
+  if (currentStepHasNeutralRegions.value) {
+    feedbackMessage.value =
+      'Decide every region before checking. One or more regions are still neutral.';
+    latestCheck.value = null;
     return;
   }
 

@@ -1,3 +1,5 @@
+import polygonClipping from 'polygon-clipping';
+
 const ONE_VARIABLE_CIRCLES = [
   {
     variableIndex: 0,
@@ -5,7 +7,7 @@ const ONE_VARIABLE_CIRCLES = [
     cy: 58,
     r: 28,
     labelX: 50,
-    labelY: 18,
+    labelY: 58,
   },
 ];
 
@@ -15,16 +17,16 @@ const TWO_VARIABLE_CIRCLES = [
     cx: 40,
     cy: 56,
     r: 26,
-    labelX: 34,
-    labelY: 18,
+    labelX: 40,
+    labelY: 56,
   },
   {
     variableIndex: 1,
     cx: 60,
     cy: 56,
     r: 26,
-    labelX: 66,
-    labelY: 18,
+    labelX: 60,
+    labelY: 56,
   },
 ];
 
@@ -34,16 +36,16 @@ const THREE_VARIABLE_CIRCLES = [
     cx: 39,
     cy: 60,
     r: 24,
-    labelX: 29,
-    labelY: 23,
+    labelX: 39,
+    labelY: 60,
   },
   {
     variableIndex: 1,
     cx: 61,
     cy: 60,
     r: 24,
-    labelX: 71,
-    labelY: 23,
+    labelX: 61,
+    labelY: 60,
   },
   {
     variableIndex: 2,
@@ -51,7 +53,7 @@ const THREE_VARIABLE_CIRCLES = [
     cy: 38,
     r: 24,
     labelX: 50,
-    labelY: 10,
+    labelY: 38,
   },
 ];
 
@@ -101,6 +103,15 @@ const STATE_ICONS = {
   match: '✓',
   diff: '×',
 };
+
+const REGION_POLYGON_SEGMENTS = 96;
+const VIEWBOX_POLYGON = [[[
+  [0, 0],
+  [100, 0],
+  [100, 100],
+  [0, 100],
+  [0, 0],
+]]];
 
 function getVariableCount(variables) {
   if (!Array.isArray(variables) || variables.length < 1 || variables.length > 3) {
@@ -176,6 +187,24 @@ function getRegionDisplayLabel(bits, variables) {
   return `inside ${activeVariables.join(' and ')} only`;
 }
 
+function getRegionLabelLines(displayLabel) {
+  const words = displayLabel.split(' ').filter(Boolean);
+
+  if (words.length <= 2 || displayLabel.length <= 13) {
+    return [displayLabel];
+  }
+
+  if (words.length === 3) {
+    return [`${words[0]} ${words[1]}`, words[2]];
+  }
+
+  const splitIndex = Math.ceil(words.length / 2);
+  const firstLine = words.slice(0, splitIndex).join(' ');
+  const secondLine = words.slice(splitIndex).join(' ');
+
+  return secondLine ? [firstLine, secondLine] : [firstLine];
+}
+
 function getRegionMembership(bits, variables) {
   const includedVariables = [];
   const excludedVariables = [];
@@ -193,6 +222,73 @@ function getRegionMembership(bits, variables) {
     includedVariables,
     excludedVariables,
   };
+}
+
+function formatSvgNumber(value) {
+  return Number.parseFloat(value.toFixed(3)).toString();
+}
+
+function createCirclePolygon(circle, segments = REGION_POLYGON_SEGMENTS) {
+  const ring = Array.from({ length: segments }, (_, index) => {
+    const angle = (index / segments) * Math.PI * 2 - Math.PI / 2;
+
+    return [
+      circle.cx + circle.r * Math.cos(angle),
+      circle.cy + circle.r * Math.sin(angle),
+    ];
+  });
+
+  ring.push(ring[0]);
+
+  return [ring];
+}
+
+function cloneGeometry(geometry) {
+  return geometry.map((polygon) => polygon.map((ring) => ring.map((point) => [...point])));
+}
+
+function buildRegionGeometry(region, circleByVariable) {
+  // Build an actual SVG-ready region shape so browser hit-testing follows the region geometry,
+  // not a full-rect overlay.
+  let geometry = cloneGeometry(VIEWBOX_POLYGON);
+
+  for (const variable of region.includedVariables) {
+    geometry = polygonClipping.intersection(geometry, createCirclePolygon(circleByVariable[variable]));
+
+    if (!geometry.length) {
+      return geometry;
+    }
+  }
+
+  for (const variable of region.excludedVariables) {
+    geometry = polygonClipping.difference(geometry, createCirclePolygon(circleByVariable[variable]));
+
+    if (!geometry.length) {
+      return geometry;
+    }
+  }
+
+  return geometry;
+}
+
+function ringToPath(ring) {
+  if (!Array.isArray(ring) || ring.length === 0) {
+    return '';
+  }
+
+  return `${ring
+    .map((point, index) => `${index === 0 ? 'M' : 'L'} ${formatSvgNumber(point[0])} ${formatSvgNumber(point[1])}`)
+    .join(' ')} Z`;
+}
+
+function geometryToPathData(geometry) {
+  if (!Array.isArray(geometry) || geometry.length === 0) {
+    return '';
+  }
+
+  return geometry
+    .map((polygon) => polygon.map((ring) => ringToPath(ring)).join(' '))
+    .join(' ');
 }
 
 function resolveRegionState(state) {
@@ -217,6 +313,7 @@ export function buildVennDiagramModel(blueprint, { stateByRegionId = {}, focusRe
   const variableCount = getVariableCount(blueprint.variables);
   const circles = getCircleDescriptors(blueprint.variables);
   const focusSet = new Set(focusRegionIds);
+  const circleByVariable = Object.fromEntries(circles.map((circle) => [circle.variable, circle]));
 
   return {
     ...blueprint,
@@ -227,6 +324,7 @@ export function buildVennDiagramModel(blueprint, { stateByRegionId = {}, focusRe
       const displayLabel = getRegionDisplayLabel(region.bits, blueprint.variables);
       const stateLabel = resolveRegionState(state);
       const membership = getRegionMembership(region.bits, blueprint.variables);
+      const pathD = geometryToPathData(buildRegionGeometry(membership, circleByVariable));
 
       return {
         ...region,
@@ -234,9 +332,11 @@ export function buildVennDiagramModel(blueprint, { stateByRegionId = {}, focusRe
         focused: focusSet.has(region.id),
         icon: resolveRegionIcon(state),
         displayLabel,
+        labelLines: getRegionLabelLines(displayLabel),
         stateLabel,
         ariaLabel: buildRegionAriaLabel(region, stateLabel, displayLabel),
         anchor,
+        pathD,
         ...membership,
       };
     }),

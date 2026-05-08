@@ -334,6 +334,16 @@ body::after {
   background-repeat: no-repeat;
 }
 
+.field select option {
+  color: #0b1020;
+  background-color: #f3f7ff;
+}
+
+.field select option:checked {
+  color: #0b1020;
+  background-color: #a8c2f6;
+}
+
 .field--full {
   grid-column: 1 / -1;
 }
@@ -455,6 +465,10 @@ body::after {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.75rem;
+}
+
+.info-grid--wide {
+  grid-template-columns: 1fr;
 }
 
 .mini-card {
@@ -1001,6 +1015,12 @@ select:focus-visible {
   gap: 0.65rem;
 }
 
+.venn-practice__bulk-actions .action-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
 .truth-table-practice__status,
 .truth-table-practice__review {
   border-radius: var(--radius-md);
@@ -1026,6 +1046,11 @@ select:focus-visible {
   min-width: 640px;
 }
 
+.truth-table thead th:not(:first-child) {
+  min-width: 5.75rem;
+  white-space: nowrap;
+}
+
 .truth-table th,
 .truth-table td {
   border-bottom: 1px solid rgba(139, 170, 255, 0.14);
@@ -1043,19 +1068,24 @@ select:focus-visible {
 }
 
 .truth-table__predicate-header {
-  display: grid;
-  gap: 0.1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.08rem;
+  min-width: 5.75rem;
+  white-space: nowrap;
 }
 
 .truth-table__predicate-header-alias {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 800;
   line-height: 1.1;
 }
 
 .truth-table__predicate-header-predicate {
   color: var(--text-soft);
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   line-height: 1.1;
   word-break: break-word;
 }
@@ -1361,6 +1391,22 @@ select:focus-visible {
   gap: 0.75rem;
 }
 
+.venn-practice__neutral-swatch {
+  display: inline-block;
+  width: 1.05rem;
+  height: 1.05rem;
+  margin-right: 0.1rem;
+  border-radius: 0.32rem;
+  border: 1px solid rgba(196, 212, 255, 0.62);
+  background:
+    repeating-linear-gradient(
+      135deg,
+      rgba(196, 212, 255, 0.7) 0 2px,
+      rgba(196, 212, 255, 0.18) 2px 7px
+    );
+  vertical-align: -0.14em;
+}
+
 .venn-practice__preview-list {
   margin: 0.5rem 0 0;
   padding-left: 1.15rem;
@@ -1374,8 +1420,9 @@ select:focus-visible {
 .venn-diagram__stage {
   position: relative;
   width: 100%;
-  min-height: 22rem;
+  min-height: 24rem;
   aspect-ratio: 1.08;
+  padding: 1rem 0.6rem 1.1rem;
   border-radius: var(--radius-lg);
   border: 1px solid rgba(146, 183, 255, 0.16);
   background:
@@ -1392,26 +1439,26 @@ select:focus-visible {
 }
 
 .venn-diagram__circle {
-  fill: rgba(255, 255, 255, 0.03);
+  fill: none;
   stroke: rgba(175, 196, 255, 0.28);
   stroke-width: 1.6;
 }
 
 .venn-diagram__circle--0 {
-  fill: rgba(109, 174, 255, 0.08);
+  fill: none;
 }
 
 .venn-diagram__circle--1 {
-  fill: rgba(95, 255, 171, 0.07);
+  fill: none;
 }
 
 .venn-diagram__circle--2 {
-  fill: rgba(255, 180, 76, 0.08);
+  fill: none;
 }
 
 .venn-diagram__circle-label {
   fill: rgba(243, 247, 255, 0.92);
-  font-size: 5.2px;
+  font-size: 4.8px;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-anchor: middle;
@@ -1422,14 +1469,20 @@ select:focus-visible {
   isolation: isolate;
 }
 
+.venn-diagram__circle-layer {
+  pointer-events: none;
+}
+
 .venn-diagram__text-layer {
   isolation: isolate;
+  pointer-events: none;
 }
 
 .venn-diagram__region-hit {
   fill: rgba(255, 255, 255, 0.01);
   stroke: rgba(146, 183, 255, 0.12);
   stroke-width: 0.7;
+  fill-rule: evenodd;
   transition:
     fill 120ms ease,
     stroke 120ms ease,
@@ -1439,7 +1492,7 @@ select:focus-visible {
 
 .venn-diagram__region-hit--interactive {
   cursor: pointer;
-  pointer-events: all;
+  pointer-events: visiblePainted;
 }
 
 .venn-diagram__region-hit--interactive:hover {
@@ -1455,6 +1508,7 @@ select:focus-visible {
 }
 
 .venn-diagram__region-hit--selected {
+  /* True / shaded state. */
   fill: rgba(109, 174, 255, 0.28);
   stroke: rgba(109, 174, 255, 0.7);
 }
@@ -1474,8 +1528,17 @@ select:focus-visible {
   stroke: rgba(255, 108, 108, 0.8);
 }
 
+.venn-diagram__region-hit--neutral {
+  /* Unset / pending state. Keep it visibly different from an explicit false choice. */
+  stroke: rgba(196, 212, 255, 0.78);
+  stroke-dasharray: 4 2;
+  opacity: 0.72;
+}
+
 .venn-diagram__region-hit--available {
-  fill: rgba(255, 255, 255, 0.01);
+  /* False / explicitly unselected state. */
+  fill: rgba(255, 255, 255, 0.02);
+  stroke: rgba(146, 183, 255, 0.18);
 }
 
 .venn-diagram__region-hit--locked {
@@ -1486,35 +1549,17 @@ select:focus-visible {
   stroke-width: 1.15;
 }
 
-.venn-diagram__region-label-group {
-  fill: var(--text);
-  text-anchor: middle;
-}
-
-.venn-diagram__region-icon {
-  fill: var(--accent);
-  font-size: 4px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-}
-
 .venn-diagram__region-label {
   fill: var(--text);
-  font-size: 3.6px;
+  font-size: 1.95px;
   font-weight: 800;
+  letter-spacing: 0.02em;
+  text-anchor: middle;
+  dominant-baseline: middle;
 }
 
-.venn-diagram__region-bits {
-  fill: var(--text-soft);
-  font-size: 2.5px;
-  letter-spacing: 0.12em;
-}
-
-.venn-diagram__region-state {
-  fill: var(--text-muted);
-  font-size: 2.2px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
+.venn-diagram__region-label::selection {
+  background: transparent;
 }
 
 .venn-diagram__legend {
@@ -1630,7 +1675,8 @@ select:focus-visible {
   }
 
   .venn-diagram__stage {
-    min-height: 19rem;
+    min-height: 22rem;
+    padding: 0.8rem 0.45rem 0.9rem;
   }
 
   .venn-diagram__region-hit {
@@ -1638,11 +1684,7 @@ select:focus-visible {
   }
 
   .venn-diagram__region-label {
-    font-size: 0.78rem;
-  }
-
-  .venn-diagram__region-state {
-    font-size: 0.62rem;
+    font-size: 1.7px;
   }
 
   .equivalence-practice__diagram--2,

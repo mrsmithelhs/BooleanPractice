@@ -31,9 +31,9 @@ describe('simplification practice', () => {
 
     expect(wrapper.findAll('[data-testid^="simplification-proof-original-region-"]')).toHaveLength(2);
     expect(wrapper.findAll('[data-testid^="simplification-proof-guess-region-"]')).toHaveLength(2);
-    expect(
+    expect(['path', 'rect']).toContain(
       wrapper.get('[data-testid="simplification-proof-original-region-0"]').element.tagName.toLowerCase(),
-    ).toBe('rect');
+    );
     expect(wrapper.find('.venn-diagram__region-label').exists()).toBe(true);
   });
 

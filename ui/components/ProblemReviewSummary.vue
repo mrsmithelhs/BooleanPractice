@@ -17,7 +17,7 @@
     </article>
 
     <article
-      v-if="submissionPayload"
+      v-if="showSubmissionCard"
       class="mini-card problem-review-summary__submission"
       data-testid="submission-output"
     >
@@ -183,6 +183,9 @@ const props = defineProps({
 const submissionStatus = ref('idle');
 const submissionMessage = ref('');
 const submissionGateway = createSubmissionGateway();
+const showSubmissionCard = computed(
+  () => props.submissionPayload?.buildTarget === 'gas',
+);
 
 const submissionButtonLabel = computed(() => {
   if (submissionStatus.value === 'sending') {

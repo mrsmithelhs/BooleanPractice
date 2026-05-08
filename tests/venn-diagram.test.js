@@ -23,6 +23,8 @@ describe('venn diagram layout', () => {
       includedVariables: ['a', 'b'],
       excludedVariables: [],
     });
+    expect(twoVariable.regions[3].pathD).toContain('M');
+    expect(twoVariable.regions[0].pathD).toContain('M');
     expect(threeVariable.regions[0]).toMatchObject({
       includedVariables: [],
       excludedVariables: ['a', 'b', 'c'],

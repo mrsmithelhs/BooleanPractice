@@ -7,78 +7,52 @@
     <div class="venn-diagram__stage">
       <svg
         class="venn-diagram__svg"
-        viewBox="0 0 100 100"
+        viewBox="-4 -8 108 116"
         preserveAspectRatio="xMidYMid meet"
       >
         <defs>
-          <template
-            v-for="region in diagramModel.regions"
-            :key="region.id"
+          <pattern
+            :id="neutralPatternId"
+            patternUnits="userSpaceOnUse"
+            width="8"
+            height="8"
+            patternTransform="rotate(45)"
           >
-            <clipPath
-              :id="clipPathId(region.id)"
-              clipPathUnits="userSpaceOnUse"
-            >
-              <circle
-                v-for="variable in region.includedVariables"
-                :key="`${region.id}-clip-${variable}`"
-                :cx="circleByVariable[variable].cx"
-                :cy="circleByVariable[variable].cy"
-                :r="circleByVariable[variable].r"
-              />
-            </clipPath>
-            <mask
-              :id="maskId(region.id)"
-              maskUnits="userSpaceOnUse"
-              maskContentUnits="userSpaceOnUse"
-            >
-              <rect
-                x="0"
-                y="0"
-                width="100"
-                height="100"
-                fill="white"
-              />
-              <circle
-                v-for="variable in region.excludedVariables"
-                :key="`${region.id}-mask-${variable}`"
-                :cx="circleByVariable[variable].cx"
-                :cy="circleByVariable[variable].cy"
-                :r="circleByVariable[variable].r"
-                fill="black"
-              />
-            </mask>
-          </template>
+            <rect
+              width="8"
+              height="8"
+              fill="rgba(109, 174, 255, 0.06)"
+            />
+            <rect
+              x="0"
+              y="0"
+              width="3"
+              height="8"
+              fill="rgba(188, 208, 255, 0.26)"
+            />
+          </pattern>
         </defs>
 
         <g class="venn-diagram__region-layer">
-          <rect
-            v-for="region in diagramModel.regions"
+          <template
+            v-for="region in orderedRegions"
             :key="region.id"
-            class="venn-diagram__region-hit"
-            :class="regionHitClasses(region)"
-            x="0"
-            y="0"
-            width="100"
-            height="100"
-            :clip-path="region.includedVariables.length > 0 ? clipPathUrl(region.id) : undefined"
-            :mask="region.excludedVariables.length > 0 ? maskUrl(region.id) : undefined"
-            :data-testid="`${testIdPrefix}-${region.id}`"
-            :aria-label="interactive ? region.ariaLabel : undefined"
-            :aria-pressed="interactive ? String(isRegionSelected(region.id)) : undefined"
-            :aria-disabled="interactive ? 'false' : undefined"
-            :aria-hidden="interactive ? undefined : 'true'"
-            :role="interactive ? 'button' : undefined"
-            :tabindex="interactive ? 0 : undefined"
-            :focusable="interactive ? 'true' : 'false'"
-            :title="showDetailedLabels ? undefined : region.ariaLabel"
-            @click="handleRegionClick(region.id)"
-            @keydown.enter.prevent="handleRegionKeydown(region.id)"
-            @keydown.space.prevent="handleRegionKeydown(region.id)"
-          />
+          >
+            <path
+              v-bind="regionHitAttrs(region)"
+              :style="regionFillStyle(region)"
+              :d="region.pathD"
+              @click="handleRegionClick(region.id)"
+              @keydown.enter.prevent="handleRegionKeydown(region.id)"
+              @keydown.space.prevent="handleRegionKeydown(region.id)"
+            />
+          </template>
         </g>
 
-        <g class="venn-diagram__circle-layer">
+        <g
+          class="venn-diagram__circle-layer"
+          pointer-events="none"
+        >
           <g
             v-for="circle in diagramModel.circles"
             :key="circle.variable"
@@ -108,53 +82,21 @@
           <g
             v-for="region in diagramModel.regions"
             :key="`${region.id}-text`"
-            :transform="`translate(${region.anchor.x}, ${region.anchor.y})`"
           >
             <text
-              class="venn-diagram__region-icon"
-              text-anchor="middle"
-              x="0"
-              y="0"
-            >
-              {{ region.icon }}
-            </text>
-            <text
               class="venn-diagram__region-label"
+              :x="region.anchor.x"
+              :y="region.anchor.y"
               text-anchor="middle"
-              x="0"
-              y="4.2"
+              dominant-baseline="middle"
             >
               <tspan
-                x="0"
-                dy="0"
+                v-for="(line, index) in region.labelLines"
+                :key="`${region.id}-line-${index}`"
+                :x="region.anchor.x"
+                :dy="region.labelLines.length > 1 ? (index === 0 ? '-0.35em' : '1.05em') : '0'"
               >
-                {{ region.displayLabel }}
-              </tspan>
-            </text>
-            <text
-              class="venn-diagram__region-bits"
-              text-anchor="middle"
-              x="0"
-              y="8.5"
-            >
-              <tspan
-                x="0"
-                dy="0"
-              >
-                {{ region.bits }}
-              </tspan>
-            </text>
-            <text
-              class="venn-diagram__region-state"
-              text-anchor="middle"
-              x="0"
-              y="12.5"
-            >
-              <tspan
-                x="0"
-                dy="0"
-              >
-                {{ region.stateLabel }}
+                {{ line }}
               </tspan>
             </text>
           </g>
@@ -260,6 +202,7 @@ const props = defineProps({
 
 const emit = defineEmits(['toggle-region']);
 const diagramInstanceId = `venn-${Math.random().toString(36).slice(2, 10)}`;
+const neutralPatternId = `${diagramInstanceId}-neutral-pattern`;
 
 const diagramModel = computed(() =>
   buildVennDiagramModel(
@@ -274,10 +217,6 @@ const diagramModel = computed(() =>
   ),
 );
 
-const circleByVariable = computed(() =>
-  Object.fromEntries(diagramModel.value.circles.map((circle) => [circle.variable, circle])),
-);
-
 const legendItems = computed(() => [
   { state: 'selected', label: 'Selected', icon: '●' },
   { state: 'correct', label: 'Correct', icon: '✓' },
@@ -286,23 +225,47 @@ const legendItems = computed(() => [
   { state: 'available', label: 'Available', icon: '○' },
 ]);
 
-function clipPathId(regionId) {
-  return `${diagramInstanceId}-clip-${regionId}`;
+const orderedRegions = computed(() =>
+  [...diagramModel.value.regions].sort((left, right) => {
+    const specificityDelta = left.includedVariables.length - right.includedVariables.length;
+
+    if (specificityDelta !== 0) {
+      return specificityDelta;
+    }
+
+    return left.id - right.id;
+  }),
+);
+
+function regionHitAttrs(region) {
+  return {
+    class: ['venn-diagram__region-hit', regionHitClasses(region)],
+    'data-testid': `${props.testIdPrefix}-${region.id}`,
+    'data-region-state': region.state,
+    'aria-label': props.interactive ? region.ariaLabel : undefined,
+    'aria-pressed': props.interactive ? String(isRegionSelected(region.id)) : undefined,
+    'aria-disabled': props.interactive ? 'false' : undefined,
+    'aria-hidden': props.interactive ? undefined : 'true',
+    role: props.interactive ? 'button' : undefined,
+    tabindex: props.interactive ? 0 : undefined,
+    focusable: props.interactive ? 'true' : 'false',
+    title: props.showDetailedLabels ? undefined : region.ariaLabel,
+  };
 }
 
-function maskId(regionId) {
-  return `${diagramInstanceId}-mask-${regionId}`;
-}
+function regionFillStyle(region) {
+  if (region.state === 'neutral') {
+    return { fill: `url(#${neutralPatternId})` };
+  }
 
-function clipPathUrl(regionId) {
-  return `url(#${clipPathId(regionId)})`;
-}
-
-function maskUrl(regionId) {
-  return `url(#${maskId(regionId)})`;
+  return null;
 }
 
 function regionHitClasses(region) {
+  // Three-state visual contract for the SVG region hit areas:
+  // - selected: true / shaded
+  // - available: false / explicitly unselected
+  // - neutral: unset / pending and not yet ready for inspection
   return {
     [`venn-diagram__region-hit--${region.state}`]: true,
     'venn-diagram__region-hit--focused': region.focused,

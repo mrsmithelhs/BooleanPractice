@@ -143,7 +143,7 @@ describe('problem review summary', () => {
     expect(wrapper.get('[data-testid="comparison-region-3"]').text()).toContain('Matching Venn Region 011');
   });
 
-  it('shows a disabled submission card in the static build', () => {
+  it('hides the submission card in the static build', () => {
     const problem = getProblemById('tt-01-literal-a');
     const stepDefinitions = getStepDefinitions(problem);
     const summary = buildProblemReviewSummary({
@@ -178,14 +178,7 @@ describe('problem review summary', () => {
       },
     });
 
-    expect(wrapper.get('[data-testid="submission-output"]').text()).toContain(
-      'google.script.run is unavailable in this build.',
-    );
-    expect(wrapper.findAll('details.details-card').length).toBeGreaterThan(0);
-    expect(wrapper.get('[data-testid="submission-output"] details').text()).toContain(
-      'Submission details',
-    );
-    expect(wrapper.get('[data-testid="submission-submit"]').attributes('disabled')).toBeDefined();
+    expect(wrapper.find('[data-testid="submission-output"]').exists()).toBe(false);
   });
 
   it('shows assignment metadata in the submission card when present', () => {

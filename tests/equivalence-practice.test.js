@@ -41,9 +41,9 @@ describe('equivalence practice', () => {
     expect(wrapper.get('[data-testid="equivalence-first-difference"]').text()).toContain('Region');
     expect(wrapper.findAll('[data-testid^="equivalence-proof-left-region-"]')).toHaveLength(4);
     expect(wrapper.findAll('[data-testid^="equivalence-proof-right-region-"]')).toHaveLength(4);
-    expect(
+    expect(['path', 'rect']).toContain(
       wrapper.get('[data-testid="equivalence-proof-left-region-0"]').element.tagName.toLowerCase(),
-    ).toBe('rect');
+    );
     expect(wrapper.find('.venn-diagram__region-label').exists()).toBe(true);
 
     await wrapper.get('[data-testid="equivalence-choice-not-equivalent"]').trigger('click');

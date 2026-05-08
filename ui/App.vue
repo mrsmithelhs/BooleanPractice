@@ -87,16 +87,9 @@
     class="shell"
   >
     <header class="workspace-bar panel panel--compact">
-      <div class="workspace-bar__copy">
-        <p class="eyebrow">
-          Boolean Practice
-        </p>
-        <h1>Practice workspace</h1>
-        <p class="lede">
-          Focus on the active problem first. Controls and details stay available, but they do not
-          compete with the work surface.
-        </p>
-      </div>
+      <p class="eyebrow">
+        Boolean Practice
+      </p>
       <div
         class="workspace-bar__chips"
         aria-label="Current selection summary"
@@ -115,16 +108,9 @@
       >
         <div class="panel__header">
           <div>
-            <p class="panel__eyebrow">
-              Practice workspace
-            </p>
             <h2 id="practice-heading">
-              Active problem
+              Current problem
             </h2>
-            <p class="panel__lede">
-              The active learning surface responds to the selected mode while keeping the shared
-              semantics consistent.
-            </p>
           </div>
         </div>
 
@@ -171,16 +157,9 @@
       >
         <div class="panel__header">
           <div>
-            <p class="panel__eyebrow">
-              Student controls
-            </p>
             <h2 id="controls-heading">
               Load another problem
             </h2>
-            <p class="panel__lede">
-              Filter the shared challenge set by difficulty and mode. The same immutable data
-              powers the practice views and the equivalence mode.
-            </p>
           </div>
         </div>
 
@@ -320,6 +299,23 @@
               </article>
 
               <article
+                v-if="selectedRecord.predicateAtoms?.length"
+                class="mini-card"
+              >
+                <h3>Predicate Atoms</h3>
+                <ul>
+                  <li
+                    v-for="atom in selectedRecord.predicateAtoms"
+                    :key="atom.variable"
+                  >
+                    <strong>{{ atom.alias }}:</strong> {{ atom.predicate }}
+                  </li>
+                </ul>
+              </article>
+            </div>
+
+            <div class="info-grid info-grid--wide">
+              <article
                 class="mini-card"
                 data-testid="numeric-variable-note"
               >
@@ -331,21 +327,6 @@
                     :key="point"
                   >
                     {{ point }}
-                  </li>
-                </ul>
-              </article>
-
-              <article
-                v-if="selectedRecord.predicateAtoms?.length"
-                class="mini-card"
-              >
-                <h3>Predicate Atoms</h3>
-                <ul>
-                  <li
-                    v-for="atom in selectedRecord.predicateAtoms"
-                    :key="atom.variable"
-                  >
-                    <strong>{{ atom.alias }}:</strong> {{ atom.predicate }}
                   </li>
                 </ul>
               </article>

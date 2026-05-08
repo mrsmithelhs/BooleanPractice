@@ -9,8 +9,12 @@ import {
 } from '@shared/index';
 import VennPractice from '@/components/VennPractice.vue';
 
-async function setRegionPressed(region, pressed) {
-  for (let attempts = 0; attempts < 3 && region.attributes('aria-pressed') !== String(pressed); attempts += 1) {
+async function setRegionState(region, targetState) {
+  for (
+    let attempts = 0;
+    attempts < 4 && region.attributes('data-region-state') !== targetState;
+    attempts += 1
+  ) {
     await region.trigger('click');
     await nextTick();
   }
@@ -32,17 +36,23 @@ describe('venn practice', () => {
     expect(wrapper.findAll('[data-testid^="venn-region-"]')).toHaveLength(8);
     expect(wrapper.find('.venn-diagram__stage').exists()).toBe(true);
     expect(wrapper.find('.venn-diagram__legend').exists()).toBe(true);
-    expect(wrapper.find('button.venn-diagram__region').exists()).toBe(false);
-    expect(wrapper.get('[data-testid="venn-region-0"]').element.tagName.toLowerCase()).toBe('rect');
+    expect(wrapper.find('.venn-diagram__fallback').exists()).toBe(false);
+    expect(wrapper.text()).not.toContain('Selection Guide');
+    expect(['path', 'rect']).toContain(
+      wrapper.get('[data-testid="venn-region-0"]').element.tagName.toLowerCase(),
+    );
 
     const region = wrapper.get('[data-testid="venn-region-0"]');
-    expect(region.attributes('aria-pressed')).toBe('false');
+    expect(region.attributes('data-region-state')).toBe('neutral');
 
     await region.trigger('keydown.enter');
-    expect(region.attributes('aria-pressed')).toBe('true');
+    expect(region.attributes('data-region-state')).toBe('selected');
 
     await region.trigger('keydown.space');
-    expect(region.attributes('aria-pressed')).toBe('false');
+    expect(region.attributes('data-region-state')).toBe('available');
+
+    await region.trigger('keydown.space');
+    expect(region.attributes('data-region-state')).toBe('neutral');
   });
 
   it('hides detailed region labels by default and reveals them when enabled', async () => {
@@ -69,24 +79,44 @@ describe('venn practice', () => {
     await nextTick();
 
     expect(wrapper.find('.venn-diagram__region-label').exists()).toBe(true);
-    expect(wrapper.find('.venn-diagram__region-bits').exists()).toBe(true);
-    expect(wrapper.find('.venn-diagram__region-state').exists()).toBe(true);
+    expect(wrapper.find('.venn-diagram__region-bits').exists()).toBe(false);
+    expect(wrapper.find('.venn-diagram__region-state').exists()).toBe(false);
   });
 
   it('reports missed and extra regions and advances through the final step', async () => {
+    const problem = getProblemById('tt-09-three-variable-venn');
+    const truthTable = generateTruthTable(problem.ast);
+    const firstStep = truthTable.subexpressions[0];
+    const vennBlueprint = generateVennRegions(problem.ast);
+    const expectedFirstStepRegionIds = vennBlueprint.regions
+      .filter((region) => evaluateBooleanAst(firstStep.node, region.assignment))
+      .map((region) => region.id);
     const wrapper = mount(VennPractice, {
-      props: { problem: getProblemById('tt-09-three-variable-venn') },
+      props: { problem },
     });
 
     await nextTick();
 
+    expect(wrapper.get('[data-testid="venn-check-selection"]').attributes('disabled')).toBeDefined();
     await wrapper.get('[data-testid="venn-region-0"]').trigger('click');
     await wrapper.get('[data-testid="venn-region-6"]').trigger('click');
+    await wrapper.get('[data-testid="venn-region-1"]').trigger('click');
+    await wrapper.get('[data-testid="venn-region-1"]').trigger('click');
+    await wrapper.get('[data-testid="venn-region-2"]').trigger('click');
+    await wrapper.get('[data-testid="venn-region-2"]').trigger('click');
+    await wrapper.get('[data-testid="venn-region-3"]').trigger('click');
+    await wrapper.get('[data-testid="venn-region-3"]').trigger('click');
+    await wrapper.get('[data-testid="venn-region-4"]').trigger('click');
+    await wrapper.get('[data-testid="venn-region-4"]').trigger('click');
+    await wrapper.get('[data-testid="venn-region-5"]').trigger('click');
+    await wrapper.get('[data-testid="venn-region-5"]').trigger('click');
+    await wrapper.get('[data-testid="venn-region-7"]').trigger('click');
+    expect(wrapper.get('[data-testid="venn-check-selection"]').attributes('disabled')).toBeUndefined();
     await wrapper.get('[data-testid="venn-check-selection"]').trigger('click');
     await nextTick();
 
     expect(wrapper.get('[data-testid="venn-feedback"]').text()).toContain('does not match');
-    expect(wrapper.get('[data-testid="venn-feedback"]').text()).not.toContain('Missed regions:');
+    expect(wrapper.get('[data-testid="venn-feedback"]').text()).not.toContain('Great work');
 
     await wrapper.get('[data-testid="venn-check-selection"]').trigger('click');
     await nextTick();
@@ -99,14 +129,19 @@ describe('venn practice', () => {
     await wrapper.get('[data-testid="venn-check-selection"]').trigger('click');
     await nextTick();
 
-    expect(wrapper.get('[data-testid="venn-feedback"]').text()).toContain('Missed regions:');
     expect(wrapper.get('[data-testid="venn-feedback"]').text()).toContain('Extra regions:');
+    expect(wrapper.get('[data-testid="venn-feedback"]').text()).not.toContain('Great work');
 
     await wrapper.get('[data-testid="venn-reset"]').trigger('click');
     await nextTick();
 
-    await wrapper.get('[data-testid="venn-region-6"]').trigger('click');
-    await wrapper.get('[data-testid="venn-region-7"]').trigger('click');
+    const correctedRegions = wrapper.findAll('[data-testid^="venn-region-"]');
+    for (const region of correctedRegions) {
+      const regionId = Number(region.attributes('data-testid').replace('venn-region-', ''));
+      await setRegionState(region, expectedFirstStepRegionIds.includes(regionId) ? 'selected' : 'available');
+    }
+
+    expect(wrapper.get('[data-testid="venn-check-selection"]').attributes('disabled')).toBeUndefined();
     await wrapper.get('[data-testid="venn-check-selection"]').trigger('click');
     await nextTick();
 
@@ -139,7 +174,9 @@ describe('venn practice', () => {
     await wrapper.get('[data-testid="venn-shade-all"]').trigger('click');
     await nextTick();
 
-    expect(regions.every((region) => region.attributes('aria-pressed') === 'true')).toBe(true);
+    expect(regions.every((region) => region.attributes('data-region-state') === 'selected')).toBe(
+      true,
+    );
     expect(wrapper.get('[data-testid="venn-feedback"]').text()).toContain(
       'Shaded all regions for',
     );
@@ -147,15 +184,20 @@ describe('venn practice', () => {
     await wrapper.get('[data-testid="venn-clear-selection"]').trigger('click');
     await nextTick();
 
-    expect(regions.every((region) => region.attributes('aria-pressed') === 'false')).toBe(true);
+    expect(regions.every((region) => region.attributes('data-region-state') === 'neutral')).toBe(
+      true,
+    );
+    expect(wrapper.get('[data-testid="venn-check-selection"]').attributes('disabled')).toBeDefined();
     expect(wrapper.get('[data-testid="venn-feedback"]').text()).toContain(
       'Cleared (a && b).',
     );
 
     for (const region of regions) {
       const regionId = Number(region.attributes('data-testid').replace('venn-region-', ''));
-      await setRegionPressed(region, expectedFirstStepRegionIds.includes(regionId));
+      await setRegionState(region, expectedFirstStepRegionIds.includes(regionId) ? 'selected' : 'available');
     }
+
+    expect(wrapper.get('[data-testid="venn-check-selection"]').attributes('disabled')).toBeUndefined();
 
     await wrapper.get('[data-testid="venn-check-selection"]').trigger('click');
     await nextTick();
@@ -207,7 +249,7 @@ describe('venn practice', () => {
 
     const regions = wrapper.findAll('[data-testid^="venn-region-"]');
     for (const region of regions) {
-      await setRegionPressed(region, true);
+      await setRegionState(region, 'selected');
     }
 
     await wrapper.get('[data-testid="venn-check-selection"]').trigger('click');
@@ -221,7 +263,7 @@ describe('venn practice', () => {
     const correctedRegions = wrapper.findAll('[data-testid^="venn-region-"]');
     for (const region of correctedRegions) {
       const regionId = Number(region.attributes('data-testid').replace('venn-region-', ''));
-      await setRegionPressed(region, expectedRegionIds.includes(regionId));
+      await setRegionState(region, expectedRegionIds.includes(regionId) ? 'selected' : 'available');
     }
 
     await wrapper.get('[data-testid="venn-check-selection"]').trigger('click');
@@ -250,7 +292,7 @@ describe('venn practice', () => {
       const regions = wrapper.findAll('[data-testid^="venn-region-"]');
       for (const region of regions) {
         const regionId = Number(region.attributes('data-testid').replace('venn-region-', ''));
-        await setRegionPressed(region, expectedRegionIds.includes(regionId));
+        await setRegionState(region, expectedRegionIds.includes(regionId) ? 'selected' : 'available');
       }
 
       await wrapper.get('[data-testid="venn-check-selection"]').trigger('click');
@@ -275,7 +317,7 @@ describe('venn practice', () => {
     expect(
       wrapper
         .findAll('[data-testid^="venn-region-"]')
-        .filter((region) => region.attributes('aria-pressed') === 'true')
+        .filter((region) => region.attributes('data-region-state') === 'selected')
         .map((region) => Number(region.attributes('data-testid').replace('venn-region-', ''))),
     ).toEqual(expectedRegionIds);
     expect(wrapper.get('[data-testid="venn-restore-memory"]').exists()).toBe(true);
@@ -291,7 +333,7 @@ describe('venn practice', () => {
     expect(
       wrapper
         .findAll('[data-testid^="venn-region-"]')
-        .filter((region) => region.attributes('aria-pressed') === 'true'),
+        .filter((region) => region.attributes('data-region-state') === 'selected'),
     ).toHaveLength(0);
   });
 });

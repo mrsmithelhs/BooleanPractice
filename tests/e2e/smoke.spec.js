@@ -68,7 +68,12 @@ test('completes a Venn step with keyboard region selection', async ({ page }) =>
   await expect(page.locator('[data-testid="venn-practice"]')).toBeVisible();
   await expect(page.locator('[data-testid="expression-card"] .expression')).toContainText('a');
 
-  await page.getByTestId('venn-region-1').press('Space');
+  await page.getByTestId('venn-region-1').focus();
+  await page.keyboard.press('Space');
+  await page.getByTestId('venn-region-0').focus();
+  await page.keyboard.press('Space');
+  await page.keyboard.press('Space');
+  await expect(page.getByTestId('venn-check-selection')).toBeEnabled();
   await page.getByTestId('venn-check-selection').click();
 
   await expect(page.getByTestId('venn-feedback')).toContainText('Venn answer is finished');
@@ -84,6 +89,47 @@ test('uses Venn bulk controls without skipping checks', async ({ page }) => {
   await page.getByTestId('venn-clear-selection').click();
   await expect(page.getByTestId('venn-region-0')).toHaveAttribute('aria-pressed', 'false');
   await expect(page.getByTestId('venn-current-step')).toContainText('1/1');
+});
+
+test('clicks each two-input venn region at the SVG geometry level', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('select[name="mode"]').selectOption('venn');
+  await page.locator('select[name="problem"]').selectOption('tt-03-and-a-b');
+
+  await expect(page.getByTestId('venn-practice')).toBeVisible();
+  await expect(page.getByTestId('venn-check-selection')).toBeDisabled();
+
+  const svg = page.locator('.venn-diagram__svg');
+
+  const clickSvgPoint = async (x, y) => {
+    await svg.scrollIntoViewIfNeeded();
+    const point = await svg.evaluate((element, coords) => {
+      const svgPoint = element.createSVGPoint();
+      svgPoint.x = coords.x;
+      svgPoint.y = coords.y;
+
+      const screenPoint = svgPoint.matrixTransform(element.getScreenCTM());
+      return {
+        x: screenPoint.x,
+        y: screenPoint.y,
+      };
+    }, { x, y });
+
+    await page.mouse.click(point.x, point.y);
+  };
+
+  await clickSvgPoint(50, 20);
+  await expect(page.getByTestId('venn-region-0')).toHaveAttribute('data-region-state', 'selected');
+
+  await clickSvgPoint(32, 56);
+  await expect(page.getByTestId('venn-region-2')).toHaveAttribute('data-region-state', 'selected');
+
+  await clickSvgPoint(68, 56);
+  await expect(page.getByTestId('venn-region-1')).toHaveAttribute('data-region-state', 'selected');
+
+  await clickSvgPoint(50, 56);
+  await expect(page.getByTestId('venn-region-3')).toHaveAttribute('data-region-state', 'selected');
+  await expect(page.getByTestId('venn-check-selection')).toBeEnabled();
 });
 
 test('completes an equivalence proof in both proof modes', async ({ page }) => {
@@ -124,7 +170,7 @@ test('checks a simplification guess and surfaces the proof', async ({ page }) =>
 
 test('desktop shell stays readable and supports mode switching', async ({ page }) => {
   await page.goto('/');
-  await expect(page.locator('h1')).toContainText('Practice workspace');
+  await expect(page.locator('.workspace-bar .eyebrow')).toContainText('Boolean Practice');
   await expect(page.locator('[data-testid="shell-status"]')).toBeVisible();
   await expect(page.locator('[data-testid="problem-details"]')).toBeVisible();
 
@@ -142,7 +188,7 @@ test('mobile shell stacks without horizontal overflow', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
 
-  await expect(page.locator('h1')).toContainText('Practice workspace');
+  await expect(page.locator('.workspace-bar .eyebrow')).toContainText('Boolean Practice');
   await expect(page.locator('[data-testid="truth-table-practice"]')).toBeVisible();
   await expect(page.getByTestId('truth-table-check-step')).toBeInViewport();
 
