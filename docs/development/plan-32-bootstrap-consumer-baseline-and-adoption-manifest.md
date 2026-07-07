@@ -4,7 +4,7 @@
 
 - Packet id: 32
 - Packet title: Bootstrap Consumer Baseline And Adoption Manifest
-- Status: ready
+- Status: complete
 - Owner/model: stronger model recommended
 - Date: 2026-07-07
 - Packet type: orchestration, docs, scan-only, migration planning
@@ -24,7 +24,7 @@
 
 ## Current Baseline
 
-On 2026-07-07, running the Bootstrap audit from `C:\AI\Bootstrap` against this repo reported:
+On 2026-07-07, running the Bootstrap audit from `<bootstrap-repo>` against this repo reported:
 
 ```text
 Mode: untracked-baseline (no .bootstrap-adoption.json found)

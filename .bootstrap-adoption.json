@@ -1,0 +1,54 @@
+{
+  "lastBootstrapAudit": "2026-07-07",
+  "bootstrapVersion": "0.1.0",
+  "capabilities": [
+    {
+      "capability": "packet-status-system",
+      "state": "deferred",
+      "bootstrapVersion": "0.1.0",
+      "localRationale": "Planned for Plan 33; keep the baseline honest until packet frontmatter migration lands."
+    },
+    {
+      "capability": "packet-status-set-verb",
+      "state": "deferred",
+      "bootstrapVersion": "0.1.0",
+      "localRationale": "Depends on packet-status-system and will arrive with the packet-status migration work."
+    },
+    {
+      "capability": "dev-console-hub",
+      "state": "deferred",
+      "bootstrapVersion": "0.1.0",
+      "localRationale": "Planned for Plan 35; the current console exists but is not yet aligned to Bootstrap's hub pattern."
+    },
+    {
+      "capability": "agent-starting-prompts",
+      "state": "deferred",
+      "bootstrapVersion": "0.1.0",
+      "localRationale": "Planned for Plan 34; the repo still uses repo-specific prompts rather than a Bootstrap-managed prompt set."
+    },
+    {
+      "capability": "falsification-check",
+      "state": "deferred",
+      "bootstrapVersion": "0.1.0",
+      "localRationale": "Planned for Plan 34; the managed-prose falsification guidance has not yet been mirrored into consumer docs."
+    },
+    {
+      "capability": "reports-archive",
+      "state": "adopted",
+      "bootstrapVersion": "0.1.0",
+      "capabilityVersion": "1.0.0"
+    },
+    {
+      "capability": "root-agent-guide",
+      "state": "deferred",
+      "bootstrapVersion": "0.1.0",
+      "localRationale": "Planned for Plan 34; canonical agent-entry scaffolding has not yet been formalized in this repo."
+    },
+    {
+      "capability": "decision-log",
+      "state": "deferred",
+      "bootstrapVersion": "0.1.0",
+      "localRationale": "Planned for Plan 34; durable decision tracking and its scaffold do not exist yet in the consumer."
+    }
+  ]
+}

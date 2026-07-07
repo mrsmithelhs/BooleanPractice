@@ -37,7 +37,7 @@ This sequence migrates Boolean Practice from the archived Google Apps Script for
 | [Plan 29](plan-29-interactive-visual-venn-diagrams.md) | complete | Replace region-grid-only Venn practice with actual interactive visual Venn diagrams. |
 | [Plan 30](plan-30-student-facing-copy-feedback-and-submission-polish.md) | complete | Polish student-facing labels, progress, affordances, feedback, and submission states. |
 | [Plan 31](plan-31-svg-first-interactive-venn-regions-with-optional-detailed-labels.md) | complete | Make detailed Venn labels optional while using SVG region geometry as the interaction surface. |
-| [Plan 32](plan-32-bootstrap-consumer-baseline-and-adoption-manifest.md) | ready | Audit Bootstrap capability presence and create an honest adoption manifest. |
+| [Plan 32](plan-32-bootstrap-consumer-baseline-and-adoption-manifest.md) | complete | Audit Bootstrap capability presence and create an honest adoption manifest. |
 | [Plan 33](plan-33-bootstrap-packet-status-frontmatter-migration.md) | ready | Adopt Bootstrap packet status tooling and migrate existing packets to frontmatter. |
 | [Plan 34](plan-34-bootstrap-agent-guides-prompts-and-decision-records.md) | ready | Add Bootstrap-style agent guides, starting prompts, decision records, and falsification guidance. |
 | [Plan 35](plan-35-bootstrap-dev-console-hub-alignment.md) | ready | Align the local dev console with Bootstrap's submenu hub and safe script execution pattern. |
