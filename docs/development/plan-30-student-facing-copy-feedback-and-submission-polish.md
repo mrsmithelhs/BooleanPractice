@@ -4,7 +4,7 @@
 
 - Packet id: 30
 - Packet title: Student-Facing Copy, Feedback, Progress, And Submission Polish
-- Status: ready
+- Status: complete
 - Owner/model: Codex mini or stronger
 - Date: 2026-05-06
 - Packet type: UI polish, copy, accessibility, tests

@@ -4,7 +4,7 @@
 
 - Packet id: 14
 - Packet title: Cross-Representation Comparison
-- Status: ready
+- Status: complete
 - Owner/model: Codex mini or stronger; browser-capable model recommended
 - Date: 2026-05-06
 - Packet type: implementation, pedagogy, frontend, tests

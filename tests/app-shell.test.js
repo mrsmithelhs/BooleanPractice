@@ -92,6 +92,12 @@ describe('app shell', () => {
     expect(wrapper.get('[data-testid="numeric-variable-note"]').text()).toContain(
       'stands in for an unknown number',
     );
+    expect(wrapper.get('[data-testid="problem-details"]').text()).toContain(
+      'Challenge Details',
+    );
+    expect(wrapper.get('[data-testid="problem-details"]').text()).not.toContain(
+      'Catalog Metadata',
+    );
 
     await wrapper.get('select[name="difficulty"]').setValue('medium');
     await nextTick();
@@ -104,6 +110,12 @@ describe('app shell', () => {
     expect(wrapper.find('[data-testid="truth-table-practice"]').exists()).toBe(false);
     expect(wrapper.get('[data-testid="venn-practice"]').exists()).toBe(true);
     expect(wrapper.get('[data-testid="venn-practice"] .venn-diagram__stage').exists()).toBe(true);
+    expect(wrapper.get('[data-testid="venn-practice"]').text()).toContain(
+      'Current Step Breakdown',
+    );
+    expect(wrapper.get('[data-testid="venn-practice"]').text()).not.toContain(
+      'Operand Preview',
+    );
     expect(wrapper.find('.venn-diagram__region-label').exists()).toBe(false);
 
     await wrapper.get('[data-testid="venn-label-toggle"]').setValue(true);

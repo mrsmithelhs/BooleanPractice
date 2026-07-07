@@ -196,6 +196,10 @@ const submissionButtonLabel = computed(() => {
     return 'Submitted';
   }
 
+  if (submissionStatus.value === 'error') {
+    return 'Try Again';
+  }
+
   return submissionGateway.available ? 'Submit Completion' : 'Submission Unavailable';
 });
 
@@ -205,7 +209,7 @@ const submissionStatusText = computed(() => {
   }
 
   if (submissionStatus.value === 'sending') {
-    return 'Submitting this completion to the GAS bridge...';
+    return 'Submitting this completion now...';
   }
 
   if (submissionStatus.value === 'sent') {
@@ -213,14 +217,17 @@ const submissionStatusText = computed(() => {
   }
 
   if (submissionStatus.value === 'error') {
-    return submissionMessage.value || 'Submission failed.';
+    return (
+      submissionMessage.value ||
+      'Submission did not go through. Try again in a moment or ask your teacher for help.'
+    );
   }
 
   if (!submissionGateway.available) {
-    return `${submissionGateway.reason} The static GitHub Pages build keeps this control disabled.`;
+    return `${submissionGateway.reason} The completion still stands, and this card stays disabled here.`;
   }
 
-  return 'Ready to send this completion to a GAS web app bridge.';
+  return 'Ready to send this completion to classroom submission.';
 });
 
 watch(
@@ -251,7 +258,8 @@ function submitSubmission() {
     })
     .catch((error) => {
       submissionStatus.value = 'error';
-      submissionMessage.value = error instanceof Error ? error.message : String(error);
+      submissionMessage.value = 'Submission did not go through. Try again in a moment or ask your teacher for help.';
+      console.error('Submission failed:', error);
     });
 }
 </script>

@@ -65,7 +65,7 @@
           Complexity
         </p>
         <p>Original: {{ challenge.originalNodeCount }} nodes</p>
-        <p>Guess: {{ currentGuessNodeCountLabel }}</p>
+        <p data-testid="simplification-guess-node-count">Guess: {{ currentGuessNodeCountLabel }}</p>
         <p>{{ simplificationLabel }}</p>
       </article>
 
@@ -237,7 +237,7 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue';
-import { buildSimplificationCheck } from '@shared/index';
+import { buildSimplificationCheck, formatNodeCountLabel } from '@shared/index';
 import VennDiagram from './VennDiagram.vue';
 
 const emit = defineEmits(['complete']);
@@ -278,7 +278,7 @@ const proofModeLabel = computed(() =>
   proofMode.value === 'truth-table' ? 'Truth Table' : 'Venn Diagram',
 );
 const currentGuessNodeCountLabel = computed(() =>
-  analysis.value ? `${analysis.value.guessNodeCount} nodes` : 'not checked yet',
+  analysis.value ? formatNodeCountLabel(analysis.value.guessNodeCount) : 'not checked yet',
 );
 const simplificationLabel = computed(() => {
   if (!analysis.value) {

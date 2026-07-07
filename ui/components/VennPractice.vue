@@ -37,7 +37,7 @@
       </article>
 
       <article class="mini-card">
-        <h3>Operand Preview</h3>
+        <h3>Current Step Breakdown</h3>
         <ul class="venn-practice__preview-list">
           <li
             v-for="item in currentStepPreview"

@@ -4,7 +4,7 @@
 
 - Packet id: 16
 - Packet title: Expression Equivalence Mode
-- Status: ready
+- Status: complete
 - Owner/model: Codex mini or stronger; stronger model recommended for pair generation logic
 - Date: 2026-05-06
 - Packet type: implementation, pedagogy, core logic, frontend, tests

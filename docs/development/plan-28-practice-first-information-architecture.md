@@ -4,7 +4,7 @@
 
 - Packet id: 28
 - Packet title: Practice-First Information Architecture And Density Reduction
-- Status: ready
+- Status: complete
 - Owner/model: stronger model recommended
 - Date: 2026-05-06
 - Packet type: UX redesign, responsive layout, pedagogy, implementation, tests

@@ -4,7 +4,7 @@
 
 - Packet id: 02
 - Packet title: Archive Inventory And Product Spec
-- Status: ready
+- Status: complete
 - Owner/model: Codex mini or stronger
 - Date: 2026-05-05
 - Packet type: scan-only, docs, pedagogy

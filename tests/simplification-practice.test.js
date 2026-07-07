@@ -20,7 +20,10 @@ describe('simplification practice', () => {
     await nextTick();
 
     expect(wrapper.get('[data-testid="simplification-feedback"]').text()).toContain(
-      'Equivalent and simpler by this metric',
+      'Equivalent and simpler by this metric (1 node vs 3 nodes).',
+    );
+    expect(wrapper.get('[data-testid="simplification-guess-node-count"]').text()).toBe(
+      'Guess: 1 node',
     );
     expect(wrapper.get('[data-testid="simplification-first-difference"]').text()).toContain(
       'No differing rows',

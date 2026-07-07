@@ -4,7 +4,7 @@
 
 - Packet id: 08
 - Packet title: Venn Learning UI
-- Status: ready
+- Status: complete
 - Owner/model: Codex mini or stronger; browser-capable model recommended
 - Date: 2026-05-05
 - Packet type: implementation, frontend, accessibility, tests

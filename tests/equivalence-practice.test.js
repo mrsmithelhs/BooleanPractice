@@ -23,6 +23,19 @@ describe('equivalence practice', () => {
     expect(wrapper.get('[data-testid="equivalence-feedback"]').text()).toContain(
       'Correct. The proof shows matching rows and regions on every assignment.',
     );
+    expect(wrapper.get('[data-testid="equivalence-completion"]').text()).toContain(
+      'Challenge complete',
+    );
+    expect(wrapper.get('[data-testid="equivalence-completion"]').text()).toContain(
+      'Reset Challenge',
+    );
+
+    await wrapper.get('[data-testid="equivalence-choice-not-equivalent"]').trigger('click');
+    await wrapper.get('[data-testid="equivalence-check"]').trigger('click');
+    await nextTick();
+
+    expect(wrapper.get('[data-testid="equivalence-feedback"]').text()).toContain('Not quite');
+    expect(wrapper.find('[data-testid="equivalence-completion"]').exists()).toBe(false);
   });
 
   it('switches to venn proof mode and reports the first differing region for a near miss', async () => {

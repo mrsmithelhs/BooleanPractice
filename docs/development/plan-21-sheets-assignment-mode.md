@@ -4,7 +4,7 @@
 
 - Packet id: 21
 - Packet title: Sheets Assignment Mode
-- Status: ready
+- Status: complete
 - Owner/model: Codex mini or stronger; stronger model recommended for data model design
 - Date: 2026-05-06
 - Packet type: implementation, GAS, data, pedagogy, tests, docs

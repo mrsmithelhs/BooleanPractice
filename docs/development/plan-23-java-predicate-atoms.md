@@ -4,7 +4,7 @@
 
 - Packet id: 23
 - Packet title: Java Predicate Atoms
-- Status: ready
+- Status: complete
 - Owner/model: Codex mini or stronger; stronger model recommended for UI/pedagogy decisions
 - Date: 2026-05-06
 - Packet type: implementation, pedagogy, parser/display, frontend, tests

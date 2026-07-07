@@ -4,7 +4,7 @@
 
 - Packet id: 27
 - Packet title: UI Review Synthesis Workflow
-- Status: ready
+- Status: complete
 - Owner/model: Codex mini or stronger; stronger model recommended for synthesis quality
 - Date: 2026-05-06
 - Packet type: implementation, tooling, UI review, docs

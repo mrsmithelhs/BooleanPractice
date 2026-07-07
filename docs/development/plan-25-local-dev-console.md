@@ -4,7 +4,7 @@
 
 - Packet id: 25
 - Packet title: Local Dev Console And Port-Control Workflow
-- Status: ready
+- Status: complete
 - Owner/model: stronger model recommended
 - Date: 2026-05-06
 - Packet type: local developer tooling, scripts, docs, tests

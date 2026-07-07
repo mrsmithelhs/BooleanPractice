@@ -78,6 +78,24 @@
       <p>{{ feedbackMessage }}</p>
     </section>
 
+    <section
+      v-if="completionState"
+      class="mini-card equivalence-practice__completion"
+      data-testid="equivalence-completion"
+      aria-live="polite"
+    >
+      <h3>{{ completionState.title }}</h3>
+      <p>{{ completionState.message }}</p>
+      <button
+        type="button"
+        class="action-button action-button--secondary"
+        data-testid="equivalence-completion-reset"
+        @click="resetChallenge"
+      >
+        Reset Challenge
+      </button>
+    </section>
+
     <section class="equivalence-practice__proof">
       <div class="equivalence-practice__proof-header">
         <div>
@@ -242,6 +260,7 @@ const props = defineProps({
 const proofMode = ref('truth-table');
 const selectedDecision = ref('');
 const feedbackMessage = ref('Pick whether the pair is equivalent, then check your reasoning.');
+const completionState = ref(null);
 
 const proof = computed(() => buildEquivalenceProof(props.challenge, proofMode.value).proof);
 const leftRegionStates = computed(() =>
@@ -288,10 +307,12 @@ function resetChallenge() {
   selectedDecision.value = '';
   proofMode.value = 'truth-table';
   feedbackMessage.value = 'Pick whether the pair is equivalent, then check your reasoning.';
+  completionState.value = null;
 }
 
 function checkAnswer() {
   if (!selectedDecision.value) {
+    completionState.value = null;
     feedbackMessage.value = 'Choose Equivalent or Not Equivalent before checking.';
     return;
   }
@@ -303,6 +324,12 @@ function checkAnswer() {
     feedbackMessage.value = props.challenge.equivalent
       ? 'Correct. The proof shows matching rows and regions on every assignment.'
       : `Correct. The pair is not equivalent because ${firstDifferenceText.value}`;
+    completionState.value = {
+      title: 'Challenge complete',
+      message: props.challenge.equivalent
+        ? 'The proof below stays visible. Use Reset Challenge to try this pair again, or load another problem from the controls.'
+        : 'The proof below stays visible. Use Reset Challenge to try this pair again, or switch proof mode to inspect the first difference.',
+    };
     emit('complete', {
       challenge: props.challenge,
       selectedDecision: selectedDecision.value,
@@ -313,6 +340,7 @@ function checkAnswer() {
     return;
   }
 
+  completionState.value = null;
   feedbackMessage.value = props.challenge.equivalent
     ? `Not quite. The rows and regions do match on every assignment, so the pair is equivalent.`
     : `Not quite. The proof shows a mismatch: ${firstDifferenceText.value}`;

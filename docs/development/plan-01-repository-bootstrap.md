@@ -4,7 +4,7 @@
 
 - Packet id: 01
 - Packet title: Repository Bootstrap
-- Status: ready
+- Status: complete
 - Owner/model: Codex mini or stronger
 - Date: 2026-05-05
 - Packet type: implementation, tooling, integration

@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   buildProblemReviewSummary,
   buildSubmissionPayload,
@@ -23,6 +23,11 @@ function getStepDefinitions(problem) {
 }
 
 describe('problem review summary', () => {
+  beforeEach(() => {
+    vi.useRealTimers();
+    delete globalThis.google;
+  });
+
   it('summarizes a first-try truth-table completion', () => {
     const problem = getProblemById('tt-01-literal-a');
     const stepDefinitions = getStepDefinitions(problem);
@@ -234,5 +239,122 @@ describe('problem review summary', () => {
 
     expect(wrapper.get('[data-testid="submission-output"]').text()).toContain('Assignment One');
     expect(wrapper.get('[data-testid="submission-output"]').text()).toContain('student@example.com');
+  });
+
+  it('shows product-safe copy when GAS submission is unavailable in this preview', () => {
+    const problem = getProblemById('tt-01-literal-a');
+    const stepDefinitions = getStepDefinitions(problem);
+    const summary = buildProblemReviewSummary({
+      problem,
+      mode: 'truth-table',
+      stepDefinitions,
+      stepReviews: stepDefinitions.map((step) => ({
+        stepId: step.id,
+        label: step.label,
+        attemptCount: 1,
+        failedChecks: 0,
+        completed: true,
+        lastMistake: null,
+      })),
+    });
+    const submissionPayload = buildSubmissionPayload({
+      problem,
+      mode: 'truth-table',
+      summary,
+      attempts: summary.totalAttempts,
+      hintsUsed: summary.totalHintsUsed,
+      autofillUses: 0,
+      bulkActionUses: 0,
+      appVersion: '0.1.0',
+      buildTarget: 'gas',
+    });
+
+    const wrapper = mount(ProblemReviewSummary, {
+      props: {
+        summary,
+        submissionPayload,
+      },
+    });
+
+    expect(wrapper.get('[data-testid="submission-output"]').text()).toContain(
+      "Classroom submission is not connected in this preview.",
+    );
+    expect(wrapper.get('[data-testid="submission-output"]').text()).not.toContain(
+      'google.script.run',
+    );
+    expect(wrapper.get('[data-testid="submission-submit"]').text()).toBe('Submission Unavailable');
+  });
+
+  it('keeps the completion visible and gives retry guidance when a submission fails', async () => {
+    vi.useFakeTimers();
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const problem = getProblemById('tt-01-literal-a');
+    const stepDefinitions = getStepDefinitions(problem);
+    const summary = buildProblemReviewSummary({
+      problem,
+      mode: 'truth-table',
+      stepDefinitions,
+      stepReviews: stepDefinitions.map((step) => ({
+        stepId: step.id,
+        label: step.label,
+        attemptCount: 1,
+        failedChecks: 0,
+        completed: true,
+        lastMistake: null,
+      })),
+    });
+    const submissionPayload = buildSubmissionPayload({
+      problem,
+      mode: 'truth-table',
+      summary,
+      attempts: summary.totalAttempts,
+      hintsUsed: summary.totalHintsUsed,
+      autofillUses: 0,
+      bulkActionUses: 0,
+      appVersion: '0.1.0',
+      buildTarget: 'gas',
+    });
+
+    const simulator = {
+      failureHandler: null,
+      withSuccessHandler() {
+        return this;
+      },
+      withFailureHandler(handler) {
+        this.failureHandler = handler;
+        return this;
+      },
+      recordSubmission() {
+        setTimeout(() => {
+          this.failureHandler?.(new Error('No submission sheet configured.'));
+        }, 25);
+        return this;
+      },
+    };
+
+    globalThis.google = { script: { run: simulator } };
+
+    const wrapper = mount(ProblemReviewSummary, {
+      props: {
+        summary,
+        submissionPayload,
+      },
+    });
+
+    try {
+      await wrapper.get('[data-testid="submission-submit"]').trigger('click');
+      await vi.advanceTimersByTimeAsync(25);
+
+      expect(wrapper.get('[data-testid="submission-output"]').text()).toContain(
+        'Try again in a moment or ask your teacher for help.',
+      );
+      expect(wrapper.get('[data-testid="submission-output"]').text()).not.toContain(
+        'No submission sheet configured.',
+      );
+      expect(wrapper.get('[data-testid="submission-submit"]').text()).toBe('Try Again');
+    } finally {
+      consoleErrorSpy.mockRestore();
+    }
   });
 });

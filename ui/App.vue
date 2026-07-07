@@ -332,7 +332,7 @@
               </article>
 
               <article class="mini-card">
-                <h3>Catalog Metadata</h3>
+                <h3>Challenge Details</h3>
                 <ul>
                   <li>Variable count: {{ selectedRecord.variableCount }}</li>
                   <li>Law family: {{ selectedRecord.lawFamily }}</li>

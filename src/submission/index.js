@@ -305,7 +305,7 @@ export function createSubmissionGateway({
   ) {
     return {
       available: false,
-      reason: 'google.script.run is unavailable in this build.',
+      reason: 'Classroom submission is not connected in this preview.',
       submit() {
         return Promise.reject(new Error('google.script.run is unavailable in this build.'));
       },
@@ -314,7 +314,7 @@ export function createSubmissionGateway({
 
   return {
     available: true,
-    reason: 'google.script.run is available.',
+    reason: 'Classroom submission is connected.',
     submit(payload) {
       return new Promise((resolve, reject) => {
         try {

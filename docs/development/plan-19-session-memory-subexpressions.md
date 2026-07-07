@@ -4,7 +4,7 @@
 
 - Packet id: 19
 - Packet title: Session Memory For Known Subexpressions
-- Status: ready
+- Status: complete
 - Owner/model: Codex mini or stronger
 - Date: 2026-05-06
 - Packet type: implementation, pedagogy, frontend, tests

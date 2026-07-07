@@ -4,7 +4,7 @@
 
 - Packet id: 17
 - Packet title: Simplification Guess Mode
-- Status: ready
+- Status: complete
 - Owner/model: Codex mini or stronger; stronger model recommended for simplification rules
 - Date: 2026-05-06
 - Packet type: implementation, pedagogy, core logic, frontend, tests

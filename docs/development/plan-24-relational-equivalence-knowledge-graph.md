@@ -4,7 +4,7 @@
 
 - Packet id: 24
 - Packet title: Numeric Relational Equivalence Knowledge Graph
-- Status: ready
+- Status: complete
 - Owner/model: stronger model recommended
 - Date: 2026-05-06
 - Packet type: pedagogy, algorithm design, implementation, tests

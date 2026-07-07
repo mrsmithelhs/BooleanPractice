@@ -35,6 +35,10 @@ function countAstNodes(node) {
   }
 }
 
+export function formatNodeCountLabel(count) {
+  return count === 1 ? '1 node' : `${count} nodes`;
+}
+
 function formatComparisonText(comparison) {
   if (!comparison.equivalent) {
     if (comparison.mode === 'truth-table') {
@@ -117,8 +121,8 @@ export function buildSimplificationCheck(challenge, guessSource, proofMode = 'tr
   const isSimpler = guessNodeCount < resolvedChallenge.originalNodeCount;
   const statusText = proof.equivalent
     ? isSimpler
-      ? `Equivalent and simpler by this metric (${guessNodeCount} nodes vs ${resolvedChallenge.originalNodeCount}).`
-      : `Equivalent, but not simpler by this metric (${guessNodeCount} nodes vs ${resolvedChallenge.originalNodeCount}).`
+      ? `Equivalent and simpler by this metric (${formatNodeCountLabel(guessNodeCount)} vs ${formatNodeCountLabel(resolvedChallenge.originalNodeCount)}).`
+      : `Equivalent, but not simpler by this metric (${formatNodeCountLabel(guessNodeCount)} vs ${formatNodeCountLabel(resolvedChallenge.originalNodeCount)}).`
     : formatComparisonText(proof);
 
   return {

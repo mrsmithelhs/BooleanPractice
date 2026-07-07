@@ -4,7 +4,7 @@
 
 - Packet id: 22
 - Packet title: Adaptive Assignment Algorithm Design
-- Status: ready
+- Status: complete
 - Owner/model: stronger model recommended
 - Date: 2026-05-06
 - Packet type: scan-only, pedagogy, algorithm design, tests

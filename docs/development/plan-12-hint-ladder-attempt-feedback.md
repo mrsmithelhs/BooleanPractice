@@ -4,7 +4,7 @@
 
 - Packet id: 12
 - Packet title: Hint Ladder And Attempt Feedback
-- Status: ready
+- Status: complete
 - Owner/model: Codex mini or stronger; stronger model useful for feedback copy
 - Date: 2026-05-06
 - Packet type: implementation, pedagogy, frontend, tests

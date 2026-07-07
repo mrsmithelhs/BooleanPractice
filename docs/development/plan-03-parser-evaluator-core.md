@@ -4,7 +4,7 @@
 
 - Packet id: 03
 - Packet title: Parser And Evaluator Core
-- Status: ready
+- Status: complete
 - Owner/model: Codex mini or stronger
 - Date: 2026-05-05
 - Packet type: implementation, core logic, tests

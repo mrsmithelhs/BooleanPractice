@@ -21,6 +21,7 @@ describe('simplification challenges', () => {
     expect(check.isSimpler).toBe(true);
     expect(check.guessNodeCount).toBeLessThan(check.originalNodeCount);
     expect(check.statusText).toContain('Equivalent and simpler');
+    expect(check.statusText).toContain('1 node');
   });
 
   it('recognizes an equivalent but longer guess', () => {
@@ -31,6 +32,7 @@ describe('simplification challenges', () => {
     expect(check.isSimpler).toBe(false);
     expect(check.guessNodeCount).toBeGreaterThan(check.originalNodeCount);
     expect(check.statusText).toContain('Equivalent, but not simpler');
+    expect(check.statusText).toContain(`${check.guessNodeCount} nodes`);
   });
 
   it('shows a counterexample for a non-equivalent guess', () => {

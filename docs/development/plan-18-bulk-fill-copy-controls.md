@@ -4,7 +4,7 @@
 
 - Packet id: 18
 - Packet title: Bulk Fill And Copy Controls
-- Status: ready
+- Status: complete
 - Owner/model: Codex mini or stronger
 - Date: 2026-05-06
 - Packet type: implementation, frontend, accessibility, tests

@@ -4,7 +4,7 @@
 
 - Packet id: 07
 - Packet title: Truth Table Learning UI
-- Status: ready
+- Status: complete
 - Owner/model: Codex mini or stronger
 - Date: 2026-05-05
 - Packet type: implementation, frontend, pedagogy, tests

@@ -4,7 +4,7 @@
 
 - Packet id: 04
 - Packet title: Problem Catalog And Progression
-- Status: ready
+- Status: complete
 - Owner/model: Codex mini or stronger
 - Date: 2026-05-05
 - Packet type: implementation, pedagogy, tests

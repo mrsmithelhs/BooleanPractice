@@ -4,7 +4,7 @@
 
 - Packet id: 15
 - Packet title: Expanded Catalog And Variety
-- Status: ready
+- Status: complete
 - Owner/model: Codex mini or stronger
 - Date: 2026-05-06
 - Packet type: implementation, pedagogy, tests

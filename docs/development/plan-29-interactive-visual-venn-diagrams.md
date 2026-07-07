@@ -4,7 +4,7 @@
 
 - Packet id: 29
 - Packet title: Interactive Visual Venn Diagrams
-- Status: ready
+- Status: complete
 - Owner/model: stronger model recommended
 - Date: 2026-05-06
 - Packet type: pedagogy, visual interaction, rendering, accessibility, tests

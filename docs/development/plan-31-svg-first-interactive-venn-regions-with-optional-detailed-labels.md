@@ -4,7 +4,7 @@
 
 - Packet id: 31
 - Packet title: SVG-First Interactive Venn Regions With Optional Detailed Labels
-- Status: ready
+- Status: complete
 - Owner/model: Codex mini or stronger
 - Date: 2026-05-07
 - Packet type: frontend, accessibility, tests
