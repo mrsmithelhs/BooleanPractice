@@ -9,7 +9,7 @@
 
 A static Vue 3 educational web application that helps AP Computer Science A students reason through boolean expressions using stepwise truth tables, interactive SVG Venn diagrams, equivalence and simplification practice, and optional GAS/Sheets classroom output.
 
-**Current stage: The core static Vue app and optional GAS classroom surface are implemented; Plans 32-36 are formalizing Bootstrap consumer adoption and future maintainer workflows.**
+**Current stage: The core static Vue app and optional GAS classroom surface are implemented; Plans 32-36 completed Bootstrap consumer adoption and established the maintainer workflows for keeping it current.**
 
 ---
 
@@ -118,6 +118,7 @@ When your task touches a component, read these first.
 | Deployment and build surfaces | `docs/deployment.md`, `package.json`, `scripts/build-gas.mjs` |
 | Human-facing local development | `docs/local-dev-console.md`, `scripts/dev/control-console.js` |
 | Packet lifecycle and current work | `docs/workflows/packet-tracking-system.md`, `docs/development/README.md` |
+| Bootstrap consumer sync | `docs/bootstrap-consumer-sync.md`, `.bootstrap-adoption.json` |
 | Decisions and unresolved owner questions | `docs/decision-log.md`, `docs/open-questions.md` |
 | Shared boolean semantics | `src/parser/`, `src/evaluator/`, `src/truth-table/`, `src/venn/` |
 | Student practice surfaces | `ui/`, `ui/components/`, `ui/style.css` |

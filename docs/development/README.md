@@ -42,7 +42,7 @@ This sequence migrates Boolean Practice from the archived Google Apps Script for
 | `plan-33` | Bootstrap Packet Status And Frontmatter Migration | complete | adopt Bootstrap's machine-checkable packet status system and migrate the existing Boolean Practice packet corpus to YAML frontmatter without losing packet history. |
 | `plan-34` | Bootstrap Agent Guides, Starting Prompts, And Decision Records | complete | adopt Bootstrap's canonical agent entry points and role-specific starting prompts, customized for Boolean Practice. |
 | `plan-35` | Bootstrap Dev Console Hub Alignment | complete | upgrade the existing local dev console toward Bootstrap's recommended `dev-console-hub` pattern. |
-| `plan-36` | Bootstrap Tracked Consumer Verification And Sync Runbook | ready | verify Boolean Practice now behaves as a tracked Bootstrap consumer and document how future Bootstrap sync checks should be run. |
+| `plan-36` | Bootstrap Tracked Consumer Verification And Sync Runbook | complete | verify Boolean Practice now behaves as a tracked Bootstrap consumer and document how future Bootstrap sync checks should be run. |
 <!-- plan-index:end -->
 
 ## Suggested Execution Order

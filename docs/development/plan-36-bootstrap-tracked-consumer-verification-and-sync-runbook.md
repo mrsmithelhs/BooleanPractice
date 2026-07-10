@@ -1,11 +1,11 @@
 ---
 id: plan-36
 title: "Bootstrap Tracked Consumer Verification And Sync Runbook"
-status: ready
+status: complete
 depends_on: [plan-32, plan-33, plan-34, plan-35]
 gate: "only close after Bootstrap audit reports expected tracked-consumer verdicts"
 superseded_by: null
-resolution: null
+resolution: "Orchestrator verified tracked mode with all eight adopted Bootstrap capabilities current, no drift or manifest-honesty failures, and a portable sync runbook. The canonical guide now reflects completion of Plans 32-36."
 summary: "verify Boolean Practice now behaves as a tracked Bootstrap consumer and document how future Bootstrap sync checks should be run."
 ---
 # Plan 36: Bootstrap Tracked Consumer Verification And Sync Runbook
