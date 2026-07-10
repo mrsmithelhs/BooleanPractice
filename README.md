@@ -18,11 +18,12 @@ npm install
 ### 2. Launch the Dev Console
 The repository includes a human-facing **Local Dev Console** to manage the dev server, validation, and review workflows without memorizing complex commands.
 ```bash
-npm run dev:control
+npm run dev:console
 ```
 
 ### 3. Core Commands
 - `npm run dev`: Start the Vite development server (port 5177).
+- `npm run dev:control`: Backward-compatible alias for the local dev console.
 - `npm run test`: Run the Vitest unit test suite.
 - `npm run test:e2e`: Run Playwright end-to-end tests.
 - `npm run build`: Generate the static production build in `dist/`.

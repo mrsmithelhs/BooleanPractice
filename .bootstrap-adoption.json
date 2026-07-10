@@ -1,5 +1,5 @@
 {
-  "lastBootstrapAudit": "2026-07-09",
+  "lastBootstrapAudit": "2026-07-10",
   "bootstrapVersion": "0.1.0",
   "capabilities": [
     {
@@ -16,21 +16,21 @@
     },
     {
       "capability": "dev-console-hub",
-      "state": "deferred",
+      "state": "adopted",
       "bootstrapVersion": "0.1.0",
-      "localRationale": "Planned for Plan 35; the current console exists but is not yet aligned to Bootstrap's hub pattern."
+      "capabilityVersion": "1.1.0"
     },
     {
       "capability": "agent-starting-prompts",
-      "state": "deferred",
+      "state": "adopted",
       "bootstrapVersion": "0.1.0",
-      "localRationale": "Planned for Plan 34; the repo still uses repo-specific prompts rather than a Bootstrap-managed prompt set."
+      "capabilityVersion": "1.3.0"
     },
     {
       "capability": "falsification-check",
-      "state": "deferred",
+      "state": "adopted",
       "bootstrapVersion": "0.1.0",
-      "localRationale": "Planned for Plan 34; the managed-prose falsification guidance has not yet been mirrored into consumer docs."
+      "capabilityVersion": "3.0.0"
     },
     {
       "capability": "reports-archive",
@@ -40,15 +40,15 @@
     },
     {
       "capability": "root-agent-guide",
-      "state": "deferred",
+      "state": "adopted",
       "bootstrapVersion": "0.1.0",
-      "localRationale": "Planned for Plan 34; canonical agent-entry scaffolding has not yet been formalized in this repo."
+      "capabilityVersion": "1.0.0"
     },
     {
       "capability": "decision-log",
-      "state": "deferred",
+      "state": "adopted",
       "bootstrapVersion": "0.1.0",
-      "localRationale": "Planned for Plan 34; durable decision tracking and its scaffold do not exist yet in the consumer."
+      "capabilityVersion": "1.1.0"
     }
   ]
 }

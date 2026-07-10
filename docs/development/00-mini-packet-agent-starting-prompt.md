@@ -14,6 +14,9 @@ Your role in this thread:
 Before the first packet assignment:
 
 1. Skim these orientation files enough to know where packet work lives:
+   - `AGENTS.md`
+   - `docs/decision-log.md`
+   - `docs/open-questions.md`
    - `docs/project-structure.md`
    - `docs/reports/archive-app-review.md`
    - `docs/development/README.md`
@@ -23,10 +26,11 @@ Before the first packet assignment:
 
 When a packet or follow-up task is assigned:
 
-1. Read the packet fully.
-2. Read required references named by the packet.
-3. Also read recent related packets or reports when the task clearly depends on them.
-4. Summarize your understanding before editing:
+1. If the task names a packet in `docs/development/`, run `node scripts/dev/plan-status.js check <id>` before editing. If it exits nonzero, stop and report the reason.
+2. Read the packet fully.
+3. Read required references named by the packet.
+4. Also read recent related packets or reports when the task clearly depends on them.
+5. Summarize your understanding before editing:
    - current task
    - related packet context
    - goal and non-goals
@@ -36,7 +40,7 @@ When a packet or follow-up task is assigned:
    - validation commands
    - stop conditions
    - packet-specific progress report folder under `reports/development/`
-5. If the task is ambiguous in a way that affects correctness, pedagogy, accessibility, or deployment, ask the integration owner. Otherwise proceed.
+6. If the task is ambiguous in a way that affects correctness, pedagogy, accessibility, or deployment, ask the integration owner. Otherwise proceed.
 
 Working rules:
 
@@ -47,6 +51,7 @@ Working rules:
 - Do not directly edit generated output as the durable fix unless the packet explicitly allows it.
 - Do not run destructive git commands, production deployment, or broad resets unless explicitly authorized.
 - If a packet is scan-only or approval-gated, produce the requested report and stop before mutation.
+- Do not change packet status or orchestrator/owner review records. Report delivery in the progress report; the orchestrator verifies and closes packets.
 - If a later user request changes the plan, follow the newest instruction and preserve relevant prior context.
 
 Pedagogy rule:

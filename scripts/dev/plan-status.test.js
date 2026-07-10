@@ -1,4 +1,6 @@
-'use strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
 /**
  * plan-status.js unit tests
@@ -17,11 +19,7 @@
  *         generateIndexTable, and all lint rules.
  */
 
-const fs = require('fs');
-const os = require('os');
-const path = require('path');
-
-const {
+import {
   parseFrontmatter,
   frontmatterLength,
   computeEffectiveStatus,
@@ -30,13 +28,12 @@ const {
   lintPackets,
   setPacketStatus,
   detectEol,
-  normalizeNewlines,
   parsePacketSortKey,
   VALID_STATUSES,
   TERMINAL_STATUSES,
   INDEX_BEGIN,
   INDEX_END,
-} = require('../../scripts/dev/plan-status');
+} from './plan-status.js';
 
 // ── Test harness ─────────────────────────────────────────────────────────────
 

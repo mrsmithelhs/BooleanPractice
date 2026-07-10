@@ -1,11 +1,11 @@
 ---
 id: plan-35
 title: "Bootstrap Dev Console Hub Alignment"
-status: ready
+status: complete
 depends_on: [plan-33, plan-34]
 gate: "before adding any mutating or external-state console action, require explicit confirmation UX and tests"
 superseded_by: null
-resolution: null
+resolution: "Orchestrator reviewed the dev-console hub: grouped read-only packet visibility, confirmation-gated local-output actions, Windows-safe invocation, and distinct launch errors are verified. Review repair added npm's required -- separator before forwarded script arguments."
 summary: "upgrade the existing local dev console toward Bootstrap's recommended `dev-console-hub` pattern."
 ---
 # Plan 35: Bootstrap Dev Console Hub Alignment

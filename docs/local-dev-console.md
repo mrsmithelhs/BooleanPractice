@@ -5,8 +5,10 @@ The local dev console is a human-facing helper for working on Boolean Practice w
 ## Start It
 
 ```bash
-npm run dev:control
+npm run dev:console
 ```
+
+`npm run dev:control` remains a backward-compatible alias.
 
 The console is meant for local development only.
 
@@ -38,19 +40,19 @@ BOOLEAN_PRACTICE_PREVIEW_PORT=4173
 
 ## Menu Options
 
-The console uses plain-language menu choices:
+The console uses plain-language grouped menus:
 
-1. Status dashboard
-2. Start dev server
-3. Stop dev server
-4. Restart dev server
-5. Open app
-6. Open preview
-7. Run checks
-8. Capture UI tours
-9. Synthesize UI reviews
-10. Show config
-11. Exit
+1. Local dev server: status, start, stop, restart, and open the app.
+2. Tests and validation: unit tests, lint, build, E2E, or the core-check bundle.
+3. Builds and previews: open preview, build the static app, or build the GAS package.
+4. UI review workflows: capture UI tours or synthesize the latest review folder.
+5. Packet status: list packets or check whether a packet is runnable.
+6. Advanced scripts and config: inspect local configuration.
+7. Exit.
+
+Packet status is read-only from the console. Status writes remain an orchestrator/owner action through the direct `plan-status.js set` command and are not exposed as a casual menu action.
+
+Commands launched by the console display the exact platform-aware invocation they execute. On Windows, package scripts run through `cmd.exe` rather than a raw `npm.cmd` spawn. A launch/spawn failure is reported separately from a child process that starts and exits nonzero.
 
 The UI tour capture option is a convenience wrapper around `npm run capture:ui-tour` and keeps the resulting screenshot packets under `local/ui-reviews/`. Each capture run now writes both `review-starting-prompt.md` and `synthesis-starting-prompt.md` into the dated output folder.
 The UI review synthesis option is a convenience wrapper around `npm run synthesize:ui-reviews` and uses the newest capture folder unless you override it.

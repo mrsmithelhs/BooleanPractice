@@ -7,14 +7,17 @@ import { pathToFileURL } from 'node:url';
 import {
   ENV_FILES,
   buildDashboardText,
+  buildPackageScriptInvocation,
   buildRuntimeTargets,
   buildUiTourCaptureArgs,
   ensureLocalControlDirs,
+  formatProcessInvocation,
   inspectRuntime,
   loadRepoLocalEnv,
   openUrlInBrowser,
   resolveConsoleConfig,
   runPackageScript,
+  runNodeScript,
   startManagedRuntime,
   stopManagedRuntime,
 } from '../lib/dev-control.js';
@@ -24,12 +27,51 @@ import {
 } from '../lib/ui-review-synthesis.js';
 import { getUiTourDefinitions } from '../lib/ui-tour-capture.js';
 
+export const CONSOLE_MENU = [
+  { key: '1', label: 'Local dev server' },
+  { key: '2', label: 'Tests and validation' },
+  { key: '3', label: 'Builds and previews' },
+  { key: '4', label: 'UI review workflows' },
+  { key: '5', label: 'Packet status' },
+  { key: '6', label: 'Advanced scripts and config' },
+  { key: '7', label: 'Exit' },
+];
+
+export const SUBMENU_BACK = { key: 'b', label: 'Back' };
+
 function separator(title) {
   return `\n${'='.repeat(12)} ${title} ${'='.repeat(12)}\n`;
 }
 
 function printBlock(text) {
   process.stdout.write(`${text}\n`);
+}
+
+function printProcessResult(result) {
+  printBlock(`Command: ${formatProcessInvocation(result.invocation)}`);
+  if (result.launchError) {
+    printBlock(`Launch error: ${result.launchError.code || result.launchError.message}`);
+    return;
+  }
+  printBlock(`Exit code: ${result.code ?? 0}`);
+  if (result.signal) {
+    printBlock(`Signal: ${result.signal}`);
+  }
+}
+
+async function runConfirmedPackageScript(repoRoot, rl, scriptName, args = []) {
+  const invocation = buildPackageScriptInvocation(scriptName, args);
+  if (
+    !(await promptConfirm(
+      rl,
+      `Run this command?\nCommand: ${formatProcessInvocation(invocation)}`,
+    ))
+  ) {
+    return null;
+  }
+  const result = await runPackageScript(scriptName, args, { repoRoot });
+  printProcessResult(result);
+  return result;
 }
 
 async function promptChoice(rl, message, defaultValue = '') {
@@ -107,12 +149,24 @@ async function startDevServer(repoRoot, rl) {
     return;
   }
 
-  if (!(await promptConfirm(rl, `Start the dev server on port ${devTarget.port}?`))) {
+  const startInvocation = buildPackageScriptInvocation('dev');
+  if (
+    !(await promptConfirm(
+      rl,
+      `Start the dev server on port ${devTarget.port}?\nCommand: ${formatProcessInvocation(startInvocation)}`,
+    ))
+  ) {
     return;
   }
 
   printBlock(separator('Starting dev server').trimEnd());
-  const result = await startManagedRuntime(devTarget, { repoRoot });
+  let result;
+  try {
+    result = await startManagedRuntime(devTarget, { repoRoot });
+  } catch (error) {
+    printBlock(`Launch error: ${error?.code || error?.message || error}`);
+    return;
+  }
   printBlock(`Started PID ${result.pid}`);
   printBlock(`Log: ${result.logFile}`);
   printBlock(`Open: ${devTarget.url}`);
@@ -164,7 +218,13 @@ async function restartDevServer(repoRoot, rl) {
   }
 
   await stopManagedRuntime(devTarget);
-  const result = await startManagedRuntime(devTarget, { repoRoot });
+  let result;
+  try {
+    result = await startManagedRuntime(devTarget, { repoRoot });
+  } catch (error) {
+    printBlock(`Launch error: ${error?.code || error?.message || error}`);
+    return;
+  }
   printBlock(`Restarted PID ${result.pid}`);
   printBlock(`Open: ${devTarget.url}`);
   const freshSnapshot = await waitForHealthySnapshot(repoRoot, devTarget);
@@ -220,9 +280,17 @@ async function runChecks(repoRoot, rl) {
       : [selected.script];
   for (const scriptName of scripts) {
     printBlock(separator(`Running npm run ${scriptName}`).trimEnd());
-    const result = await runPackageScript(scriptName, [], { repoRoot });
-    printBlock(`Exit code: ${result.code ?? 0}`);
-    if (result.code && result.code !== 0) {
+    const result =
+      scriptName === 'build'
+        ? await runConfirmedPackageScript(repoRoot, rl, scriptName)
+        : await runPackageScript(scriptName, [], { repoRoot });
+    if (result && scriptName !== 'build') {
+      printProcessResult(result);
+    }
+    if (result === null) {
+      break;
+    }
+    if (!result.ok) {
       break;
     }
   }
@@ -281,9 +349,7 @@ async function captureUiTours(repoRoot, rl) {
     target: target || null,
     outputRoot: outputRoot || null,
   });
-  printBlock(`Running: npm run capture:ui-tour${args.length ? ` -- ${args.join(' ')}` : ''}`);
-  const result = await runPackageScript('capture:ui-tour', args, { repoRoot });
-  printBlock(`Exit code: ${result.code ?? 0}`);
+  await runConfirmedPackageScript(repoRoot, rl, 'capture:ui-tour', args);
 }
 
 async function synthesizeUiReviews(repoRoot, rl) {
@@ -312,9 +378,90 @@ async function synthesizeUiReviews(repoRoot, rl) {
   }
 
   const args = buildSynthesisCommandArgs(captureFolder);
-  printBlock(`Running: npm run synthesize:ui-reviews${args.length ? ` -- ${args.join(' ')}` : ''}`);
-  const result = await runPackageScript('synthesize:ui-reviews', args, { repoRoot });
-  printBlock(`Exit code: ${result.code ?? 0}`);
+  await runConfirmedPackageScript(repoRoot, rl, 'synthesize:ui-reviews', args);
+}
+
+async function runPacketStatus(repoRoot, rl) {
+  printBlock(separator('Packet status').trimEnd());
+  printBlock('1. List packet statuses');
+  printBlock('2. Check a packet');
+  printBlock('b. Back');
+  const choice = await promptChoice(rl, 'Choose a packet-status action', 'b');
+  if (choice === 'b') return;
+
+  const args = ['list'];
+  if (choice === '2') {
+    const id = await promptChoice(rl, 'Packet id (for example, plan-35)', '');
+    if (!id || id === '__closed__') return;
+    args.splice(0, args.length, 'check', id);
+  } else if (choice !== '1') {
+    return;
+  }
+
+  const result = await runNodeScript(resolve(repoRoot, 'scripts/dev/plan-status.js'), args, { repoRoot });
+  printProcessResult(result);
+}
+
+async function runBuildsAndPreviews(repoRoot, rl) {
+  printBlock(separator('Builds and previews').trimEnd());
+  printBlock('1. Open preview');
+  printBlock('2. Build static app');
+  printBlock('3. Build GAS package');
+  printBlock('b. Back');
+  const choice = await promptChoice(rl, 'Choose a build or preview action', 'b');
+  if (choice === '1') {
+    await openPreview(repoRoot);
+  } else if (choice === '2') {
+    await runConfirmedPackageScript(repoRoot, rl, 'build');
+  } else if (choice === '3') {
+    await runConfirmedPackageScript(repoRoot, rl, 'build:gas');
+  }
+}
+
+async function runUiReviewWorkflows(repoRoot, rl) {
+  printBlock(separator('UI review workflows').trimEnd());
+  printBlock('1. Capture UI tours');
+  printBlock('2. Synthesize UI reviews');
+  printBlock('b. Back');
+  const choice = await promptChoice(rl, 'Choose a UI review action', 'b');
+  if (choice === '1') {
+    await captureUiTours(repoRoot, rl);
+  } else if (choice === '2') {
+    await synthesizeUiReviews(repoRoot, rl);
+  }
+}
+
+async function runLocalDevServerMenu(repoRoot, rl) {
+  printBlock(separator('Local dev server').trimEnd());
+  printBlock('1. Status dashboard');
+  printBlock('2. Start dev server');
+  printBlock('3. Stop dev server');
+  printBlock('4. Restart dev server');
+  printBlock('5. Open app');
+  printBlock('b. Back');
+  const choice = await promptChoice(rl, 'Choose a dev-server action', 'b');
+  if (choice === '1') {
+    const dashboard = await inspectDashboard(repoRoot);
+    printBlock(buildDashboardText(dashboard.snapshots, dashboard));
+  } else if (choice === '2') {
+    await startDevServer(repoRoot, rl);
+  } else if (choice === '3') {
+    await stopDevServer(repoRoot, rl);
+  } else if (choice === '4') {
+    await restartDevServer(repoRoot, rl);
+  } else if (choice === '5') {
+    await openDevApp(repoRoot);
+  }
+}
+
+async function runAdvancedMenu(repoRoot, rl) {
+  printBlock(separator('Advanced scripts and config').trimEnd());
+  printBlock('1. Show config');
+  printBlock('b. Back');
+  const choice = await promptChoice(rl, 'Choose an advanced action', 'b');
+  if (choice === '1') {
+    await showConfig(repoRoot);
+  }
 }
 
 async function main() {
@@ -335,64 +482,41 @@ async function main() {
           envFileLabel: dashboard.envFileLabel,
         }),
       );
-      printBlock('1. Status dashboard');
-      printBlock('2. Start dev server');
-      printBlock('3. Stop dev server');
-      printBlock('4. Restart dev server');
-      printBlock('5. Open app');
-      printBlock('6. Open preview');
-      printBlock('7. Run checks');
-      printBlock('8. Capture UI tours');
-      printBlock('9. Synthesize UI reviews');
-      printBlock('10. Show config');
-      printBlock('11. Exit');
+      for (const item of CONSOLE_MENU) {
+        printBlock(`${item.key}. ${item.label}`);
+      }
 
       const choice = await promptChoice(rl, 'Choose an action', '1');
       if (choice === '__closed__') {
         running = false;
         continue;
       }
-      if (choice === '11') {
+      if (choice === '7') {
         running = false;
         continue;
       }
       if (choice === '1') {
+        await runLocalDevServerMenu(repoRoot, rl);
         continue;
       }
       if (choice === '2') {
-        await startDevServer(repoRoot, rl);
-        continue;
-      }
-      if (choice === '3') {
-        await stopDevServer(repoRoot, rl);
-        continue;
-      }
-      if (choice === '4') {
-        await restartDevServer(repoRoot, rl);
-        continue;
-      }
-      if (choice === '5') {
-        await openDevApp(repoRoot);
-        continue;
-      }
-      if (choice === '6') {
-        await openPreview(repoRoot);
-        continue;
-      }
-      if (choice === '7') {
         await runChecks(repoRoot, rl);
         continue;
       }
-      if (choice === '8') {
-        await captureUiTours(repoRoot, rl);
+      if (choice === '3') {
+        await runBuildsAndPreviews(repoRoot, rl);
         continue;
       }
-      if (choice === '9') {
-        await synthesizeUiReviews(repoRoot, rl);
+      if (choice === '4') {
+        await runUiReviewWorkflows(repoRoot, rl);
         continue;
       }
-      if (choice === '10') {
-        await showConfig(repoRoot);
+      if (choice === '5') {
+        await runPacketStatus(repoRoot, rl);
+        continue;
+      }
+      if (choice === '6') {
+        await runAdvancedMenu(repoRoot, rl);
         continue;
       }
       printBlock('Unknown choice. Please enter a number from the menu.');

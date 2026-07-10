@@ -9,7 +9,7 @@ The goal is to make each packet a clear work order plus a guardrail contract. A 
 - Put implementation packets in `docs/development/`.
 - Use sequential names such as `plan-03-parser-evaluator-core.md`.
 - Keep `docs/development/README.md` updated when adding or superseding a packet.
-- Use `docs/development/00-mini-packet-agent-starting-prompt.md` when starting a lower-cost implementation thread.
+- Use `docs/agent-starting-prompts/00-implementer-thread-starting-prompt.md` when starting an implementation thread. `docs/development/00-mini-packet-agent-starting-prompt.md` remains a shorter compatible option and follows the same packet-status boundary.
 
 ## Packet Metadata
 
@@ -207,6 +207,22 @@ node scripts/dev/plan-status.js set plan-NN delivered
 ```
 
 The `set` verb is orchestrator-only. Implementers report delivery in the progress report; they do not close packets themselves. Terminal transitions require an explicit resolution, and `render` owns the README index between its marker comments.
+
+<!-- bootstrap:falsification-check v3 begin -->
+## For investigation packets: design for falsification
+
+When a packet's deliverable is a conclusion (a governing rule, a root cause, a measurement), bake these requirements into the packet:
+
+- **Hypothesis table up front:** every rival hypothesis, and next to each, **the specific observation that would falsify it.** If no falsifying observation can be named, the hypothesis isn't testable as posed — rewrite it.
+- **Discriminating experiments:** for every pair of live hypotheses, at least one planned experiment where they **predict different outcomes**. Deliberately decouple variables that usually co-vary (the natural/convenient cases are usually the confounded ones).
+- **Conclusion discipline:** the findings section may declare a winner only if every rival was falsified by an actual observation. Otherwise it must say "consistent with A and B" and name the next discriminating experiment — that phrasing is a success, not a failure.
+- **Sweep what reality varies:** enumerate the dimensions the real user/world varies and check the test matrix covers them, not just the dimensions that are convenient to vary.
+- **Report distributions, not bare means** — percentiles/min/max — so tails can't hide.
+
+Wherever possible, anchor each of these points to a real incident from this project's own history; a remembered concrete failure carries more review weight than the abstract rule.
+
+These cost a paragraph at design time and prevent the most expensive failure an investigation can produce: a confident conclusion the data never actually tested.
+<!-- bootstrap:falsification-check v3 end -->
 
 ## Validation Checklist
 

@@ -1,4 +1,5 @@
 import { mkdtemp, writeFile } from 'node:fs/promises';
+import { EventEmitter } from 'node:events';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -6,15 +7,19 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildDashboardText,
+  buildPackageScriptInvocation,
   buildPackageManagerInvocation,
   buildRuntimeTargets,
   buildUiTourCaptureArgs,
   classifyRuntimeStatus,
+  formatProcessInvocation,
   loadRepoLocalEnv,
   parseEnvFileContents,
   parseNetstatTcpOutput,
   resolveConsoleConfig,
+  runPackageScript,
 } from '../scripts/lib/dev-control.js';
+import { CONSOLE_MENU } from '../scripts/dev/control-console.js';
 
 describe('dev control helpers', () => {
   it('parses repo-local env file contents', () => {
@@ -151,6 +156,56 @@ Active Connections
       command: 'npm',
       args: ['run', 'test'],
     });
+  });
+
+  it('keeps the displayed package command tied to the executed invocation', () => {
+    const invocation = buildPackageScriptInvocation('capture:ui-tour', ['--target', 'preview'], 'win32');
+
+    expect(invocation).toEqual({
+      command: 'cmd.exe',
+      args: ['/c', 'npm', 'run', 'capture:ui-tour', '--', '--target', 'preview'],
+    });
+    expect(formatProcessInvocation(invocation)).toBe(
+      'cmd.exe /c npm run capture:ui-tour -- --target preview',
+    );
+  });
+
+  it('reports a launch error separately from a nonzero child exit', async () => {
+    const launchError = Object.assign(new Error('spawn failed'), { code: 'EINVAL' });
+    const launchResult = await runPackageScript('test', [], {
+      spawnImpl: () => {
+        throw launchError;
+      },
+    });
+
+    expect(launchResult.ok).toBe(false);
+    expect(launchResult.launchError).toBe(launchError);
+    expect(launchResult.code).toBeNull();
+
+    const child = new EventEmitter();
+    const exitResultPromise = runPackageScript('test', [], {
+      spawnImpl: () => {
+        queueMicrotask(() => child.emit('close', 2, null));
+        return child;
+      },
+    });
+    const exitResult = await exitResultPromise;
+
+    expect(exitResult.ok).toBe(false);
+    expect(exitResult.launchError).toBeNull();
+    expect(exitResult.code).toBe(2);
+  });
+
+  it('exposes the grouped human-facing console menu', () => {
+    expect(CONSOLE_MENU).toEqual([
+      { key: '1', label: 'Local dev server' },
+      { key: '2', label: 'Tests and validation' },
+      { key: '3', label: 'Builds and previews' },
+      { key: '4', label: 'UI review workflows' },
+      { key: '5', label: 'Packet status' },
+      { key: '6', label: 'Advanced scripts and config' },
+      { key: '7', label: 'Exit' },
+    ]);
   });
 
   it('builds capture command arguments for the ui tour workflow', () => {

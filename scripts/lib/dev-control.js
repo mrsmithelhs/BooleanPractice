@@ -460,6 +460,19 @@ export function buildPackageManagerInvocation(args = [], platform = process.plat
   };
 }
 
+export function buildPackageScriptInvocation(scriptName, args = [], platform = process.platform) {
+  return buildPackageManagerInvocation(
+    ['run', scriptName, ...(args.length ? ['--', ...args] : [])],
+    platform,
+  );
+}
+
+export function formatProcessInvocation(invocation) {
+  return [invocation.command, ...invocation.args]
+    .map((part) => (/[\s"]/u.test(part) ? `"${part.replace(/"/gu, '\\"')}"` : part))
+    .join(' ');
+}
+
 export function resolveTaskkillCommand() {
   return process.platform === 'win32' ? 'taskkill.exe' : 'kill';
 }
@@ -575,18 +588,60 @@ export async function openUrlInBrowser(url) {
   return execFile('xdg-open', [url], { windowsHide: true });
 }
 
-export async function runPackageScript(scriptName, args = [], { repoRoot = process.cwd(), env = process.env } = {}) {
-  const invocation = buildPackageManagerInvocation(['run', scriptName, ...args]);
-  return new Promise((resolvePromise, rejectPromise) => {
-    const child = spawn(invocation.command, invocation.args, {
-      cwd: repoRoot,
-      env,
-      stdio: 'inherit',
-      windowsHide: true,
+async function runProcessInvocation(
+  invocation,
+  { repoRoot = process.cwd(), env = process.env, spawnImpl = spawn } = {},
+) {
+  return new Promise((resolvePromise) => {
+    let child;
+    try {
+      child = spawnImpl(invocation.command, invocation.args, {
+        cwd: repoRoot,
+        env,
+        stdio: 'inherit',
+        windowsHide: true,
+      });
+    } catch (error) {
+      resolvePromise({
+        ok: false,
+        code: null,
+        signal: null,
+        launchError: error,
+        invocation,
+      });
+      return;
+    }
+
+    let settled = false;
+    const settle = (result) => {
+      if (settled) return;
+      settled = true;
+      resolvePromise({ invocation, ...result });
+    };
+
+    child.once('close', (code, signal) => {
+      settle({
+        ok: code === 0,
+        code,
+        signal,
+        launchError: null,
+      });
     });
-    child.on('close', (code, signal) => {
-      resolvePromise({ code, signal });
+    child.once('error', (error) => {
+      settle({
+        ok: false,
+        code: null,
+        signal: null,
+        launchError: error,
+      });
     });
-    child.on('error', rejectPromise);
   });
+}
+
+export async function runPackageScript(scriptName, args = [], options = {}) {
+  return runProcessInvocation(buildPackageScriptInvocation(scriptName, args), options);
+}
+
+export async function runNodeScript(scriptPath, args = [], options = {}) {
+  return runProcessInvocation({ command: process.execPath, args: [scriptPath, ...args] }, options);
 }

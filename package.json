@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "dev:control": "node scripts/dev/control-console.js",
+    "dev:console": "node scripts/dev/control-console.js",
     "build": "vite build",
     "build:gas": "npm run build && node scripts/build-gas.mjs",
     "preview": "vite preview",

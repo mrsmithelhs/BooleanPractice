@@ -1,0 +1,7 @@
+# Boolean Practice — Claude Code Agent Guide
+
+The canonical agent guide for this repository is **[`AGENTS.md`](AGENTS.md)** — read it first.
+
+`AGENTS.md` covers: project stage, area map, repo structure, key commands, critical architecture constraints, routing table for key files, and guardrails.
+
+

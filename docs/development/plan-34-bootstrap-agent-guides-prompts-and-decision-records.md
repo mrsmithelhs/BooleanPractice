@@ -1,11 +1,11 @@
 ---
 id: plan-34
 title: "Bootstrap Agent Guides, Starting Prompts, And Decision Records"
-status: ready
+status: complete
 depends_on: [plan-32, plan-33]
 gate: "owner/orchestrator review required for project-specific data rules and durable contracts"
 superseded_by: null
-resolution: null
+resolution: "Orchestrator reviewed the agent guides, role prompts, decision/open-question logs, and managed falsification guidance. Bootstrap audit and packet lint passed; review repairs removed duplicated managed prose and aligned the legacy mini prompt with packet-status authority."
 summary: "adopt Bootstrap's canonical agent entry points and role-specific starting prompts, customized for Boolean Practice."
 ---
 # Plan 34: Bootstrap Agent Guides, Starting Prompts, And Decision Records

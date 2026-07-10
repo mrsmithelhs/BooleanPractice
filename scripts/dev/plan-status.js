@@ -1,4 +1,8 @@
-'use strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /**
  * plan-status.js — packet status tooling
@@ -12,13 +16,10 @@
  *   set <id> <status>     validate, write, and re-render README index
  *
  * No npm dependencies — runs with built-in Node.js modules only.
- * CommonJS (CJS) — matches src/shared/ constraint.
+ * ESM adaptation for this repository's package type; remains dependency-free.
  *
  * Run from repo root: node scripts/dev/plan-status.js <verb> [args]
  */
-
-const fs = require('fs');
-const path = require('path');
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -69,7 +70,7 @@ function parseFrontmatter(text) {
       while (i < lines.length) {
         const cl = lines[i];
         if (cl === '' || cl.startsWith('  ')) {
-          parts.push(cl === '' ? '' : cl.replace(/^  /, ''));
+          parts.push(cl === '' ? '' : cl.replace(/^ {2}/u, ''));
           i++;
         } else {
           break;
@@ -288,7 +289,7 @@ function computeEffectiveStatus(fm, byId) {
 
 function detectCycles(packets, byId) {
   const cycles = [];
-  const WHITE = 0, GRAY = 1, BLACK = 2;
+  const GRAY = 1, BLACK = 2;
   const color = {};
 
   function dfs(id, stack) {
@@ -790,7 +791,7 @@ function escapeRegex(s) {
 // Exports (for testing)
 // ---------------------------------------------------------------------------
 
-module.exports = {
+export {
   parseFrontmatter,
   frontmatterLength,
   detectEol,
@@ -814,9 +815,8 @@ module.exports = {
 // Main entry point
 // ---------------------------------------------------------------------------
 
-if (require.main === module) {
-  const [,, verb, ...rest] = process.argv;
-
+function runCli(args = process.argv.slice(2)) {
+  const [verb, ...rest] = args;
   switch (verb) {
     case 'list':   cmdList(rest); break;
     case 'check':  cmdCheck(rest[0]); break;
@@ -829,4 +829,8 @@ if (require.main === module) {
       );
       process.exit(1);
   }
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  runCli();
 }
