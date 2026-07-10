@@ -1,10 +1,20 @@
+---
+id: plan-22
+title: "Adaptive Assignment Algorithm Design"
+status: complete
+depends_on: [plan-15, plan-21]
+gate: "before production implementation or student-impacting behavior"
+superseded_by: null
+resolution: "Existing packet status was already complete before this migration; see the packet progress report for historical evidence."
+summary: "sharply define and test an adaptive assignment algorithm before implementing it in classroom mode."
+---
 # Plan 22: Adaptive Assignment Algorithm Design
 
 ## Packet Metadata
 
 - Packet id: 22
 - Packet title: Adaptive Assignment Algorithm Design
-- Status: complete
+- Status: (see frontmatter)
 - Owner/model: stronger model recommended
 - Date: 2026-05-06
 - Packet type: scan-only, pedagogy, algorithm design, tests

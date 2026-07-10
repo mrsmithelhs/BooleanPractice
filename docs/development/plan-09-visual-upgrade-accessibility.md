@@ -1,10 +1,20 @@
+---
+id: plan-09
+title: "Visual Upgrade And Accessibility Polish"
+status: complete
+depends_on: [plan-06, plan-07, plan-08]
+gate: "before broad redesign or adding heavy visual dependencies"
+superseded_by: null
+resolution: "Existing packet status was already complete before this migration; see the packet progress report for historical evidence."
+summary: "give the migrated app a significant visual upgrade while preserving classroom clarity."
+---
 # Plan 09: Visual Upgrade And Accessibility Polish
 
 ## Packet Metadata
 
 - Packet id: 09
 - Packet title: Visual Upgrade And Accessibility Polish
-- Status: complete
+- Status: (see frontmatter)
 - Owner/model: Codex mini or stronger; browser-capable model recommended
 - Date: 2026-05-05
 - Packet type: implementation, frontend, accessibility, visual QA

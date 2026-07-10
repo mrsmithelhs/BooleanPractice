@@ -1,10 +1,20 @@
+---
+id: plan-27
+title: "UI Review Synthesis Workflow"
+status: complete
+depends_on: [plan-26]
+gate: "before changing review folder contracts from Plan 26 or creating implementation fix packets automatically"
+superseded_by: null
+resolution: "Existing packet status was already complete before this migration; see the packet progress report for historical evidence."
+summary: "synthesize multiple blind UI reviews from a Plan 26 capture folder into a prioritized triage report."
+---
 # Plan 27: UI Review Synthesis Workflow
 
 ## Packet Metadata
 
 - Packet id: 27
 - Packet title: UI Review Synthesis Workflow
-- Status: complete
+- Status: (see frontmatter)
 - Owner/model: Codex mini or stronger; stronger model recommended for synthesis quality
 - Date: 2026-05-06
 - Packet type: implementation, tooling, UI review, docs

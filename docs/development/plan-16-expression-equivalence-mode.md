@@ -1,10 +1,20 @@
+---
+id: plan-16
+title: "Expression Equivalence Mode"
+status: complete
+depends_on: [plan-14, plan-15]
+gate: "before adding new grammar or broad AST rewrite rules"
+superseded_by: null
+resolution: "Existing packet status was already complete before this migration; see the packet progress report for historical evidence."
+summary: "ask students whether two expressions are logically equivalent, then let them prove it by comparing truth tables or Venn diagrams."
+---
 # Plan 16: Expression Equivalence Mode
 
 ## Packet Metadata
 
 - Packet id: 16
 - Packet title: Expression Equivalence Mode
-- Status: complete
+- Status: (see frontmatter)
 - Owner/model: Codex mini or stronger; stronger model recommended for pair generation logic
 - Date: 2026-05-06
 - Packet type: implementation, pedagogy, core logic, frontend, tests

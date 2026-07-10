@@ -1,10 +1,20 @@
+---
+id: plan-19
+title: "Session Memory For Known Subexpressions"
+status: complete
+depends_on: [plan-13, plan-15, plan-18]
+gate: "before using localStorage, server persistence, or logical-equivalence keys"
+superseded_by: null
+resolution: "Existing packet status was already complete before this migration; see the packet progress report for historical evidence."
+summary: "remember subexpressions a student has solved correctly in the current session and optionally auto-fill them after enough repetitions."
+---
 # Plan 19: Session Memory For Known Subexpressions
 
 ## Packet Metadata
 
 - Packet id: 19
 - Packet title: Session Memory For Known Subexpressions
-- Status: complete
+- Status: (see frontmatter)
 - Owner/model: Codex mini or stronger
 - Date: 2026-05-06
 - Packet type: implementation, pedagogy, frontend, tests

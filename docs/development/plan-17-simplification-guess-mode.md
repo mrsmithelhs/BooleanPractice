@@ -1,10 +1,20 @@
+---
+id: plan-17
+title: "Simplification Guess Mode"
+status: complete
+depends_on: [plan-16]
+gate: "before claiming mathematically minimal simplification or adding Java predicate equivalences"
+superseded_by: null
+resolution: "Existing packet status was already complete before this migration; see the packet progress report for historical evidence."
+summary: "ask students to propose a simpler expression, then prove whether the guess is equivalent to the original."
+---
 # Plan 17: Simplification Guess Mode
 
 ## Packet Metadata
 
 - Packet id: 17
 - Packet title: Simplification Guess Mode
-- Status: complete
+- Status: (see frontmatter)
 - Owner/model: Codex mini or stronger; stronger model recommended for simplification rules
 - Date: 2026-05-06
 - Packet type: implementation, pedagogy, core logic, frontend, tests

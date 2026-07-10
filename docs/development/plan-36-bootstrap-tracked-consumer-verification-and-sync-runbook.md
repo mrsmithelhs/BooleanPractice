@@ -1,10 +1,20 @@
+---
+id: plan-36
+title: "Bootstrap Tracked Consumer Verification And Sync Runbook"
+status: ready
+depends_on: [plan-32, plan-33, plan-34, plan-35]
+gate: "only close after Bootstrap audit reports expected tracked-consumer verdicts"
+superseded_by: null
+resolution: null
+summary: "verify Boolean Practice now behaves as a tracked Bootstrap consumer and document how future Bootstrap sync checks should be run."
+---
 # Plan 36: Bootstrap Tracked Consumer Verification And Sync Runbook
 
 ## Packet Metadata
 
 - Packet id: 36
 - Packet title: Bootstrap Tracked Consumer Verification And Sync Runbook
-- Status: ready
+- Status: (see frontmatter)
 - Owner/model: Codex mini or stronger
 - Date: 2026-07-07
 - Packet type: docs, verification, workflow

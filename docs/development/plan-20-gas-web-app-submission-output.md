@@ -1,10 +1,20 @@
+---
+id: plan-20
+title: "GAS Web App Submission Output"
+status: complete
+depends_on: [plan-01, plan-02, plan-03, plan-04, plan-05, plan-06, plan-07, plan-08, plan-09, plan-10, plan-11, plan-12, plan-13, plan-14, plan-15, plan-16, plan-17, plan-18, plan-19]
+gate: "required before GAS push, live Sheet write, deployment setting changes, or exposing student data"
+superseded_by: null
+resolution: "Existing packet status was already complete before this migration; see the packet progress report for historical evidence."
+summary: "add an optional GAS web app output that serves a GAS-friendly build and records submissions to a Google Sheet."
+---
 # Plan 20: GAS Web App Submission Output
 
 ## Packet Metadata
 
 - Packet id: 20
 - Packet title: GAS Web App Submission Output
-- Status: complete
+- Status: (see frontmatter)
 - Owner/model: Codex mini or stronger; stronger model recommended for build tooling
 - Date: 2026-05-06
 - Packet type: implementation, GAS, integration, tests, docs

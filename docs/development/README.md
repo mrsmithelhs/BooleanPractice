@@ -4,44 +4,46 @@ This sequence migrates Boolean Practice from the archived Google Apps Script for
 
 ## Packet Index
 
-| Packet                                               | Status | Purpose                                                                                             |
-| ---------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------- |
-| [Plan 01](plan-01-repository-bootstrap.md)           | complete | Initialize package, Vite/Vue, testing, linting, CI skeleton, and Pages-aware build plumbing.        |
-| [Plan 02](plan-02-archive-inventory-product-spec.md) | complete | Convert archive findings into a concise product, pedagogy, and technical spec.                      |
-| [Plan 03](plan-03-parser-evaluator-core.md)          | complete | Build tested parser, AST formatter, evaluator, truth table generation, and expression validation.   |
-| [Plan 04](plan-04-problem-catalog-progression.md)    | complete | Create a pedagogically sequenced problem catalog with AP CSA-friendly progression.                  |
-| [Plan 05](plan-05-venn-region-engine-three-input.md) | complete | Implement one-, two-, and three-variable Venn/set region logic independent of rendering.            |
-| [Plan 06](plan-06-vue-app-shell-state.md)            | complete | Create the Vue app shell, state model, mode flow, and static routing/base-path behavior.            |
-| [Plan 07](plan-07-truth-table-learning-ui.md)        | complete | Build the truth table practice UI with step reveal, feedback, and accessibility.                    |
-| [Plan 08](plan-08-venn-learning-ui.md)               | complete | Build the Venn practice UI, including three-input support and keyboard-accessible region selection. |
-| [Plan 09](plan-09-visual-upgrade-accessibility.md)   | complete | Apply a cohesive visual design upgrade and responsive accessibility polish.                         |
-| [Plan 10](plan-10-robust-test-suite.md)              | complete | Expand unit, integration, accessibility, and E2E coverage beyond smoke tests.                       |
-| [Plan 11](plan-11-github-pages-deployment.md)        | complete | Add GitHub Pages workflow, deployment docs, and final release confidence checks.                    |
-| [Plan 12](plan-12-hint-ladder-attempt-feedback.md) | complete | Add attempt-aware hints that help students recover from mistakes. |
-| [Plan 13](plan-13-problem-review-summary.md) | complete | Add end-of-problem summaries and suggested next practice. |
-| [Plan 14](plan-14-cross-representation-comparison.md) | complete | Compare truth table rows and matching Venn regions. |
-| [Plan 15](plan-15-expanded-catalog-variety.md) | complete | Expand the catalog with richer boolean expressions and metadata. |
-| [Plan 16](plan-16-expression-equivalence-mode.md) | complete | Add expression equivalence challenges proved by tables or diagrams. |
-| [Plan 17](plan-17-simplification-guess-mode.md) | complete | Add simplification guess mode with equivalence checking. |
-| [Plan 18](plan-18-bulk-fill-copy-controls.md) | complete | Add all-true/all-false/clear/copy controls for tables and diagrams. |
-| [Plan 19](plan-19-session-memory-subexpressions.md) | complete | Use sessionStorage to remember mastered normalized subexpressions. |
-| [Plan 20](plan-20-gas-web-app-submission-output.md) | complete | Add a shared-source GAS web app output and Sheets submissions. |
-| [Plan 21](plan-21-sheets-assignment-mode.md) | complete | Add Sheets-authored assignment mode for the GAS output. |
-| [Plan 22](plan-22-adaptive-assignment-algorithm-design.md) | complete | Define and prove an adaptive assignment algorithm before implementation. |
-| [Plan 23](plan-23-java-predicate-atoms.md) | complete | Add pre-authored numeric predicate atoms while preserving readable UI. |
-| [Plan 24](plan-24-relational-equivalence-knowledge-graph.md) | complete | Scope numeric relational equivalences such as `!(x > 10)` and `x <= 10`. |
-| [Plan 25](plan-25-local-dev-console.md) | complete | Add a human-facing local dev console for the editable dev server and preview workflow. |
-| [Plan 26](plan-26-ui-tour-capture-blind-review-workflow.md) | complete | Capture Playwright UI tours into local-only folders for blind UI review. |
-| [Plan 27](plan-27-ui-review-synthesis-workflow.md) | complete | Synthesize multiple blind UI reviews into prioritized UI triage. |
-| [Plan 28](plan-28-practice-first-information-architecture.md) | complete | Reduce first-load density and make the active practice workspace primary. |
-| [Plan 29](plan-29-interactive-visual-venn-diagrams.md) | complete | Replace region-grid-only Venn practice with actual interactive visual Venn diagrams. |
-| [Plan 30](plan-30-student-facing-copy-feedback-and-submission-polish.md) | complete | Polish student-facing labels, progress, affordances, feedback, and submission states. |
-| [Plan 31](plan-31-svg-first-interactive-venn-regions-with-optional-detailed-labels.md) | complete | Make detailed Venn labels optional while using SVG region geometry as the interaction surface. |
-| [Plan 32](plan-32-bootstrap-consumer-baseline-and-adoption-manifest.md) | complete | Audit Bootstrap capability presence and create an honest adoption manifest. |
-| [Plan 33](plan-33-bootstrap-packet-status-frontmatter-migration.md) | ready | Adopt Bootstrap packet status tooling and migrate existing packets to frontmatter. |
-| [Plan 34](plan-34-bootstrap-agent-guides-prompts-and-decision-records.md) | ready | Add Bootstrap-style agent guides, starting prompts, decision records, and falsification guidance. |
-| [Plan 35](plan-35-bootstrap-dev-console-hub-alignment.md) | ready | Align the local dev console with Bootstrap's submenu hub and safe script execution pattern. |
-| [Plan 36](plan-36-bootstrap-tracked-consumer-verification-and-sync-runbook.md) | ready | Verify tracked Bootstrap consumer status and document future sync/audit practice. |
+<!-- plan-index:begin -->
+| id | title | status | summary |
+|---|---|---|---|
+| `plan-01` | Repository Bootstrap | complete | create the modern local development foundation for a compiled static Vue app. |
+| `plan-02` | Archive Inventory And Product Spec | complete | turn archive observations into durable product, pedagogy, and architecture contracts. |
+| `plan-03` | Parser And Evaluator Core | complete | create the tested boolean semantics engine used by every practice mode. |
+| `plan-04` | Problem Catalog And Progression | complete | replace the flat archive problem list with a sequenced catalog aligned to AP CSA boolean reasoning. |
+| `plan-05` | Venn Region Engine With Three Inputs | complete | make Venn mode a tested representation of boolean assignments for one, two, and three variables. |
+| `plan-06` | Vue App Shell And State | complete | create the usable first-screen app structure that hosts practice modes. |
+| `plan-07` | Truth Table Learning UI | complete | rebuild truth table practice with better feedback and accessible interaction. |
+| `plan-08` | Venn Learning UI | complete | rebuild Venn practice on top of the tested region engine, including three-input expressions. |
+| `plan-09` | Visual Upgrade And Accessibility Polish | complete | give the migrated app a significant visual upgrade while preserving classroom clarity. |
+| `plan-10` | Robust Test Suite | complete | turn the test suite into a real safety net, not just smoke coverage. |
+| `plan-11` | GitHub Pages Deployment | complete | make the app easy to promote to GitHub Pages after it is pushed. |
+| `plan-12` | Hint Ladder And Attempt Feedback | complete | help students recover from mistakes with targeted hints that appear after attempts instead of immediately giving away answers. |
+| `plan-13` | Problem Review Summary | complete | give students a short, useful summary after completing a problem. |
+| `plan-14` | Cross-Representation Comparison | complete | let students see that truth table rows and Venn regions are the same assignments represented differently. |
+| `plan-15` | Expanded Catalog And Variety | complete | make practice feel varied while preserving a clear progression of boolean concepts. |
+| `plan-16` | Expression Equivalence Mode | complete | ask students whether two expressions are logically equivalent, then let them prove it by comparing truth tables or Venn diagrams. |
+| `plan-17` | Simplification Guess Mode | complete | ask students to propose a simpler expression, then prove whether the guess is equivalent to the original. |
+| `plan-18` | Bulk Fill And Copy Controls | complete | reduce tedious repeated clicking without hiding the reasoning task. |
+| `plan-19` | Session Memory For Known Subexpressions | complete | remember subexpressions a student has solved correctly in the current session and optionally auto-fill them after enough repetitions. |
+| `plan-20` | GAS Web App Submission Output | complete | add an optional GAS web app output that serves a GAS-friendly build and records submissions to a Google Sheet. |
+| `plan-21` | Sheets Assignment Mode | complete | let teachers define assignment sequences in Sheets and let students complete assigned expression challenges through the GAS output. |
+| `plan-22` | Adaptive Assignment Algorithm Design | complete | sharply define and test an adaptive assignment algorithm before implementing it in classroom mode. |
+| `plan-23` | Java Predicate Atoms | complete | let catalog problems use boolean-valued numeric predicates, such as `x > 10` or `count == 0`, as meaningful atoms in larger boolean expressions. |
+| `plan-24` | Numeric Relational Equivalence Knowledge Graph | complete | teach and recognize equivalences involving negated numeric comparisons, such as `!(x > 10)` and `x <= 10`. |
+| `plan-25` | Local Dev Console And Port-Control Workflow | complete | create a human-facing local development console for Boolean Practice that makes the editable dev server easy to start, stop, restart, inspect, and open from one place. |
+| `plan-26` | UI Tour Capture And Blind Review Workflow | complete | create a repeatable workflow that captures coherent UI tours as screenshots and packages them for blind review by fresh agents that must not inspect the codebase. |
+| `plan-27` | UI Review Synthesis Workflow | complete | synthesize multiple blind UI reviews from a Plan 26 capture folder into a prioritized triage report. |
+| `plan-28` | Practice-First Information Architecture And Density Reduction | complete | reduce the app's opening information density so the student sees a learning workspace first, not a dashboard of metadata. |
+| `plan-29` | Interactive Visual Venn Diagrams | complete | make Venn mode use actual visual Venn diagrams with clickable shaded regions while preserving the tested region engine. |
+| `plan-30` | Student-Facing Copy, Feedback, Progress, And Submission Polish | complete | fix the smaller but repeated UI issues from blind review that make the app feel implementation-facing, ambiguous, or unfinished. |
+| `plan-31` | SVG-First Interactive Venn Regions With Optional Detailed Labels | complete | make the Venn experience feel like a real interactive diagram where the regions themselves are the controls, while keeping the canonical region engine and accessibility intact. |
+| `plan-32` | Bootstrap Consumer Baseline And Adoption Manifest | complete | make Boolean Practice explicitly tracked as a Bootstrap consumer by auditing current capability presence and recording intended adoption decisions. |
+| `plan-33` | Bootstrap Packet Status And Frontmatter Migration | complete | adopt Bootstrap's machine-checkable packet status system and migrate the existing Boolean Practice packet corpus to YAML frontmatter without losing packet history. |
+| `plan-34` | Bootstrap Agent Guides, Starting Prompts, And Decision Records | ready | adopt Bootstrap's canonical agent entry points and role-specific starting prompts, customized for Boolean Practice. |
+| `plan-35` | Bootstrap Dev Console Hub Alignment | blocked | upgrade the existing local dev console toward Bootstrap's recommended `dev-console-hub` pattern. |
+| `plan-36` | Bootstrap Tracked Consumer Verification And Sync Runbook | blocked | verify Boolean Practice now behaves as a tracked Bootstrap consumer and document how future Bootstrap sync checks should be run. |
+<!-- plan-index:end -->
 
 ## Suggested Execution Order
 

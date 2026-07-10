@@ -15,6 +15,36 @@ The goal is to make each packet a clear work order plus a guardrail contract. A 
 
 Every packet should start with metadata:
 
+Before the human-readable packet body, every packet must also carry the machine-readable YAML frontmatter required by the packet-status workflow:
+
+```yaml
+---
+id: plan-NN
+title: Short Descriptive Title
+status: draft
+depends_on: []
+gate: ""
+superseded_by: null
+resolution: null
+summary: >-
+  One concise purpose statement for the generated packet index.
+---
+```
+
+`status` is authoritative in frontmatter. The body may retain a `- Status: (see frontmatter)` reminder for human readers, but the README index is generated and must not be hand-maintained.
+
+Use this lifecycle vocabulary:
+
+- `draft`: exists but needs review before assignment.
+- `ready`: may be assigned when dependencies pass the status check.
+- `in-progress`: actively assigned and underway.
+- `delivered`: implementer reports completion; awaiting owner verification.
+- `complete`: owner/orchestrator verified; requires `resolution`.
+- `superseded`: replaced by another packet; requires `superseded_by` and `resolution`.
+- `parked`: deliberately deferred; requires `resolution`.
+
+`blocked` is computed from incomplete dependencies and must not be written as a hand-set status.
+
 - Packet id:
 - Packet title:
 - Status: draft / ready / in-progress / complete / superseded
@@ -165,6 +195,18 @@ npx playwright test
 ```
 
 Only include deployment commands when the packet explicitly allows them.
+
+For packet status work, run these commands from the repository root:
+
+```powershell
+node scripts/dev/plan-status.js list
+node scripts/dev/plan-status.js check plan-NN
+node scripts/dev/plan-status.js lint
+node scripts/dev/plan-status.js render
+node scripts/dev/plan-status.js set plan-NN delivered
+```
+
+The `set` verb is orchestrator-only. Implementers report delivery in the progress report; they do not close packets themselves. Terminal transitions require an explicit resolution, and `render` owns the README index between its marker comments.
 
 ## Validation Checklist
 

@@ -1,10 +1,20 @@
+---
+id: plan-35
+title: "Bootstrap Dev Console Hub Alignment"
+status: ready
+depends_on: [plan-33, plan-34]
+gate: "before adding any mutating or external-state console action, require explicit confirmation UX and tests"
+superseded_by: null
+resolution: null
+summary: "upgrade the existing local dev console toward Bootstrap's recommended `dev-console-hub` pattern."
+---
 # Plan 35: Bootstrap Dev Console Hub Alignment
 
 ## Packet Metadata
 
 - Packet id: 35
 - Packet title: Bootstrap Dev Console Hub Alignment
-- Status: ready
+- Status: (see frontmatter)
 - Owner/model: Codex mini or stronger
 - Date: 2026-07-07
 - Packet type: tooling, developer experience, tests

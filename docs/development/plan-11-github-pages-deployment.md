@@ -1,10 +1,20 @@
+---
+id: plan-11
+title: "GitHub Pages Deployment"
+status: complete
+depends_on: [plan-01, plan-02, plan-03, plan-04, plan-05, plan-06, plan-07, plan-08, plan-09, plan-10]
+gate: "required before changing repository Pages settings or performing a production deployment"
+superseded_by: null
+resolution: "Existing packet status was already complete before this migration; see the packet progress report for historical evidence."
+summary: "make the app easy to promote to GitHub Pages after it is pushed."
+---
 # Plan 11: GitHub Pages Deployment
 
 ## Packet Metadata
 
 - Packet id: 11
 - Packet title: GitHub Pages Deployment
-- Status: complete
+- Status: (see frontmatter)
 - Owner/model: Codex mini or stronger
 - Date: 2026-05-05
 - Packet type: deployment, docs, integration

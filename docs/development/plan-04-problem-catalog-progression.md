@@ -1,10 +1,20 @@
+---
+id: plan-04
+title: "Problem Catalog And Progression"
+status: complete
+depends_on: [plan-03]
+gate: "before adding non-boolean Java comparison syntax"
+superseded_by: null
+resolution: "Existing packet status was already complete before this migration; see the packet progress report for historical evidence."
+summary: "replace the flat archive problem list with a sequenced catalog aligned to AP CSA boolean reasoning."
+---
 # Plan 04: Problem Catalog And Progression
 
 ## Packet Metadata
 
 - Packet id: 04
 - Packet title: Problem Catalog And Progression
-- Status: complete
+- Status: (see frontmatter)
 - Owner/model: Codex mini or stronger
 - Date: 2026-05-05
 - Packet type: implementation, pedagogy, tests

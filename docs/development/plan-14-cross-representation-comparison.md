@@ -1,10 +1,20 @@
+---
+id: plan-14
+title: "Cross-Representation Comparison"
+status: complete
+depends_on: [plan-05, plan-07, plan-08, plan-10, plan-13]
+gate: "before broad UI redesign or changing Venn/truth table semantics"
+superseded_by: null
+resolution: "Existing packet status was already complete before this migration; see the packet progress report for historical evidence."
+summary: "let students see that truth table rows and Venn regions are the same assignments represented differently."
+---
 # Plan 14: Cross-Representation Comparison
 
 ## Packet Metadata
 
 - Packet id: 14
 - Packet title: Cross-Representation Comparison
-- Status: complete
+- Status: (see frontmatter)
 - Owner/model: Codex mini or stronger; browser-capable model recommended
 - Date: 2026-05-06
 - Packet type: implementation, pedagogy, frontend, tests

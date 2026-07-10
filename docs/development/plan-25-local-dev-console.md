@@ -1,10 +1,20 @@
+---
+id: plan-25
+title: "Local Dev Console And Port-Control Workflow"
+status: complete
+depends_on: [plan-01, plan-06, plan-10, plan-11, plan-20, plan-21]
+gate: "required before adding any production-visible process control or destructive local process management"
+superseded_by: null
+resolution: "Existing packet status was already complete before this migration; see the packet progress report for historical evidence."
+summary: "create a human-facing local development console for Boolean Practice that makes the editable dev server easy to start, stop, restart, inspect, and open from one place."
+---
 # Plan 25: Local Dev Console And Port-Control Workflow
 
 ## Packet Metadata
 
 - Packet id: 25
 - Packet title: Local Dev Console And Port-Control Workflow
-- Status: complete
+- Status: (see frontmatter)
 - Owner/model: stronger model recommended
 - Date: 2026-05-06
 - Packet type: local developer tooling, scripts, docs, tests

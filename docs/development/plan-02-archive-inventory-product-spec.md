@@ -1,10 +1,20 @@
+---
+id: plan-02
+title: "Archive Inventory And Product Spec"
+status: complete
+depends_on: [plan-01]
+gate: ""
+superseded_by: null
+resolution: "Existing packet status was already complete before this migration; see the packet progress report for historical evidence."
+summary: "turn archive observations into durable product, pedagogy, and architecture contracts."
+---
 # Plan 02: Archive Inventory And Product Spec
 
 ## Packet Metadata
 
 - Packet id: 02
 - Packet title: Archive Inventory And Product Spec
-- Status: complete
+- Status: (see frontmatter)
 - Owner/model: Codex mini or stronger
 - Date: 2026-05-05
 - Packet type: scan-only, docs, pedagogy

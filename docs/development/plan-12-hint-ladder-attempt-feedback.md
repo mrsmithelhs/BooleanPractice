@@ -1,10 +1,20 @@
+---
+id: plan-12
+title: "Hint Ladder And Attempt Feedback"
+status: complete
+depends_on: [plan-01, plan-02, plan-03, plan-04, plan-05, plan-06, plan-07, plan-08, plan-09, plan-10, plan-11]
+gate: "before changing boolean semantics or adding scoring/persistence"
+superseded_by: null
+resolution: "Existing packet status was already complete before this migration; see the packet progress report for historical evidence."
+summary: "help students recover from mistakes with targeted hints that appear after attempts instead of immediately giving away answers."
+---
 # Plan 12: Hint Ladder And Attempt Feedback
 
 ## Packet Metadata
 
 - Packet id: 12
 - Packet title: Hint Ladder And Attempt Feedback
-- Status: complete
+- Status: (see frontmatter)
 - Owner/model: Codex mini or stronger; stronger model useful for feedback copy
 - Date: 2026-05-06
 - Packet type: implementation, pedagogy, frontend, tests

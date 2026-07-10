@@ -1,10 +1,20 @@
+---
+id: plan-08
+title: "Venn Learning UI"
+status: complete
+depends_on: [plan-03, plan-05, plan-06]
+gate: "before choosing canvas-only rendering or dropping keyboard-accessible controls"
+superseded_by: null
+resolution: "Existing packet status was already complete before this migration; see the packet progress report for historical evidence."
+summary: "rebuild Venn practice on top of the tested region engine, including three-input expressions."
+---
 # Plan 08: Venn Learning UI
 
 ## Packet Metadata
 
 - Packet id: 08
 - Packet title: Venn Learning UI
-- Status: complete
+- Status: (see frontmatter)
 - Owner/model: Codex mini or stronger; browser-capable model recommended
 - Date: 2026-05-05
 - Packet type: implementation, frontend, accessibility, tests

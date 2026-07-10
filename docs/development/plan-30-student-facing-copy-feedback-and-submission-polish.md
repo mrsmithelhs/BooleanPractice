@@ -1,10 +1,20 @@
+---
+id: plan-30
+title: "Student-Facing Copy, Feedback, Progress, And Submission Polish"
+status: complete
+depends_on: [plan-12, plan-13, plan-14, plan-15, plan-16, plan-17, plan-18, plan-19, plan-20, plan-21, plan-23, plan-26, plan-28]
+gate: "required before changing GAS submission payload shape or removing existing student feedback"
+superseded_by: null
+resolution: "Existing packet status was already complete before this migration; see the packet progress report for historical evidence."
+summary: "fix the smaller but repeated UI issues from blind review that make the app feel implementation-facing, ambiguous, or unfinished."
+---
 # Plan 30: Student-Facing Copy, Feedback, Progress, And Submission Polish
 
 ## Packet Metadata
 
 - Packet id: 30
 - Packet title: Student-Facing Copy, Feedback, Progress, And Submission Polish
-- Status: complete
+- Status: (see frontmatter)
 - Owner/model: Codex mini or stronger
 - Date: 2026-05-06
 - Packet type: UI polish, copy, accessibility, tests

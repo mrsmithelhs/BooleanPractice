@@ -1,10 +1,20 @@
+---
+id: plan-01
+title: "Repository Bootstrap"
+status: complete
+depends_on: []
+gate: "ask before adding major dependencies beyond Vue, Vite, Vitest, Playwright, ESLint, and formatter tooling"
+superseded_by: null
+resolution: "Existing packet status was already complete before this migration; see the packet progress report for historical evidence."
+summary: "create the modern local development foundation for a compiled static Vue app."
+---
 # Plan 01: Repository Bootstrap
 
 ## Packet Metadata
 
 - Packet id: 01
 - Packet title: Repository Bootstrap
-- Status: complete
+- Status: (see frontmatter)
 - Owner/model: Codex mini or stronger
 - Date: 2026-05-05
 - Packet type: implementation, tooling, integration

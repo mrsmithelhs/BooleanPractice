@@ -1,10 +1,20 @@
+---
+id: plan-06
+title: "Vue App Shell And State"
+status: complete
+depends_on: [plan-03, plan-04]
+gate: "before adding a router if a simple state-driven shell is sufficient"
+superseded_by: null
+resolution: "Existing packet status was already complete before this migration; see the packet progress report for historical evidence."
+summary: "create the usable first-screen app structure that hosts practice modes."
+---
 # Plan 06: Vue App Shell And State
 
 ## Packet Metadata
 
 - Packet id: 06
 - Packet title: Vue App Shell And State
-- Status: complete
+- Status: (see frontmatter)
 - Owner/model: Codex mini or stronger
 - Date: 2026-05-05
 - Packet type: implementation, frontend, integration

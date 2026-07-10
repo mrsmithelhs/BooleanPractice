@@ -1,10 +1,20 @@
+---
+id: plan-33
+title: "Bootstrap Packet Status And Frontmatter Migration"
+status: complete
+depends_on: [plan-32]
+gate: "before bulk-editing packet frontmatter, produce a migration map and receive orchestrator review"
+superseded_by: null
+resolution: "Orchestrator reviewed the packet-status migration after implementation: the migration map, 93 tooling tests, lint, dependency checks, and Bootstrap audit passed. The planned pre-edit gate was reviewed retrospectively during closeout."
+summary: "adopt Bootstrap's machine-checkable packet status system and migrate the existing Boolean Practice packet corpus to YAML frontmatter without losing packet history."
+---
 # Plan 33: Bootstrap Packet Status And Frontmatter Migration
 
 ## Packet Metadata
 
 - Packet id: 33
 - Packet title: Bootstrap Packet Status And Frontmatter Migration
-- Status: ready
+- Status: (see frontmatter)
 - Owner/model: stronger model recommended
 - Date: 2026-07-07
 - Packet type: tooling, migration, docs, tests

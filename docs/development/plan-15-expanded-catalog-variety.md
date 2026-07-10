@@ -1,10 +1,20 @@
+---
+id: plan-15
+title: "Expanded Catalog And Variety"
+status: complete
+depends_on: [plan-04]
+gate: "before adding Java relational predicate syntax"
+superseded_by: null
+resolution: "Existing packet status was already complete before this migration; see the packet progress report for historical evidence."
+summary: "make practice feel varied while preserving a clear progression of boolean concepts."
+---
 # Plan 15: Expanded Catalog And Variety
 
 ## Packet Metadata
 
 - Packet id: 15
 - Packet title: Expanded Catalog And Variety
-- Status: complete
+- Status: (see frontmatter)
 - Owner/model: Codex mini or stronger
 - Date: 2026-05-06
 - Packet type: implementation, pedagogy, tests

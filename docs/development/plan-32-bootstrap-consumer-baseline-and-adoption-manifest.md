@@ -1,10 +1,20 @@
+---
+id: plan-32
+title: "Bootstrap Consumer Baseline And Adoption Manifest"
+status: complete
+depends_on: []
+gate: "owner/orchestrator must approve capability decisions before any `.bootstrap-adoption.json` entry is treated as final"
+superseded_by: null
+resolution: "Existing packet status was already complete before this migration; see the packet progress report for historical evidence."
+summary: "make Boolean Practice explicitly tracked as a Bootstrap consumer by auditing current capability presence and recording intended adoption decisions."
+---
 # Plan 32: Bootstrap Consumer Baseline And Adoption Manifest
 
 ## Packet Metadata
 
 - Packet id: 32
 - Packet title: Bootstrap Consumer Baseline And Adoption Manifest
-- Status: complete
+- Status: (see frontmatter)
 - Owner/model: stronger model recommended
 - Date: 2026-07-07
 - Packet type: orchestration, docs, scan-only, migration planning

@@ -1,18 +1,18 @@
 {
-  "lastBootstrapAudit": "2026-07-07",
+  "lastBootstrapAudit": "2026-07-09",
   "bootstrapVersion": "0.1.0",
   "capabilities": [
     {
       "capability": "packet-status-system",
-      "state": "deferred",
+      "state": "adopted",
       "bootstrapVersion": "0.1.0",
-      "localRationale": "Planned for Plan 33; keep the baseline honest until packet frontmatter migration lands."
+      "capabilityVersion": "1.1.0"
     },
     {
       "capability": "packet-status-set-verb",
-      "state": "deferred",
+      "state": "adopted",
       "bootstrapVersion": "0.1.0",
-      "localRationale": "Depends on packet-status-system and will arrive with the packet-status migration work."
+      "capabilityVersion": "1.0.0"
     },
     {
       "capability": "dev-console-hub",

@@ -1,10 +1,20 @@
+---
+id: plan-13
+title: "Problem Review Summary"
+status: complete
+depends_on: [plan-01, plan-02, plan-03, plan-04, plan-05, plan-06, plan-07, plan-08, plan-09, plan-10, plan-11, plan-12]
+gate: "before adding persisted progress or teacher reporting"
+superseded_by: null
+resolution: "Existing packet status was already complete before this migration; see the packet progress report for historical evidence."
+summary: "give students a short, useful summary after completing a problem."
+---
 # Plan 13: Problem Review Summary
 
 ## Packet Metadata
 
 - Packet id: 13
 - Packet title: Problem Review Summary
-- Status: complete
+- Status: (see frontmatter)
 - Owner/model: Codex mini or stronger
 - Date: 2026-05-06
 - Packet type: implementation, pedagogy, frontend, tests

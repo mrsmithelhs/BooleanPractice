@@ -1,10 +1,20 @@
+---
+id: plan-18
+title: "Bulk Fill And Copy Controls"
+status: complete
+depends_on: [plan-07, plan-08]
+gate: "before changing grading or attempt-count semantics"
+superseded_by: null
+resolution: "Existing packet status was already complete before this migration; see the packet progress report for historical evidence."
+summary: "reduce tedious repeated clicking without hiding the reasoning task."
+---
 # Plan 18: Bulk Fill And Copy Controls
 
 ## Packet Metadata
 
 - Packet id: 18
 - Packet title: Bulk Fill And Copy Controls
-- Status: complete
+- Status: (see frontmatter)
 - Owner/model: Codex mini or stronger
 - Date: 2026-05-06
 - Packet type: implementation, frontend, accessibility, tests

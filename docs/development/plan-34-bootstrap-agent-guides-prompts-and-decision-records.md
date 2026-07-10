@@ -1,10 +1,20 @@
+---
+id: plan-34
+title: "Bootstrap Agent Guides, Starting Prompts, And Decision Records"
+status: ready
+depends_on: [plan-32, plan-33]
+gate: "owner/orchestrator review required for project-specific data rules and durable contracts"
+superseded_by: null
+resolution: null
+summary: "adopt Bootstrap's canonical agent entry points and role-specific starting prompts, customized for Boolean Practice."
+---
 # Plan 34: Bootstrap Agent Guides, Starting Prompts, And Decision Records
 
 ## Packet Metadata
 
 - Packet id: 34
 - Packet title: Bootstrap Agent Guides, Starting Prompts, And Decision Records
-- Status: ready
+- Status: (see frontmatter)
 - Owner/model: stronger model recommended
 - Date: 2026-07-07
 - Packet type: docs, workflow, agent contracts

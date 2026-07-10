@@ -1,10 +1,20 @@
+---
+id: plan-26
+title: "UI Tour Capture And Blind Review Workflow"
+status: complete
+depends_on: [plan-25]
+gate: "before adding heavy screenshot dependencies, before writing tracked generated screenshots, before changing app behavior to satisfy the capture workflow"
+superseded_by: null
+resolution: "Existing packet status was already complete before this migration; see the packet progress report for historical evidence."
+summary: "create a repeatable workflow that captures coherent UI tours as screenshots and packages them for blind review by fresh agents that must not inspect the codebase."
+---
 # Plan 26: UI Tour Capture And Blind Review Workflow
 
 ## Packet Metadata
 
 - Packet id: 26
 - Packet title: UI Tour Capture And Blind Review Workflow
-- Status: complete
+- Status: (see frontmatter)
 - Owner/model: Codex mini or stronger; browser-capable model recommended
 - Date: 2026-05-06
 - Packet type: implementation, tooling, browser validation, UI review, docs

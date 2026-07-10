@@ -1,10 +1,20 @@
+---
+id: plan-28
+title: "Practice-First Information Architecture And Density Reduction"
+status: complete
+depends_on: [plan-06, plan-07, plan-08, plan-09, plan-10, plan-11, plan-12, plan-13, plan-14, plan-15, plan-16, plan-17, plan-18, plan-19, plan-23, plan-26]
+gate: "required before removing any student-visible information entirely"
+superseded_by: null
+resolution: "Existing packet status was already complete before this migration; see the packet progress report for historical evidence."
+summary: "reduce the app's opening information density so the student sees a learning workspace first, not a dashboard of metadata."
+---
 # Plan 28: Practice-First Information Architecture And Density Reduction
 
 ## Packet Metadata
 
 - Packet id: 28
 - Packet title: Practice-First Information Architecture And Density Reduction
-- Status: complete
+- Status: (see frontmatter)
 - Owner/model: stronger model recommended
 - Date: 2026-05-06
 - Packet type: UX redesign, responsive layout, pedagogy, implementation, tests

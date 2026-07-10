@@ -1,10 +1,20 @@
+---
+id: plan-05
+title: "Venn Region Engine With Three Inputs"
+status: complete
+depends_on: [plan-03]
+gate: "before changing region naming or assignment ordering after tests are written"
+superseded_by: null
+resolution: "Existing packet status was already complete before this migration; see the packet progress report for historical evidence."
+summary: "make Venn mode a tested representation of boolean assignments for one, two, and three variables."
+---
 # Plan 05: Venn Region Engine With Three Inputs
 
 ## Packet Metadata
 
 - Packet id: 05
 - Packet title: Venn Region Engine With Three Inputs
-- Status: complete
+- Status: (see frontmatter)
 - Owner/model: Codex mini or stronger
 - Date: 2026-05-05
 - Packet type: implementation, core logic, tests

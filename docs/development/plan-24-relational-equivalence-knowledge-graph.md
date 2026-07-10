@@ -1,10 +1,20 @@
+---
+id: plan-24
+title: "Numeric Relational Equivalence Knowledge Graph"
+status: complete
+depends_on: [plan-17, plan-23]
+gate: "required before changing parser grammar or claiming relational equivalence coverage"
+superseded_by: null
+resolution: "Existing packet status was already complete before this migration; see the packet progress report for historical evidence."
+summary: "teach and recognize equivalences involving negated numeric comparisons, such as `!(x > 10)` and `x <= 10`."
+---
 # Plan 24: Numeric Relational Equivalence Knowledge Graph
 
 ## Packet Metadata
 
 - Packet id: 24
 - Packet title: Numeric Relational Equivalence Knowledge Graph
-- Status: complete
+- Status: (see frontmatter)
 - Owner/model: stronger model recommended
 - Date: 2026-05-06
 - Packet type: pedagogy, algorithm design, implementation, tests

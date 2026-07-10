@@ -1,10 +1,20 @@
+---
+id: plan-10
+title: "Robust Test Suite"
+status: complete
+depends_on: [plan-03, plan-04, plan-05, plan-06, plan-07, plan-08, plan-09]
+gate: "before broad source refactors"
+superseded_by: null
+resolution: "Existing packet status was already complete before this migration; see the packet progress report for historical evidence."
+summary: "turn the test suite into a real safety net, not just smoke coverage."
+---
 # Plan 10: Robust Test Suite
 
 ## Packet Metadata
 
 - Packet id: 10
 - Packet title: Robust Test Suite
-- Status: complete
+- Status: (see frontmatter)
 - Owner/model: Codex mini or stronger; browser-capable model recommended
 - Date: 2026-05-05
 - Packet type: testing, integration, browser validation

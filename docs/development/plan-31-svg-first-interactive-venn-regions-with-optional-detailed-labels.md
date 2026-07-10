@@ -1,10 +1,20 @@
+---
+id: plan-31
+title: "SVG-First Interactive Venn Regions With Optional Detailed Labels"
+status: complete
+depends_on: [plan-05, plan-08, plan-28, plan-29]
+gate: "before changing Venn semantics or removing the exact-region fallback"
+superseded_by: null
+resolution: "Existing packet status was already complete before this migration; see the packet progress report for historical evidence."
+summary: "make the Venn experience feel like a real interactive diagram where the regions themselves are the controls, while keeping the canonical region engine and accessibility intact."
+---
 # Plan 31: SVG-First Interactive Venn Regions With Optional Detailed Labels
 
 ## Packet Metadata
 
 - Packet id: 31
 - Packet title: SVG-First Interactive Venn Regions With Optional Detailed Labels
-- Status: complete
+- Status: (see frontmatter)
 - Owner/model: Codex mini or stronger
 - Date: 2026-05-07
 - Packet type: frontend, accessibility, tests

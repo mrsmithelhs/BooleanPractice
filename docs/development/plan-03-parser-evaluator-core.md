@@ -1,10 +1,20 @@
+---
+id: plan-03
+title: "Parser And Evaluator Core"
+status: complete
+depends_on: [plan-01, plan-02]
+gate: "before changing the documented grammar"
+superseded_by: null
+resolution: "Existing packet status was already complete before this migration; see the packet progress report for historical evidence."
+summary: "create the tested boolean semantics engine used by every practice mode."
+---
 # Plan 03: Parser And Evaluator Core
 
 ## Packet Metadata
 
 - Packet id: 03
 - Packet title: Parser And Evaluator Core
-- Status: complete
+- Status: (see frontmatter)
 - Owner/model: Codex mini or stronger
 - Date: 2026-05-05
 - Packet type: implementation, core logic, tests

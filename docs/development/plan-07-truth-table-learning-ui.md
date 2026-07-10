@@ -1,10 +1,20 @@
+---
+id: plan-07
+title: "Truth Table Learning UI"
+status: complete
+depends_on: [plan-03, plan-04, plan-06]
+gate: "before changing answer/feedback semantics from the product spec"
+superseded_by: null
+resolution: "Existing packet status was already complete before this migration; see the packet progress report for historical evidence."
+summary: "rebuild truth table practice with better feedback and accessible interaction."
+---
 # Plan 07: Truth Table Learning UI
 
 ## Packet Metadata
 
 - Packet id: 07
 - Packet title: Truth Table Learning UI
-- Status: complete
+- Status: (see frontmatter)
 - Owner/model: Codex mini or stronger
 - Date: 2026-05-05
 - Packet type: implementation, frontend, pedagogy, tests

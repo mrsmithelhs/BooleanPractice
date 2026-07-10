@@ -1,10 +1,20 @@
+---
+id: plan-21
+title: "Sheets Assignment Mode"
+status: complete
+depends_on: [plan-20]
+gate: "required before live Sheet migration, GAS push, or production classroom use"
+superseded_by: null
+resolution: "Existing packet status was already complete before this migration; see the packet progress report for historical evidence."
+summary: "let teachers define assignment sequences in Sheets and let students complete assigned expression challenges through the GAS output."
+---
 # Plan 21: Sheets Assignment Mode
 
 ## Packet Metadata
 
 - Packet id: 21
 - Packet title: Sheets Assignment Mode
-- Status: complete
+- Status: (see frontmatter)
 - Owner/model: Codex mini or stronger; stronger model recommended for data model design
 - Date: 2026-05-06
 - Packet type: implementation, GAS, data, pedagogy, tests, docs

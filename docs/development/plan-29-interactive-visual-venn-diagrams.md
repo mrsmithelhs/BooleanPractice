@@ -1,10 +1,20 @@
+---
+id: plan-29
+title: "Interactive Visual Venn Diagrams"
+status: complete
+depends_on: [plan-05, plan-08, plan-14, plan-16, plan-17, plan-28]
+gate: "required before replacing the existing region-grid workflow or changing Venn semantics"
+superseded_by: null
+resolution: "Existing packet status was already complete before this migration; see the packet progress report for historical evidence."
+summary: "make Venn mode use actual visual Venn diagrams with clickable shaded regions while preserving the tested region engine."
+---
 # Plan 29: Interactive Visual Venn Diagrams
 
 ## Packet Metadata
 
 - Packet id: 29
 - Packet title: Interactive Visual Venn Diagrams
-- Status: complete
+- Status: (see frontmatter)
 - Owner/model: stronger model recommended
 - Date: 2026-05-06
 - Packet type: pedagogy, visual interaction, rendering, accessibility, tests
