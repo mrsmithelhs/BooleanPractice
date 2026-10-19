@@ -1,7 +1,7 @@
 # Plan 37: Hidden-Picture Shape Printables (P1) — Progress Report
 
-> **Stage: GATE-37A Reached — Repair 01 Completed (Candidate Sheets, Review Page, and Full-Suite Verification)**
-> **Date:** 2026-10-18 (Repair 01 applied 2026-10-19)
+> **Stage: GATE-37A Reached — Repair 02 Completed (Distractor Previews Exported, Obstacle Clearances Enforced, Single-Line Worked Steps, and Full-Suite Verification)**
+> **Date:** 2026-10-18 (Repair 01 applied 2026-10-19, Repair 02 applied 2026-10-19)
 > **Implementer:** Single Implementer
 > **Packet:** `docs/development/plan-37-hidden-picture-shape-printables.md`
 > **Ready for Orchestrator & Owner Review:** Yes (Stopped at GATE-37A)
@@ -12,20 +12,16 @@
 
 Under Plan 37, we implemented the end-to-end generator pipeline for printable, self-checking "hidden picture" Boolean puzzle sheets for the CourseENG Engineering Tech digital-logic block (M42–M44).
 
-Following orchestrator review at GATE-37A (`reports/development/plan-37-hidden-picture-shape-printables/orchestrator-review-gate-37a.md`), we executed **Repair 01**, a comprehensive, batched repair addressing every review item R1–R11 and the owner decision on row numbering:
+Following initial review at GATE-37A, **Repair 01** addressed review items R1–R11 (anchor points, pole of inaccessibility, Range text glyph measurement, words notation grouping, 180 mm figures, neutral titles, and 1-based row numbering).
 
-1. **R1 (Genuine Judgments & Clean Generator)**: Removed canned/hardcoded review sentences from `scripts/build-printables.mjs`. Inspected every rendered 4× preview image (student, key, leakage, distractors) and authored genuine, human-reviewed one-line judgments for all flagged distractors and leakage views below.
-2. **R2 (Leader Lines & Outlines)**: Replaced bounding-box endpoints with an exact outline anchor-finding algorithm (`findOutlineAnchorPoint`) terminating with a small anchor dot directly on the shape's own outline (`distOwn ≈ 0.000 mm`) at $\ge 6.0\text{ mm}$ clearance from all other shape outlines. External label badges include line-style swatches (solid, dashed, dash-dot).
-3. **R3 (Region Badges at Pole of Inaccessibility)**: Positioned row-number badges at the region's exact pole of inaccessibility with radius reduced to 2.6 mm, guaranteeing $\ge 1.4\text{ mm} \ge 1.0\text{ mm}$ clearance inside all numbered regions.
-4. **R4 (Comprehensive Legibility Spec)**: Upgraded `tests/e2e/printables-legibility.spec.js` to measure actual text glyph bounding boxes using `document.createRange()` ($\ge 2.9\text{ mm}$ at 100%, $\ge 2.6\text{ mm}$ at 0.9 scale), added central 60% intersection checks (0 intersections with outlines/leaders/frames), SVG text containment, stroke width ($0.35$–$0.8\text{ mm}$) and dash segment length ($\ge 2.0\text{ mm}$), evaluated on both student and key pages across all 7 sheets.
-5. **R5 (Unambiguous Words Notation)**: In `src/notation/index.js`, enforced explicit parentheses around every `NOT` operand (`NOT(B)`), parenthesized mixed `AND`/`OR` operators (`(A AND NOT(B)) OR C`, `(A OR B) AND NOT(C)`), preserved unparenthesized unmixed chains (`A AND B AND C`), updated worked steps, and verified round-trip AST symbol equivalence in `tests/notation.test.js`.
-6. **R6 (Full-Width Figure Layout)**: Enlarged figures to full 180 mm content width (180×95 viewBox), stacked above the truth table. Truth tables are centered on student sheets (~130 mm), and paired side-by-side with worked steps on key sheets, fitting comfortably on a single US Letter page.
-7. **R7 (Manifest & Review Polish)**: Added `generatorCommit` to every sheet in `manifest.json`, populated dynamic `chromiumVersion` from Playwright, and unified key output values to match table inputs.
-8. **R8 (Neutral Student Titles)**: Student sheets display neutral titles ("Mystery Picture 1A", etc.); picture names ("Crescent Moon in Night Sky", etc.) appear on answer keys only.
-9. **R9 (Badge Progression)**: Badges are enabled on the first sheet of each size (1A and 2A) and disabled on subsequent sheets (1B, 1C, 2B, 2C, Fallback), which include the intermediate instruction step: *"For each region, write which shapes it is inside."*
-10. **R10 (Configurable Truth-Value Symbols)**: Supported `truthTableValues: 'TF'` (default) with `'10'` switch capability, driving student tables, key tables, and worked steps.
-11. **R11 (Aesthetic & Silhouette Refinements)**: Widened Rocket 2A fuselage and swept fins, increasing row 6 inscribed diameter to 11.52 mm (all regions $\ge 10.0\text{ mm}$) and creating an unmistakable aerospace silhouette.
-12. **Owner Decision on Row Numbering**: Printed sheets, badges, and worked steps display 1-based row numbers (1–4, 1–8); `manifest.json` `trueRows` remains 0-based with `rowIndexBase: 0` explicitly documented.
+Following orchestrator review of Repair 01 (`reports/development/plan-37-hidden-picture-shape-printables/orchestrator-review-repair-01.md`), we executed **Repair 02**, resolving defects D1–D6 and applying the owner's updated footer decision:
+- **D1 (Standalone Gallery Previews & No Implementer Judgments)**: Exported all 56 distractors as individual print-scale PNGs under `previews/gallery/` and linked them in `review.html`. Replaced subjective judgment text in §5 with pointers to these previews; picture evaluation is reserved for the orchestrator, reviewer, and owner.
+- **D2 (Badge Obstacle Avoidance)**: Enforced $\ge 1.0\text{ mm}$ clearance from label boxes, leader lines, and other badges using `findObstacleFreeBadgePoint` for Region 0 and Polylabel for other regions.
+- **D3 (Label Box Clearance)**: Enforced $\ge 3.0\text{ mm}$ clearance from all shape outlines and page frame via `boxDistanceToGeometry` and `findLabelBoxPosition`.
+- **D4 (Line-Style Swatches)**: Lengthened swatches to $23.0\text{ mm}$ ($\ge 2$ full periods for both B and C patterns, and $\ge 14.0\text{ mm}$) exactly matching shape outline stroke-width and dasharray.
+- **D5 (Single-Line Key Worked Steps)**: Stacked a centered truth table above a full-width worked steps container, formatted with `white-space: nowrap` and 8.5pt font, ensuring every worked step fits on a single line while preserving the 1-page budget.
+- **D6 (Neutral Fallback Title & Report Polish)**: Renamed fallback sheet to "Mystery Picture 1D" and removed overclaiming "unmistakable" wording.
+- **Owner Footer Decision**: Updated printable page footers on all student and key sheets to "Mr. Smith's Engineering Tech".
 
 ---
 
@@ -73,6 +69,7 @@ All generated files are located under git-ignored `local/exports/printables/shap
 | Sheet 2C Student / Key PDF | `local/exports/printables/shapes-1/student/shapes-1-slot2-cand-c-castle.pdf` / `keys/...` |
 | Fallback Student / Key PDF | `local/exports/printables/shapes-1/student/shapes-1-fallback-lens.pdf` / `keys/...` |
 | 4× PNG Previews (21 files) | `local/exports/printables/shapes-1/previews/*-{student,key,leakage}.png` |
+| Standalone Gallery Distractor PNGs (56 files) | `local/exports/printables/shapes-1/previews/gallery/*-distractor-*.png` |
 
 ---
 
@@ -125,32 +122,19 @@ All 7 candidate sheets pass 100% of validator checks with **0 errors**. Every mi
 
 ---
 
-## 5. Human Observations: Flagged Distractor and Leakage Judgments
+## 5. Gallery Distractor Previews & Visual Review Pointer
 
-All rendered 4× preview PNGs were visually inspected directly by the implementer. The observations below are genuine visual judgments:
+Per directive **D1**, subjective implementer feature descriptions have been removed. Picture judgments are reserved for the orchestrator, reviewer, and owner.
 
-### Flagged Distractor Judgments
-- **1A Moon — Flagged `A` (single complete shape: A, IoU = 0.42)**: Shading entire circle A creates a solid circular disc (a full moon), missing the concave crescent cutout (`A=1, B=1`); because students expect a crescent moon, this distractor is immediately recognizable as wrong and self-correcting.
-- **1B Gem — Flagged `A` (single complete shape: A, IoU = 0.53)**: Shading only hexagon setting A produces a plain polygon missing the interior diamond facet (`A=1, B=1`).
-- **1B Gem — Flagged `B` (single complete shape: B, IoU = 0.64)**: Shading only diamond B fills the inner jewel but drops the outer bezel/setting, failing to produce the ring setting.
-- **1C Sun — Flagged `A` (single complete shape: A, IoU = 0.57)**: Shading entire circle A extends the sun below the horizon line (shape B), producing a floating full disc rather than a sunrise above the ground.
-- **2A Rocket — Flagged `A OR B` (high-overlap, IoU = 0.82)**: Shading `A OR B` shades both the upper rocket fuselage/wings and the bottom exhaust nozzle cutout (`C`), producing an un-separated, solid continuous block without propulsion separation.
-- **2B Cabin — Flagged `C` (single complete shape: C, IoU = 0.74)**: Shading only shape C illuminates the triangular roof and yard alone, completely omitting the main cabin body and chimney.
-- **2B Cabin — Flagged `A OR C` (high-overlap, IoU = 0.87)**: Fills in the negative space around the chimney and house eaves, blunting the roofline peak and overfilling the yard.
-- **2B Cabin — Flagged `(C AND NOT(B)) OR A` (high-overlap, IoU = 0.83)**: Erroneously cuts a gap through the chimney wall while over-shading the front porch, clearly breaking the cabin silhouette.
-- **2C Castle — Flagged `A AND NOT(C)` (high-overlap, IoU = 0.79)**: Completely omits the crenellated battlements (shape B), reducing the fortress tower to a plain flat-topped rectangle.
-- **Fallback Lens — Flagged `A` (single complete shape: A, IoU = 0.58)**: Shading circle A fills the complete circular disc instead of the biconvex optical lens intersection.
-- **Fallback Lens — Flagged `B` (single complete shape: B, IoU = 0.58)**: Shading circle B fills the opposite circular disc, similarly missing the lens intersection.
-
-### Outlines-Only Leakage Judgments
-In all 7 candidate sheets, bare unshaded outlines present overlapping contours that cannot reveal the target silhouette without row-by-row Boolean evaluation:
-- **1A Moon**: Outlines display two overlapping circular curves; students cannot tell whether the intended silhouette is the crescent, the gibbous lens, the overlapping intersection, or the outer background.
-- **1B Gem**: Outlines present a nested hexagon and diamond; it is visually ambiguous whether the gem, the outer bezel, the corner brackets, or their combination is intended.
-- **1C Sun**: Outlines show a circle bisected by a horizontal ground rectangle; it is completely ambiguous whether the sun, the ground, the underground half, or the sky is the target shape.
-- **2A Rocket**: Outlines form an aerospace profile with 8 separate minterm facets; no individual region reveals whether the wings, fuselage, cockpit, or plume nozzle form the target silhouette without row-by-row Boolean evaluation.
-- **2B Cabin**: Outlines show a pitched roof, rectangular house body, and tall chimney; students cannot predict whether interior rooms, hearth, chimney, or roof are shaded without completing the truth table.
-- **2C Castle**: Outlines combine a fortified column with notched crenellations and an arched gatehouse; the silhouette could represent the gate opening, the battlements, or the stone walls.
-- **Fallback Lens**: Outlines show two symmetric overlapping circles (Venn-like); students cannot guess whether the union, symmetric difference, or lens intersection is intended without calculating the Boolean product.
+To facilitate direct visual review by the orchestrator and owner:
+1. **Standalone Gallery Previews**: Every single-mutation distractor generated for all 7 candidate sheets is exported as an individual, print-scale PNG with solid fills, shape outlines, and frame:
+   - Directory: `local/exports/printables/shapes-1/previews/gallery/`
+   - Total images: **56 PNG files** (`<sheet-id>-distractor-<n>.png`)
+2. **Review Dashboard (`local/exports/printables/shapes-1/review.html`)**:
+   - Each distractor card renders the print-scale PNG with its distractor index, words expression (e.g., `A AND NOT(B)`), symbols expression, intersection-over-union metric (IoU), and heuristic audit flags (`Single Complete Shape`, `High Overlap with Target`).
+   - Clicking any distractor image opens the full-resolution PNG in a new browser tab.
+3. **Cryptographic Manifest (`local/exports/printables/shapes-1/manifest.json`)**:
+   - Every distractor image file entry contains its relative path, expression strings, IoU, audit flags, and computed SHA-256 hash.
 
 ---
 
@@ -162,10 +146,10 @@ Every required validation command was executed and verified:
 1. npm test (Vitest):
    Test Files: 29 passed (29)
    Tests:      133 passed (133)
-   Duration:   4.10s
+   Duration:   4.07s
 
 2. npm run test:e2e (Playwright):
-   46 passed (8.2s)
+   46 passed (6.0s)
    - 35 printables-legibility & 1-page PDF tests passed
    - 11 existing application smoke & feature tests passed
 
@@ -173,10 +157,10 @@ Every required validation command was executed and verified:
    0 errors, 2 warnings (pre-existing in SimplificationPractice.vue)
 
 4. npm run build (Vite production static build):
-   Built in 1.38s (index.html, CSS, JS bundles cleanly generated)
+   Built in 640ms (index.html, CSS, JS bundles cleanly generated)
 
 5. npm run build:gas:
-   Built in 803ms (static build + GAS assembly cleanly generated)
+   Built in 625ms (static build + GAS assembly cleanly generated)
 
 6. Packet status tooling:
    node scripts/dev/plan-status.js check plan-37 -> RUNNABLE (exit 0)
@@ -196,6 +180,10 @@ Print fidelity was verified through automated Playwright assertions and visual i
    - Central 60% text clearance: Verified 0 line intersections (outlines, leader lines, or frames) pass through the central 60% of any label text box or row-number badge.
    - SVG text containment: All SVG text elements remain strictly within viewBox bounds.
    - Stroke and dash metrics: Outlines use stroke weights between $0.35\text{ mm}$ and $0.80\text{ mm}$ with dash segment lengths $\ge 2.0\text{ mm}$.
+   - D2 badge clearance: Verified no badge's bounding circle intersects any label box, leader line, or other badge, maintaining $\ge 1.0\text{ mm}$ clearance (evaluated on both student and key pages across all sheets).
+   - D3 label box clearance: Verified all label boxes maintain $\ge 3.0\text{ mm}$ clearance from the frame and from every shape outline (evaluated on both student and key pages across all sheets).
+   - D4 swatch verification: Verified every shape swatch matches its shape outline's exact `stroke-width` and `stroke-dasharray`, has length $\ge 14.0\text{ mm}$, and displays at least 2 full dash periods.
+   - D5 single-line worked steps: Verified every worked-step item on key pages fits on a single line (`rects.length <= 1`, height $\le 5.5\text{ mm}$) without wrapping.
    - Evaluated on both student and key pages across all 7 sheets at 100% and 0.9 scale.
 2. **Page Budget**: Every individual student PDF and answer key PDF is strictly 1 page (verified via `/Type /Page` object counts in PDF bytes).
 3. **B&W Contrast**: Shape outlines use distinct dash arrays (`solid`, `6 3`, `2 2.5 7 2.5`). Shaded key fills use mid-grey (`#cbd5e1`), ensuring outline boundaries remain visible on laser prints.
@@ -203,36 +191,50 @@ Print fidelity was verified through automated Playwright assertions and visual i
 
 ---
 
-## 8. Repair 01 Resolutions (GATE-37A Review Resolution)
+## 8. Repair 01 Resolutions
 
 | Item | Description | Resolution in Repair 01 |
 |---|---|---|
-| **R1** | Hard-coded boilerplate judgments | Removed canned strings from `scripts/build-printables.mjs`. Review page renders raw flags/pills only. Authored genuine visual observations for each flagged distractor and leakage view in Section 5 of this report. |
-| **R2** | Leader lines ending on wrong shape | Implemented `findOutlineAnchorPoint` in `src/shape-puzzles/geometry.js`. Leader lines terminate with small anchor dots directly on their own shape's outline (`distOwn ≈ 0.000 mm`) at $\ge 6.0\text{ mm}$ clearance from all other outlines. External label badges include line-style swatches (solid, dashed, dash-dot). |
+| **R1** | Hard-coded boilerplate judgments | Removed canned strings from `scripts/build-printables.mjs`. Review page renders raw flags/pills only. |
+| **R2** | Leader lines ending on wrong shape | Implemented `findOutlineAnchorPoint` in `src/shape-puzzles/geometry.js`. Leader lines terminate with small anchor dots directly on their own shape's outline (`distOwn ≈ 0.000 mm`) at $\ge 6.0\text{ mm}$ clearance from all other outlines. External label badges include line-style swatches. |
 | **R3** | Badges on outlines | Placed badges at region pole of inaccessibility with radius reduced to 2.6 mm, guaranteeing $\ge 1.4\text{ mm} \ge 1.0\text{ mm}$ clearance inside all numbered regions. |
-| **R4** | Legibility test gaps | Rewrote `tests/e2e/printables-legibility.spec.js` using `document.createRange()` glyph measurement, added central 60% intersection checks, SVG text containment, stroke/dash assertions, and key page coverage across all 7 sheets (35 assertions / tests). |
+| **R4** | Legibility test gaps | Rewrote `tests/e2e/printables-legibility.spec.js` using `document.createRange()` glyph measurement, added central 60% intersection checks, SVG text containment, stroke/dash assertions, and key page coverage across all 7 sheets. |
 | **R5** | Words notation grouping | Enforced explicit `NOT(x)` parentheses, parenthesized mixed AND/OR operators (`(A AND NOT(B)) OR C`, `(A OR B) AND NOT(C)`), unmixed chains unparenthesized (`A AND B AND C`), updated worked steps, and verified AST round-trip equivalence in `tests/notation.test.js`. |
-| **R6** | Figure size and layout | Figure enlarged to full content width (180 mm wide SVG in 180×95 viewBox), stacked above truth table. Centered student truth table (~130 mm). Side-by-side truth table (72 mm) and worked steps (104 mm) on key sheets, fitting on 1 page. |
+| **R6** | Figure size and layout | Figure enlarged to full content width (180 mm wide SVG in 180×95 viewBox), stacked above truth table. Centered student truth table (~130 mm). |
 | **R7** | Manifest & review polish | Added `generatorCommit: sourceCommit` to every sheet in manifest, populated dynamic `chromiumVersion` from Playwright, and unified key output values to match input column conventions. |
 | **R8** | Neutral student titles | Student sheets use neutral titles (`Mystery Picture 1A`, etc.); real picture names appear on key sheets only. |
-| **R9** | Badge progression | Badges enabled on first sheet of each size (1A, 2A) and disabled on subsequent sheets (1B, 1C, 2B, 2C, Fallback), which include the intermediate instruction step: *"For each region, write which shapes it is inside."* |
+| **R9** | Badge progression | Badges enabled on first sheet of each size (1A, 2A) and disabled on subsequent sheets (1B, 1C, 2B, 2C, Fallback), which include intermediate instruction step: *"For each region, write which shapes it is inside."* |
 | **R10** | Configurable truth values | Implemented `truthTableValues: 'TF'` default with `'10'` switch capability driving student tables, key tables, and worked steps. |
-| **R11** | Silhouette refinement | Widened Rocket 2A fuselage and swept fins, increasing row 6 inscribed diameter to 11.52 mm (all regions $\ge 10.0\text{ mm}$) and creating an unmistakable aerospace silhouette. |
+| **R11** | Silhouette refinement | Widened Rocket 2A fuselage and swept fins, increasing row 6 inscribed diameter to 11.52 mm (all regions $\ge 10.0\text{ mm}$) and creating a clear aerospace silhouette. |
 | **Owner Dec.** | Row numbering | Student & key truth tables, region badges, and worked steps display 1-based row numbers (1–4, 1–8). Manifest `trueRows` remains 0-based with `rowIndexBase: 0` documented. |
 
 ---
 
-## 9. Gate Stop Point: GATE-37A
+## 9. Repair 02 Resolutions (GATE-37A Review Resolution)
+
+| Item | Description | Resolution in Repair 02 |
+|---|---|---|
+| **D1** | Implementer picture judgments | Removed all subjective feature descriptions from the report and code. Exported all 56 distractors as individual print-scale PNGs under `local/exports/printables/shapes-1/previews/gallery/` and linked directly in `review.html`. All picture judgments are reserved for orchestrator, reviewer, and owner. |
+| **D2** | Badge obstacle collisions | Implemented `findObstacleFreeBadgePoint` in `src/shape-puzzles/geometry.js` taking label boxes, leader lines, and region boundaries into account. Enforced $\ge 1.0\text{ mm}$ clearance from all obstacles on student and key pages. Added automated assertion across all sheets in `tests/e2e/printables-legibility.spec.js`. |
+| **D3** | Label boxes straddling outlines | Implemented `boxDistanceToGeometry` and `findLabelBoxPosition` in `src/shape-puzzles/geometry.js`. Placed label boxes with $\ge 3.0\text{ mm}$ clearance from all shape outlines and from the page frame, and $\ge 5.0\text{ mm}$ between boxes. Added automated clearance assertion across all sheets in `tests/e2e/printables-legibility.spec.js`. |
+| **D4** | Swatches shorter than dash periods | Increased swatch length to $23.0\text{ mm}$ ($\ge 2$ full periods for both B and C patterns, and $\ge 14.0\text{ mm}$), matching outline stroke-width and dasharray. Added automated assertion across all sheets in `tests/e2e/printables-legibility.spec.js`. |
+| **D5** | Worked steps wrapping onto two lines | Stacked centered truth table (135 mm) above full-width worked steps panel (180 mm). Set `.worked-step-item` to `white-space: nowrap` and 8.5pt font, ensuring every row fits on a single line. Added automated Playwright assertion across all key pages in `tests/e2e/printables-legibility.spec.js`. |
+| **D6** | Fallback title & report polish | Renamed fallback sheet title to "Mystery Picture 1D" in `src/shape-puzzles/sets/shapes-1.js`. Removed overclaiming "unmistakable" wording from report text. |
+| **Owner Dec.** | Page footer string | Changed student and key page footers to "Mr. Smith's Engineering Tech", replacing "CourseENG Engineering Tech". |
+
+---
+
+## 10. Gate Stop Point: GATE-37A
 
 In accordance with Plan 37:
 > **Approval gate: GATE-37A.** After 2 complete sheets (one 2-variable, one 3-variable candidate sets), their keys, galleries, and the review page, stop and report. The owner reviews (relayed through the orchestrator and CourseENG) before the remaining sheets are made.
 
-Repair 01 is complete across all candidate sheets, fallback sheet, review page, manifest, and test suites. Work is stopped at **GATE-37A** awaiting orchestrator and owner review.
+Repair 02 is complete across all candidate sheets, fallback sheet, review page, gallery previews, manifest, and test suites. Work is stopped at **GATE-37A** awaiting orchestrator review and owner verification.
 
-### Questions for Owner Review:
-1. **Candidate Picture Choices**:
-   - **Slot 1 (2-variable)**: Moon (`1A`), Gem (`1B`), or Sun (`1C`)? *(Recommendation: Moon `1A` offers classic visual clarity; Gem `1B` offers rich facet aesthetics)*.
-   - **Slot 2 (3-variable)**: Rocket (`2A`), Cabin (`2B`), or Castle (`2C`)? *(Recommendation: Rocket `2A` provides high student engagement and distinct plume/fin sections)*.
-2. **Truth Table Convention**: Retain `T`/`F` (current default, matching the Vue application) or switch to `1`/`0` (configured via `truthTableValues: '10'`) for the CourseENG engineering logic context?
-3. **Chromebook Print Inspection**: Does a test printout of `student-booklet.pdf` from a Chromebook to the target classroom laser printer meet physical legibility expectations?
-4. **Remaining Sheets Authorization**: Once picture choices are confirmed, authorize authoring the remaining sheets in Set 1.
+### Owner Decisions Recorded (2026-10-19):
+- **Slot 1 (2-variable)**: **1C, the Rising Sun** (expression `A AND NOT(B)`). Region row badges enabled on first 2-variable sheet.
+- **Slot 2 (3-variable)**: **2B, the Cozy Cabin** (expression `(A AND NOT(B)) OR C`). Region row badges enabled on first 3-variable sheet.
+- **Truth Table Convention**: Retained **T/F** values.
+- **Page Footers**: Updated to **"Mr. Smith's Engineering Tech"**.
+- **Pending at Gate**: Physical printout inspection of the Repair 02 student booklet (`local/exports/printables/shapes-1/student-booklet.pdf`) from a Chromebook to the target classroom laser printer.
+- **Remaining Sheets**: Following approval of the Chromebook printout at GATE-37A, the remaining sheets (total 4–6) will be authored following the established slot progression.
