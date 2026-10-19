@@ -21,3 +21,7 @@ This file lists questions that are **genuinely unresolved** — pending investig
 4. **Bootstrap capability sync policy**
    - Needs: a future owner choice about how aggressively this consumer should pick up Bootstrap version changes and whether local adaptations should be mirrored upstream.
    - Current constraint: use the adoption manifest and tracked audit; do not copy Bootstrap self-maintenance backlog into this repository.
+
+5. **Publishing student printables on Pages (deferred; DECISION-007)**
+   - Needs: a later owner choice on whether student PDFs (never keys) should also be published on Pages. That would mean either tracking generated PDFs or adding generation to the Pages workflow.
+   - Current constraint: the owner chose local export only on 2026-10-18, with CourseENG copying the files. Keys are never committed or published.

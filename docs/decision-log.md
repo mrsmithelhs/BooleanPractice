@@ -68,6 +68,40 @@ This file is orchestrator/owner-owned. Implementers propose but do not edit.
 
 **Supersedes / related:** `docs/product-spec.md`, Plans 12, 28, 30, and 31.
 
+### DECISION-007 — Shape-composition puzzles for the CourseENG Engineering Tech course
+
+**Date:** 2026-10-18
+
+**Decision:** Boolean Practice will add shape-composition Boolean puzzles for the owner's Engineering Tech course (CourseENG). Irregular 2D shapes act as sets, combined according to a stated AND/OR/NOT expression. The work is built here and consumed by CourseENG.
+
+- **Sequence:**
+  - P1, hidden-picture printables (plan-37), is first and is targeted at the M42–M44 block (Oct 26–28, 2026).
+  - P3, an online "shade the expression" page, is next and is investigate-first (plan-38).
+  - P2 (build-the-target) and P4 (circuit ↔ picture) stay on the roadmap for later.
+- **Notation:**
+  - These puzzles show AND / OR / NOT words, with a toggle that shows the Java symbols.
+  - This is a display layer only. The parser grammar is unchanged.
+  - Any later student expression input uses tap-to-build tokens, not free typing.
+  - The AP CSA practice surfaces keep Java symbols.
+- **Content constraints:**
+  - grade-8 reading level, 2 or 3 variables;
+  - every truth-table row on a printable has a region (validator-enforced);
+  - keys show the revealed picture plus the TRUE rows;
+  - letter-size, black-and-white printing, with shapes distinguished without colour;
+  - no PLTW material, no student data.
+- **Consumption contract:**
+  - the online sets get stable GitHub Pages URLs;
+  - a per-set manifest lists the set id, sheet ids, expressions in words and symbols, the BP source commit, and a SHA-256 hash per file;
+  - CourseENG copies the files and records the commit and hashes. Pages deploys stay the owner's manual action.
+- **Answer keys** are never committed or published.
+- **Printable distribution:** all printable output, student sheets and keys alike, goes only to the git-ignored `local/exports/printables/<set-id>/`, and CourseENG copies it from there. The owner decided this directly on 2026-10-18. Publishing student PDFs on Pages may be revisited later (`docs/open-questions.md`).
+
+**Rationale:** The owner wants the visual, experiment-and-see appeal of shape-combining games, but with the abstraction made explicit (region ↔ truth-table row ↔ expression), for students who are not AP CSA. The geometry pipeline already uses exact polygon clipping, so irregular shapes keep the region ↔ row mapping exact. Printables can land before the October block. The online page needs investigation so it doesn't inherit the main app's clutter or fork the shared semantics.
+
+**Source:** The owner decided on 2026-10-18. The decision was relayed by the CourseENG orchestrator session, which the owner authorized for cross-project coordination.
+
+**Supersedes / related:** DECISION-001, DECISION-002, DECISION-003; plan-37, plan-38.
+
 ## Proposed but not yet accepted
 
 *(No new proposals were created by Plan 34. Unresolved owner decisions belong in `docs/open-questions.md`.)*
