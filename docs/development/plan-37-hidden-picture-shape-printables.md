@@ -1,11 +1,9 @@
 ---
 id: plan-37
 title: "Hidden-Picture Shape Printables (P1)"
-status: ready
+status: in-progress
 depends_on: [plan-05]
 gate: "GATE-37A: stop after 2 end-to-end sheets (one 2-variable, one 3-variable) plus keys, wrong-answer galleries, and a review page; owner approval required before producing the rest of the set"
-superseded_by: null
-resolution: null
 summary: >-
   Generate printable, self-checking "hidden picture" Boolean puzzle sheets for the CourseENG Engineering Tech digital-logic block:
   2-3 irregular shapes act as sets, shading the regions where an AND/OR/NOT expression is true reveals a picture, and each

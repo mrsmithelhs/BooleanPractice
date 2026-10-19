@@ -10,6 +10,7 @@ Use these commands from the repository root:
 - `npm run dev` - start the Vite dev server for manual browser inspection.
 - `npm run dev:control` - open the local console for starting/stopping the dev server, checking ports, opening the app or preview, and launching UI tour captures or synthesis.
 - `npm run preview` - serve the production build locally after `npm run build`.
+- `npm run build:printables` - generate printable B&W student sheets, answer keys, booklets, and review artifacts under `local/exports/printables/`.
 - `npm run capture:ui-tour` - capture local-only UI tour screenshots and write a blind-review packet under `local/ui-reviews/`, including `review-starting-prompt.md` and `synthesis-starting-prompt.md`.
 - `npm run synthesize:ui-reviews` - read a capture folder's blind-review subfolders and write a synthesized triage report under `synthesis/`.
 
@@ -40,4 +41,5 @@ Notes:
 - Run `npm run build:gas` whenever the GAS bridge, server wrappers, or submission payload shape changes so the generated `gas-dist/` output stays in sync.
 - Assignment coverage should confirm workbook validation, roster lookup, assignment hydration, and fail-safe handling for invalid sheet rows.
 - Adaptive assignment coverage should confirm feature-vector generation, similarity scoring, retry-threshold behavior, coverage tracking, and deterministic contrast selection without relying on raw string distance.
+- Printable legibility coverage (`tests/e2e/printables-legibility.spec.js`) should confirm US Letter B&W printable HTML/SVG layout at 100% and 0.9 scale achieves text height ≥ 2.9 mm (≥ 2.6 mm at 0.9 scale), table cells ≥ 7×10 mm, label clearance ≥ 0.8 mm, and exactly 1-page per sheet.
 - If a browser test needs extra provisioning, record that explicitly rather than lowering the coverage claim.
