@@ -67,3 +67,11 @@ Repair 02 changes only label and badge placement, not the shading. So the owner 
    - If none is good enough, say so, and the plain-shape fallback approach covers the block.
 3. **T/F or 1/0?** Electronics uses HIGH/LOW and 1/0. Switching is one config value.
 4. The **Chromebook printout** test waits for the Repair 02 output.
+
+## Owner decisions recorded (2026-10-19)
+
+- **Slot 1 (2-variable): 1C, the sun.** Expression `A AND NOT(B)`. Region badges are on, since it's the first 2-variable sheet.
+- **Slot 2 (3-variable): 2B, the cabin.** Expression `(A AND NOT(B)) OR C`. Region badges are on, since it's the first 3-variable sheet. This replaces the rocket as the badged 3-variable sheet: the R9 progression follows set order, not candidate letter.
+- **Truth values: T/F.**
+- **Student and key footer:** "Mr. Smith's Engineering Tech", replacing "CourseENG Engineering Tech". The owner gave this to the implementer directly during Repair 02.
+- Still pending at the gate: the Chromebook printout of the Repair 02 output. After the gate is approved, the remaining sheets (total 4–6) follow the slot pattern. The unchosen candidates (1A moon, 1B gem, 2A rocket, 2C castle) may be reused as later sheets only if the owner agrees.
