@@ -1,28 +1,30 @@
 import { parseBooleanExpression } from '../../parser/index.js';
 import { formatExpressionSymbols, formatExpressionWords } from '../../notation/index.js';
-import { findOutlineAnchorPoint, geometryToPathData } from '../geometry.js';
+import {
+  findLabelBoxPosition,
+  findObstacleFreeBadgePoint,
+  findOutlineAnchorPoint,
+  geometryToPathData,
+} from '../geometry.js';
 
-const SHAPE_STYLES = {
+export const SHAPE_STYLES = {
   A: {
     strokeWidth: '0.7',
     dashArray: 'none',
     stroke: '#111',
     targetAngle: Math.PI * 0.85, // top-left
-    labelOffset: { x: -24, y: -10 },
   },
   B: {
     strokeWidth: '0.7',
-    dashArray: '6 3',
+    dashArray: '5 2.5',
     stroke: '#111',
     targetAngle: Math.PI * 0.15, // top-right
-    labelOffset: { x: 24, y: -10 },
   },
   C: {
     strokeWidth: '0.7',
-    dashArray: '2 2.5 7 2.5',
+    dashArray: '5 2 2 2',
     stroke: '#111',
-    targetAngle: Math.PI * 1.5,  // bottom
-    labelOffset: { x: -22, y: 16 },
+    targetAngle: -Math.PI * 0.5, // bottom
   },
 };
 
@@ -175,68 +177,87 @@ export function renderFigureSvg(sheet, regions, { isKey = false, outlinesOnly = 
     : `M 1 1 L ${vbWidth - 1} 1 L ${vbWidth - 1} ${vbHeight - 1} L 1 ${vbHeight - 1} Z`;
   const framePath = `<path d="${frameD}" fill="none" stroke="#222" stroke-width="0.45" class="frame-outline" />`;
 
-  // Shape labels with outside leader lines, outline anchor dots, and line style swatches (R2)
-  const labelsHtml = (sheet.variables || [])
-    .map((v) => {
-      const shapeGeom = sheet.shapes[v];
-      const otherVars = (sheet.variables || []).filter((x) => x !== v);
-      const otherShapes = otherVars.map((x) => sheet.shapes[x]);
-      const style = SHAPE_STYLES[v] || { strokeWidth: '0.7', dashArray: 'none', targetAngle: Math.PI * 0.5 };
+  // Shape labels with outside leader lines, outline anchor dots, and line style swatches (R2, D2, D3, D4)
+  const allShapes = (sheet.variables || []).map((v) => sheet.shapes[v]);
+  const placedBoxes = [];
+  const leaderLines = [];
+  const labelGroups = [];
 
-      // Find anchor point on the shape's own outline >= 6 mm away from any other outline
-      const anchor = findOutlineAnchorPoint(shapeGeom, otherShapes, {
-        targetAngle: style.targetAngle,
-        centerX: vbWidth / 2,
-        centerY: vbHeight / 2,
-        minClearanceMm: 6.0,
-      });
+  for (const v of sheet.variables || []) {
+    const shapeGeom = sheet.shapes[v];
+    const otherVars = (sheet.variables || []).filter((x) => x !== v);
+    const otherShapes = otherVars.map((x) => sheet.shapes[x]);
+    const style = SHAPE_STYLES[v] || { strokeWidth: '0.7', dashArray: 'none', targetAngle: Math.PI * 0.5 };
 
-      // Position badge in empty space outside the figure
-      let badgeX = anchor.x + style.labelOffset.x;
-      let badgeY = anchor.y + style.labelOffset.y;
-      if (v === 'A') {
-        badgeX = Math.max(12, Math.min(anchor.x - 18, 30));
-        badgeY = Math.max(12, Math.min(anchor.y - 10, vbHeight - 16));
-      } else if (v === 'B') {
-        badgeX = Math.min(vbWidth - 12, Math.max(anchor.x + 18, vbWidth - 30));
-        badgeY = Math.max(12, Math.min(anchor.y - 10, vbHeight - 16));
-      } else if (v === 'C') {
-        badgeX = Math.max(14, Math.min(anchor.x - 20, 45));
-        badgeY = Math.min(vbHeight - 12, Math.max(anchor.y + 16, 75));
-      }
+    // Anchor on shape's own outline >= 6 mm away from any other outline
+    const anchor = findOutlineAnchorPoint(shapeGeom, otherShapes, {
+      targetAngle: style.targetAngle,
+      centerX: vbWidth / 2,
+      centerY: vbHeight / 2,
+      minClearanceMm: 6.0,
+    });
 
-      // Leader line pointing from badge perimeter to anchor dot on outline
-      const dx = anchor.x - badgeX;
-      const dy = anchor.y - badgeY;
-      const dist = Math.hypot(dx, dy) || 1;
-      const badgeRadius = 6.5;
-      const startX = badgeX + (dx / dist) * badgeRadius;
-      const startY = badgeY + (dy / dist) * badgeRadius;
+    const boxWidth = 27.0;
+    const boxHeight = 15.0;
+    const hw = boxWidth / 2; // 13.5 mm
+    const hh = boxHeight / 2; // 7.5 mm
 
-      const leaderLine = `<line x1="${startX.toFixed(2)}" y1="${startY.toFixed(2)}" x2="${anchor.x.toFixed(2)}" y2="${anchor.y.toFixed(2)}" stroke="#333" stroke-width="0.35" stroke-dasharray="1.5 1.5" class="leader-line" />`;
-      const anchorDot = `<circle cx="${anchor.x.toFixed(2)}" cy="${anchor.y.toFixed(2)}" r="0.9" fill="#111" class="leader-dot" />`;
+    // D3: Position label box with >= 3 mm clearance from all shapes and from frame
+    const pos = findLabelBoxPosition(v, anchor, allShapes, sheet.viewBox, placedBoxes, boxWidth, boxHeight);
+    placedBoxes.push(pos.box);
 
-      return `
-        <g class="shape-label-group" id="label-group-${v}">
-          ${leaderLine}
-          ${anchorDot}
-          <rect x="${(badgeX - 6).toFixed(2)}" y="${(badgeY - 7).toFixed(2)}" width="12" height="15" rx="3" fill="#fff" fill-opacity="0.95" stroke="#333" stroke-width="0.35" class="shape-label-badge-box" />
-          <text x="${badgeX.toFixed(2)}" y="${(badgeY - 1.5).toFixed(2)}" dominant-baseline="central" text-anchor="middle" font-family="Arial, sans-serif" font-size="5.6" font-weight="bold" fill="#000" class="shape-label-text">${v}</text>
-          <line x1="${(badgeX - 4.5).toFixed(2)}" y1="${(badgeY + 4.5).toFixed(2)}" x2="${(badgeX + 4.5).toFixed(2)}" y2="${(badgeY + 4.5).toFixed(2)}" stroke="#111" stroke-width="${style.strokeWidth}" stroke-dasharray="${style.dashArray}" class="shape-label-swatch" />
-        </g>
-      `;
-    })
-    .join('\n');
+    const badgeX = pos.x;
+    const badgeY = pos.y;
 
-  // Region row numbers (R3 & Owner Decision: 1-based row numbering, clearance >= 1 mm)
+    // Leader line pointing from badge box perimeter to anchor dot on outline
+    const vx = anchor.x - badgeX;
+    const vy = anchor.y - badgeY;
+    const t = Math.min(hw / Math.abs(vx || 1e-6), hh / Math.abs(vy || 1e-6));
+    const startX = badgeX + vx * t;
+    const startY = badgeY + vy * t;
+
+    leaderLines.push({ x1: startX, y1: startY, x2: anchor.x, y2: anchor.y });
+
+    const leaderLine = `<line x1="${startX.toFixed(2)}" y1="${startY.toFixed(2)}" x2="${anchor.x.toFixed(2)}" y2="${anchor.y.toFixed(2)}" stroke="#333" stroke-width="0.35" stroke-dasharray="1.5 1.5" class="leader-line" />`;
+    const anchorDot = `<circle cx="${anchor.x.toFixed(2)}" cy="${anchor.y.toFixed(2)}" r="0.9" fill="#111" class="leader-dot" />`;
+
+    // D4: Swatch length = 23 mm (from badgeX - 11.5 to badgeX + 11.5), at least 2 full dash periods long
+    const swatchX1 = (badgeX - 11.5).toFixed(2);
+    const swatchX2 = (badgeX + 11.5).toFixed(2);
+    const swatchY = (badgeY + 4.2).toFixed(2);
+
+    labelGroups.push(`
+      <g class="shape-label-group" id="label-group-${v}">
+        ${leaderLine}
+        ${anchorDot}
+        <rect x="${(badgeX - hw).toFixed(2)}" y="${(badgeY - hh).toFixed(2)}" width="${boxWidth}" height="${boxHeight}" rx="3" fill="#fff" fill-opacity="0.95" stroke="#333" stroke-width="0.35" class="shape-label-badge-box" />
+        <text x="${badgeX.toFixed(2)}" y="${(badgeY - 2.0).toFixed(2)}" dominant-baseline="central" text-anchor="middle" font-family="Arial, sans-serif" font-size="5.6" font-weight="bold" fill="#000" class="shape-label-text">${v}</text>
+        <line x1="${swatchX1}" y1="${swatchY}" x2="${swatchX2}" y2="${swatchY}" stroke="#111" stroke-width="${style.strokeWidth}" stroke-dasharray="${style.dashArray}" class="shape-label-swatch" />
+      </g>
+    `);
+  }
+
+  const labelsHtml = labelGroups.join('\n');
+
+  // Region row numbers (R3, D2 & Owner Decision: 1-based row numbering, clearance >= 1 mm from all obstacles)
   let rowNumbersHtml = '';
   if (sheet.showRegionRowNumbers && !outlinesOnly) {
+    const reg0 = regions.find((r) => r.includedVariables.length === 0);
+    const badge0Point = reg0
+      ? findObstacleFreeBadgePoint(reg0, placedBoxes, leaderLines, sheet.viewBox, 2.6)
+      : { x: 154, y: 78 };
+
     rowNumbersHtml = regions
       .map((r) => {
-        if (!r.labelPoint || r.labelPoint.x === 0) return '';
-        const pt = r.labelPoint;
         const radius = 2.6; // Inscribed clearance >= 1.0 mm for all numbered regions (dia >= 8 mm)
         const displayRow = r.id + 1; // 1-based indexing for students (1..4 / 1..8)
+        let pt = r.labelPoint;
+        if (r.includedVariables.length === 0) {
+          pt = badge0Point;
+        } else if (!pt || pt.x === 0) {
+          pt = r.pieces[0]?.center || { x: 90, y: 48 };
+        }
+
         return `
           <g class="region-row-number-group" id="row-number-${displayRow}">
             <circle cx="${pt.x.toFixed(2)}" cy="${pt.y.toFixed(2)}" r="${radius}" fill="#fff" fill-opacity="0.9" stroke="#333" stroke-width="0.35" class="region-row-number-circle" />
@@ -473,18 +494,14 @@ function getBaseCss() {
       width: 130mm;
     }
 
-    .key-bottom-row {
+    .key-table-container {
+      width: 100%;
       display: flex;
-      gap: 4mm;
-      align-items: flex-start;
+      justify-content: center;
       margin-bottom: 2mm;
     }
-    .key-table-column {
-      flex: 0 0 72mm;
-    }
-    .key-steps-column {
-      flex: 1;
-      min-width: 0;
+    .key-table-container .truth-table {
+      width: 135mm;
     }
 
     .truth-table {
@@ -516,13 +533,16 @@ function getBaseCss() {
     }
 
     .worked-steps-container {
+      width: 100%;
       border: 0.3mm solid #999;
       border-radius: 1mm;
-      padding: 1.8mm 2.5mm;
+      padding: 1.5mm 3mm;
       background: #fafafa;
+      margin-bottom: 1.5mm;
+      box-sizing: border-box;
     }
     .worked-steps-title {
-      margin: 0 0 1.2mm 0;
+      margin: 0 0 1mm 0;
       font-size: 8.5pt;
       text-transform: uppercase;
       letter-spacing: 0.3mm;
@@ -532,23 +552,25 @@ function getBaseCss() {
       margin: 0;
       padding-left: 0;
       list-style: none;
-      font-size: 7.8pt;
     }
     .worked-step-item {
-      margin-bottom: 0.6mm;
+      margin-bottom: 0.5mm;
       display: flex;
-      gap: 1.5mm;
+      gap: 2mm;
       align-items: baseline;
+      white-space: nowrap;
     }
     .step-badge {
       font-weight: bold;
       color: #444;
-      font-size: 7.8pt;
-      min-width: 11mm;
+      font-size: 8.2pt;
+      min-width: 13mm;
+      white-space: nowrap;
     }
     .step-text {
-      font-family: "Courier New", monospace;
-      font-size: 8pt;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 8.5pt;
+      white-space: nowrap;
     }
     .step-true .step-text {
       font-weight: bold;
@@ -622,7 +644,7 @@ export function renderStudentPageHtml(sheet, regions, options = {}) {
     </div>
 
     <div class="footer-block">
-      <span>CourseENG Engineering Tech — Digital Logic</span>
+      <span>Mr. Smith's Engineering Tech — Digital Logic</span>
       <span>Set: shapes-1 &bull; ${sheet.id}</span>
       <span class="page-number-text">Page 1</span>
     </div>
@@ -665,21 +687,18 @@ export function renderKeyPageHtml(sheet, regions, options = {}) {
       ${figureSvg}
     </div>
 
-    <div class="key-bottom-row">
-      <div class="key-table-column">
-        ${tableHtml}
-      </div>
-      <div class="key-steps-column">
-        ${workedStepsHtml}
-      </div>
+    <div class="key-table-container">
+      ${tableHtml}
     </div>
+
+    ${workedStepsHtml}
 
     <div class="revealed-picture-callout">
       Revealed Picture: <b>${sheet.pictureName}</b> (Shaded regions correspond to rows evaluating to TRUE)
     </div>
 
     <div class="footer-block">
-      <span>CourseENG Engineering Tech &bull; Teacher Answer Key</span>
+      <span>Mr. Smith's Engineering Tech &bull; Teacher Answer Key</span>
       <span>Set: shapes-1 &bull; ${sheet.id}</span>
       <span class="page-number-text">Key Page 1</span>
     </div>

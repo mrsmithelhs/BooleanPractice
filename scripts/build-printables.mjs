@@ -11,12 +11,14 @@ import {
 } from '../src/notation/index.js';
 import { generateDistractors } from '../src/shape-puzzles/distractors.js';
 import {
+  SHAPE_STYLES,
   evaluateAstWithTrace,
   generateRowWorkedStep,
   renderFigureSvg,
   renderKeyPageHtml,
   renderStudentPageHtml,
 } from '../src/shape-puzzles/render/layout.js';
+import { geometryToPathData } from '../src/shape-puzzles/geometry.js';
 import { SET_SHAPES_1 } from '../src/shape-puzzles/sets/shapes-1.js';
 import { validateSheet } from '../src/shape-puzzles/validator.js';
 
@@ -84,20 +86,35 @@ function checkGitStatus(isDraft) {
   return { sourceCommit, sourceDirty };
 }
 
-function renderMiniDistractorSvg(sheet, regions, distractor) {
+function renderDistractorSvg(sheet, regions, distractor) {
   const vbWidth = sheet.viewBox?.width ?? 180;
   const vbHeight = sheet.viewBox?.height ?? 95;
   const trueRowsSet = new Set(distractor.trueRows);
 
   const shaded = regions
     .filter((r) => trueRowsSet.has(r.id))
-    .map((r) => `<path d="${r.pathD}" fill="#888" stroke="none" />`)
-    .join('');
+    .map((r) => `<path d="${r.pathD}" fill="#a8a8a8" fill-opacity="0.9" stroke="none" />`)
+    .join('\n');
+
+  const shapePaths = (sheet.variables || [])
+    .map((v) => {
+      const shapeGeom = sheet.shapes[v];
+      const style = SHAPE_STYLES[v] || { strokeWidth: '0.7', dashArray: 'none', stroke: '#111' };
+      const pathD = geometryToPathData(shapeGeom);
+      return `<path d="${pathD}" fill="none" stroke="${style.stroke}" stroke-width="${style.strokeWidth}" stroke-dasharray="${style.dashArray}" />`;
+    })
+    .join('\n');
+
+  const frameD = sheet.framePolygon
+    ? geometryToPathData(sheet.framePolygon)
+    : `M 1 1 L ${vbWidth - 1} 1 L ${vbWidth - 1} ${vbHeight - 1} L 1 ${vbHeight - 1} Z`;
+  const framePath = `<path d="${frameD}" fill="none" stroke="#222" stroke-width="0.45" />`;
 
   return `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${vbWidth} ${vbHeight}" width="65mm" height="35mm" style="border: 0.3mm solid #999; border-radius: 1mm; background: #fff;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${vbWidth} ${vbHeight}" width="${vbWidth}mm" height="${vbHeight}mm" class="distractor-svg" style="display:block;background:#fff;">
       ${shaded}
-      <rect x="0.5" y="0.5" width="${vbWidth - 1}" height="${vbHeight - 1}" fill="none" stroke="#444" stroke-width="0.3mm" />
+      ${shapePaths}
+      ${framePath}
     </svg>
   `;
 }
@@ -119,10 +136,14 @@ function generateReviewHtml({ setDef, validatedSheets, distractorsBySheet, manif
 
       const distractorGrid = distInfo.distractors
         .map((d, idx) => {
-          const svg = renderMiniDistractorSvg(sheet, regions, d);
+          const imgName = `${sheet.id}-distractor-${idx + 1}.png`;
           return `
             <div class="distractor-card ${d.flags.length ? 'flagged' : ''}">
-              <div class="dist-figure">${svg}</div>
+              <div class="dist-figure">
+                <a href="previews/gallery/${imgName}" target="_blank">
+                  <img src="previews/gallery/${imgName}" alt="${d.expressionWords} (IoU ${d.iou.toFixed(2)})" style="width:100%;height:auto;border:1px solid #94a3b8;border-radius:4px;display:block;">
+                </a>
+              </div>
               <div class="dist-meta">
                 <b>#${idx + 1}: ${d.expressionWords}</b><br>
                 <code>${d.expressionSymbols}</code><br>
@@ -295,12 +316,12 @@ async function main() {
   const studentDir = path.join(exportDir, 'student');
   const keysDir = path.join(exportDir, 'keys');
   const previewsDir = path.join(exportDir, 'previews');
-  const galleriesDir = path.join(exportDir, 'galleries');
+  const galleryPreviewsDir = path.join(previewsDir, 'gallery');
 
   fs.mkdirSync(studentDir, { recursive: true });
   fs.mkdirSync(keysDir, { recursive: true });
   fs.mkdirSync(previewsDir, { recursive: true });
-  fs.mkdirSync(galleriesDir, { recursive: true });
+  fs.mkdirSync(galleryPreviewsDir, { recursive: true });
 
   const browser = await chromium.launch();
   const chromiumVersion = browser.version() || '147.0.7727.15 (Playwright)';
@@ -416,6 +437,30 @@ async function main() {
       sheetId: sheet.id,
       sha256: computeSha256(leakagePngBuffer),
     });
+
+    // 4b. Render Gallery Distractor Previews as standalone print-scale PNGs (D1)
+    for (let dIdx = 0; dIdx < distractors.distractors.length; dIdx += 1) {
+      const d = distractors.distractors[dIdx];
+      const distSvg = renderDistractorSvg(sheet, regions, d);
+      const distHtml = `<!doctype html><html><body style="margin:0;padding:8px;background:#fff;display:inline-block;">${distSvg}</body></html>`;
+      await previewPage.setContent(distHtml, { waitUntil: 'load' });
+      const distEl = await previewPage.locator('.distractor-svg');
+      const distPngBuffer = await distEl.screenshot();
+      const distFileName = `${sheet.id}-distractor-${dIdx + 1}.png`;
+      const distPngPath = path.join(galleryPreviewsDir, distFileName);
+      fs.writeFileSync(distPngPath, distPngBuffer);
+      manifestFiles.push({
+        path: `previews/gallery/${distFileName}`,
+        kind: 'distractor-preview',
+        sheetId: sheet.id,
+        distractorIndex: dIdx + 1,
+        expressionWords: d.expressionWords,
+        expressionSymbols: d.expressionSymbols,
+        iou: d.iou,
+        flags: d.flags,
+        sha256: computeSha256(distPngBuffer),
+      });
+    }
 
     await previewPage.close();
   }

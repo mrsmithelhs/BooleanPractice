@@ -208,7 +208,7 @@ const lensB = createCircle({ cx: 100, cy: 48, r: 30, segments: 64 });
 export const sheetFallbackLens = {
   id: 'shapes-1-fallback-lens',
   isFallback: true,
-  title: 'Mystery Picture — Fallback',
+  title: 'Mystery Picture 1D',
   pictureName: 'Symmetric Optical Lens',
   variables: ['A', 'B'],
   shapes: { A: lensA, B: lensB },

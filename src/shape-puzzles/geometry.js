@@ -84,7 +84,7 @@ export function isPointInMultiPolygon(px, py, multiPoly) {
   return mp.some((poly) => isPointInPolygon(px, py, poly));
 }
 
-function distToSegmentSquared(px, py, x1, y1, x2, y2) {
+export function distToSegmentSquared(px, py, x1, y1, x2, y2) {
   const l2 = (x2 - x1) ** 2 + (y2 - y1) ** 2;
   if (l2 === 0) return (px - x1) ** 2 + (py - y1) ** 2;
   let t = ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / l2;
@@ -122,6 +122,181 @@ export function distanceToOutline(px, py, geometry) {
     }
   }
   return Math.sqrt(minDistSq);
+}
+
+/**
+ * Computes minimum distance from an axis-aligned box to a shape geometry.
+ * Returns 0 if box intersects shape interior or contains shape vertices.
+ */
+export function boxDistanceToGeometry(box, shape) {
+  const { x1, y1, x2, y2 } = box;
+  const corners = [
+    [x1, y1],
+    [x2, y1],
+    [x2, y2],
+    [x1, y2],
+  ];
+
+  // If any corner is inside shape
+  for (const [cx, cy] of corners) {
+    if (pointToPolygonDistance(cx, cy, shape) > 0) return 0;
+  }
+
+  // If any vertex of shape is inside box
+  const mp = toMultiPolygon(shape);
+  for (const poly of mp) {
+    for (const ring of poly) {
+      for (const [vx, vy] of ring) {
+        if (vx >= x1 && vx <= x2 && vy >= y1 && vy <= y2) return 0;
+      }
+    }
+  }
+
+  // Sample points along all 4 edges of the box
+  let minD = Infinity;
+  for (let x = x1; x <= x2; x += 1.0) {
+    minD = Math.min(minD, distanceToOutline(x, y1, shape), distanceToOutline(x, y2, shape));
+  }
+  for (let y = y1; y <= y2; y += 1.0) {
+    minD = Math.min(minD, distanceToOutline(x1, y, shape), distanceToOutline(x2, y, shape));
+  }
+  return minD;
+}
+
+/**
+ * Finds an optimal, obstacle-free location for a label box with width W and height H,
+ * ensuring >= 3.0 mm clearance from all shape outlines and from the frame, and >= 5 mm from other boxes.
+ */
+export function findLabelBoxPosition(
+  v,
+  anchor,
+  allShapes,
+  viewBox,
+  placedBoxes = [],
+  boxWidth = 27,
+  boxHeight = 15
+) {
+  const vbWidth = viewBox?.width ?? 180;
+  const vbHeight = viewBox?.height ?? 95;
+  const hw = boxWidth / 2;
+  const hh = boxHeight / 2;
+
+  // Candidate ranges by variable quadrant
+  const xRange = v === 'A' ? [18, 55] : v === 'B' ? [vbWidth - 55, vbWidth - 18] : [18, 55];
+  const yRange = v === 'C' ? [65, 83] : [12, 38];
+
+  let bestCandidate = null;
+  let bestScore = -Infinity;
+
+  for (let x = xRange[0]; x <= xRange[1]; x += 2) {
+    for (let y = yRange[0]; y <= yRange[1]; y += 2) {
+      const box = { x1: x - hw, y1: y - hh, x2: x + hw, y2: y + hh };
+
+      // Frame clearance >= 3.0 mm (frame at [1,1] to [vbWidth-1, vbHeight-1])
+      if (box.x1 < 4.0 || box.x2 > vbWidth - 4.0 || box.y1 < 4.0 || box.y2 > vbHeight - 4.0) {
+        continue;
+      }
+
+      // Check distance to all shapes >= 3.0 mm
+      let minClear = Infinity;
+      for (const shGeom of allShapes) {
+        const d = boxDistanceToGeometry(box, shGeom);
+        if (d < minClear) minClear = d;
+      }
+      if (minClear < 3.0) continue;
+
+      // Check separation from already placed label boxes >= 5.0 mm
+      let boxOverlap = false;
+      for (const pb of placedBoxes) {
+        const dx = Math.max(0, Math.max(pb.x1 - box.x2, box.x1 - pb.x2));
+        const dy = Math.max(0, Math.max(pb.y1 - box.y2, box.y1 - pb.y2));
+        if (Math.hypot(dx, dy) < 5.0) {
+          boxOverlap = true;
+          break;
+        }
+      }
+      if (boxOverlap) continue;
+
+      const distToAnchor = Math.hypot(x - anchor.x, y - anchor.y);
+      const score = minClear * 2 - Math.abs(distToAnchor - 32);
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestCandidate = { x, y, box, minClear, distToAnchor };
+      }
+    }
+  }
+
+  // Fallback if no quadrant candidate passed
+  if (!bestCandidate) {
+    const fallbackX = v === 'A' ? 22 : v === 'B' ? vbWidth - 22 : 22;
+    const fallbackY = v === 'C' ? vbHeight - 16 : 16;
+    return {
+      x: fallbackX,
+      y: fallbackY,
+      box: {
+        x1: fallbackX - hw,
+        y1: fallbackY - hh,
+        x2: fallbackX + hw,
+        y2: fallbackY + hh,
+      },
+    };
+  }
+
+  return bestCandidate;
+}
+
+/**
+ * Finds an obstacle-free position for Region 0 badge (radius R=2.6mm)
+ * with >= 1.0 mm clearance from all label boxes, leader lines, leader dots, and region boundaries.
+ */
+export function findObstacleFreeBadgePoint(
+  reg0,
+  labelBoxes,
+  leaderLines,
+  viewBox,
+  badgeRadius = 2.6
+) {
+  const vbWidth = viewBox?.width ?? 180;
+  const vbHeight = viewBox?.height ?? 95;
+  const minClearance = badgeRadius + 1.0; // 3.6 mm
+
+  let bestPt = null;
+  let maxMargin = -Infinity;
+
+  for (let x = 18; x <= vbWidth - 18; x += 2) {
+    for (let y = 12; y <= vbHeight - 12; y += 2) {
+      let dReg = -Infinity;
+      for (const p of reg0.pieces || []) {
+        const d = pointToPolygonDistance(x, y, p.polygon);
+        if (d > dReg) dReg = d;
+      }
+      if (dReg < minClearance) continue;
+
+      let dBox = Infinity;
+      for (const b of labelBoxes) {
+        const dx = Math.max(0, Math.max(b.x1 - x, x - b.x2));
+        const dy = Math.max(0, Math.max(b.y1 - y, y - b.y2));
+        dBox = Math.min(dBox, Math.hypot(dx, dy));
+      }
+      if (dBox < minClearance) continue;
+
+      let dLeader = Infinity;
+      for (const l of leaderLines) {
+        const d = Math.sqrt(distToSegmentSquared(x, y, l.x1, l.y1, l.x2, l.y2));
+        dLeader = Math.min(dLeader, d);
+      }
+      if (dLeader < minClearance) continue;
+
+      const margin = Math.min(dReg, dBox, dLeader);
+      if (margin > maxMargin) {
+        maxMargin = margin;
+        bestPt = { x, y, margin };
+      }
+    }
+  }
+
+  return bestPt ? { x: bestPt.x, y: bestPt.y } : (reg0.pieces[0]?.center || { x: 150, y: 75 });
 }
 
 function sampleRingPoints(ring, step = 0.5) {
@@ -356,7 +531,7 @@ export function buildShapeRegions({ variables, shapes, framePolygon }) {
 
     let labelPoint = bestPiece.center;
     if (includedVariables.length === 0 && bestPiece.polygon) {
-      const brCandidate = { x: 115, y: 78 };
+      const brCandidate = { x: 154, y: 78 };
       if (pointToPolygonDistance(brCandidate.x, brCandidate.y, bestPiece.polygon) >= 8) {
         labelPoint = brCandidate;
       }

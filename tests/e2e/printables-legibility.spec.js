@@ -237,6 +237,127 @@ test.describe('Printables Legibility & Print Geometry (Plan 37)', () => {
               }
             }
 
+            // D2 & D3 & D4 Elements
+            const labelBoxes = Array.from(document.querySelectorAll('.shape-label-badge-box')).map((el) => {
+              const x = Number(el.getAttribute('x'));
+              const y = Number(el.getAttribute('y'));
+              const w = Number(el.getAttribute('width'));
+              const h = Number(el.getAttribute('height'));
+              return { x1: x, y1: y, x2: x + w, y2: y + h, width: w, height: h };
+            });
+
+            const badgeCirclesForD2 = Array.from(document.querySelectorAll('.region-row-number-circle')).map((el) => {
+              const cx = Number(el.getAttribute('cx'));
+              const cy = Number(el.getAttribute('cy'));
+              const r = Number(el.getAttribute('r'));
+              return { cx, cy, r };
+            });
+
+            const leaderLinesData = Array.from(document.querySelectorAll('.leader-line')).map((el) => {
+              return {
+                x1: Number(el.getAttribute('x1')),
+                y1: Number(el.getAttribute('y1')),
+                x2: Number(el.getAttribute('x2')),
+                y2: Number(el.getAttribute('y2')),
+              };
+            });
+
+            // D2: Distance from each badge to label boxes, leader lines, and other badges
+            const badgeClearances = badgeCirclesForD2.map((badge, bIdx) => {
+              let minToLabel = Infinity;
+              for (const lb of labelBoxes) {
+                const dx = Math.max(0, Math.max(lb.x1 - badge.cx, badge.cx - lb.x2));
+                const dy = Math.max(0, Math.max(lb.y1 - badge.cy, badge.cy - lb.y2));
+                const d = Math.hypot(dx, dy) - badge.r;
+                if (d < minToLabel) minToLabel = d;
+              }
+
+              let minToLeader = Infinity;
+              for (const ll of leaderLinesData) {
+                const l2 = (ll.x2 - ll.x1) ** 2 + (ll.y2 - ll.y1) ** 2;
+                let t = l2 === 0 ? 0 : ((badge.cx - ll.x1) * (ll.x2 - ll.x1) + (badge.cy - ll.y1) * (ll.y2 - ll.y1)) / l2;
+                t = Math.max(0, Math.min(1, t));
+                const px = ll.x1 + t * (ll.x2 - ll.x1);
+                const py = ll.y1 + t * (ll.y2 - ll.y1);
+                const d = Math.hypot(badge.cx - px, badge.cy - py) - badge.r;
+                if (d < minToLeader) minToLeader = d;
+              }
+
+              let minToOtherBadge = Infinity;
+              for (let j = 0; j < badgeCirclesForD2.length; j += 1) {
+                if (j === bIdx) continue;
+                const ob = badgeCirclesForD2[j];
+                const d = Math.hypot(badge.cx - ob.cx, badge.cy - ob.cy) - (badge.r + ob.r);
+                if (d < minToOtherBadge) minToOtherBadge = d;
+              }
+
+              return { minToLabel, minToLeader, minToOtherBadge };
+            });
+
+            // D3: Label box clearance from frame and from shape outlines
+            const outlinePaths = Array.from(document.querySelectorAll('.shape-outline'));
+            const labelBoxClearances = labelBoxes.map((lb) => {
+              const frameClearance = Math.min(lb.x1 - 1, 179 - lb.x2, lb.y1 - 1, 94 - lb.y2);
+
+              let minOutlineClearance = Infinity;
+              const samplePts = [];
+              for (let x = lb.x1; x <= lb.x2; x += 1.0) {
+                samplePts.push({ x, y: lb.y1 }, { x, y: lb.y2 });
+              }
+              for (let y = lb.y1; y <= lb.y2; y += 1.0) {
+                samplePts.push({ x: lb.x1, y }, { x: lb.x2, y });
+              }
+
+              for (const path of outlinePaths) {
+                const len = path.getTotalLength();
+                const step = Math.max(0.5, Math.min(len / 180, 1.0));
+                for (let l = 0; l <= len; l += step) {
+                  const pt = path.getPointAtLength(l);
+                  for (const sp of samplePts) {
+                    const d = Math.hypot(pt.x - sp.x, pt.y - sp.y);
+                    if (d < minOutlineClearance) minOutlineClearance = d;
+                  }
+                }
+              }
+
+              return { frameClearance, minOutlineClearance };
+            });
+
+            // D4: Swatches comparison with outlines
+            const swatchesData = Array.from(document.querySelectorAll('.shape-label-group')).map((g) => {
+              const varName = g.querySelector('.shape-label-text')?.textContent.trim() || '';
+              const swatchLine = g.querySelector('.shape-label-swatch');
+              const swatchWidth = Number(swatchLine?.getAttribute('stroke-width') || '0');
+              const swatchDash = swatchLine?.getAttribute('stroke-dasharray') || 'none';
+              const x1 = Number(swatchLine?.getAttribute('x1') || '0');
+              const x2 = Number(swatchLine?.getAttribute('x2') || '0');
+              const lengthMm = Math.abs(x2 - x1);
+
+              const outline = document.querySelector(`.shape-outline-${varName}`);
+              const outlineWidth = Number(outline?.getAttribute('stroke-width') || '0');
+              const outlineDash = outline?.getAttribute('stroke-dasharray') || 'none';
+
+              return {
+                varName,
+                swatchWidth,
+                swatchDash,
+                lengthMm,
+                outlineWidth,
+                outlineDash,
+              };
+            });
+
+            // D5: Worked steps wrapping check
+            const workedStepsData = Array.from(document.querySelectorAll('.worked-step-item')).map((el) => {
+              const rects = el.getClientRects();
+              const heightMm = el.getBoundingClientRect().height * PX_TO_MM;
+              return {
+                isSingleLine: rects.length <= 1,
+                heightMm,
+                text: el.textContent.trim(),
+              };
+            });
+
             return {
               labelRects: labelTexts.map(getRectMm),
               labelTextHeights: labelTexts.map(getSvgElementHeightMm),
@@ -249,6 +370,10 @@ test.describe('Printables Legibility & Print Geometry (Plan 37)', () => {
               svgTextContainment,
               outlineStyles,
               central60Intersections,
+              badgeClearances,
+              labelBoxClearances,
+              swatchesData,
+              workedStepsData,
               pageBounds: getRectMm(document.querySelector('.page-sheet')),
             };
           });
@@ -308,7 +433,44 @@ test.describe('Printables Legibility & Print Geometry (Plan 37)', () => {
             }
           }
 
-          // 7. Content stays inside page bounds
+          // 7. D2: Badges avoid label boxes, leaders, and other badges with >= 1 mm clearance
+          for (const bc of metrics.badgeClearances) {
+            expect(bc.minToLabel, 'Badge must avoid label boxes with clearance >= 1 mm').toBeGreaterThanOrEqual(1.0);
+            expect(bc.minToLeader, 'Badge must avoid leader lines with clearance >= 1 mm').toBeGreaterThanOrEqual(1.0);
+            expect(bc.minToOtherBadge, 'Badge must avoid other badges with clearance >= 1 mm').toBeGreaterThanOrEqual(1.0);
+          }
+
+          // 8. D3: Label boxes have >= 3 mm clearance from frame and shape outlines
+          for (const lbc of metrics.labelBoxClearances) {
+            expect(lbc.frameClearance, 'Label box frame clearance >= 3 mm').toBeGreaterThanOrEqual(3.0);
+            expect(lbc.minOutlineClearance, 'Label box shape outline clearance >= 3 mm').toBeGreaterThanOrEqual(3.0);
+          }
+
+          // 9. D4: Swatch matches outline and shows at least 2 full periods (and >= 14 mm)
+          for (const sw of metrics.swatchesData) {
+            expect(sw.swatchDash, `Swatch dasharray must match outline for ${sw.varName}`).toBe(sw.outlineDash);
+            expect(sw.swatchWidth, `Swatch stroke-width must match outline for ${sw.varName}`).toBe(sw.outlineWidth);
+            expect(sw.lengthMm, `Swatch length must be >= 14 mm for ${sw.varName}`).toBeGreaterThanOrEqual(14.0);
+
+            if (sw.swatchDash && sw.swatchDash !== 'none') {
+              const segs = sw.swatchDash.trim().split(/\s+/).map(Number.parseFloat);
+              const period = segs.reduce((sum, s) => sum + s, 0);
+              expect(
+                sw.lengthMm,
+                `Swatch length must show at least 2 full periods for ${sw.varName}`
+              ).toBeGreaterThanOrEqual(2 * period - 0.01);
+            }
+          }
+
+          // 10. D5: Worked steps fit on single line on key pages
+          if (pageKind === 'key') {
+            for (const step of metrics.workedStepsData) {
+              expect(step.isSingleLine, `Worked step "${step.text}" must fit on single line`).toBe(true);
+              expect(step.heightMm, `Worked step height for "${step.text}" must be single line <= 5.5 mm`).toBeLessThanOrEqual(5.5);
+            }
+          }
+
+          // 11. Content stays inside page bounds
           expect(metrics.pageBounds.width, 'Page sheet width within letter size').toBeLessThanOrEqual(187);
           expect(metrics.pageBounds.height, 'Page sheet height within letter size').toBeLessThanOrEqual(257);
         });
