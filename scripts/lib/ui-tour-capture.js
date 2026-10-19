@@ -278,8 +278,19 @@ async function completeTruthTableProblem(page, problem) {
 async function setVennSelection(page, regionIds) {
   await page.getByTestId('venn-clear-selection').click();
 
-  for (const regionId of regionIds) {
-    await page.getByTestId(`venn-region-${regionId}`).click();
+  // SVG region paths overlap (region 0's bounding box covers every set), so a
+  // center-point click can land on another region; toggle via keyboard instead.
+  // Regions cycle neutral -> selected -> available, and Check stays disabled
+  // until no region is neutral, so every region needs an explicit decision.
+  const selected = new Set(regionIds);
+  const regionCount = await page.locator('[data-testid^="venn-region-"]').count();
+
+  for (let regionId = 0; regionId < regionCount; regionId += 1) {
+    await page.getByTestId(`venn-region-${regionId}`).focus();
+    await page.keyboard.press('Space');
+    if (!selected.has(regionId)) {
+      await page.keyboard.press('Space');
+    }
   }
 }
 
@@ -768,7 +779,8 @@ export function getUiTourDefinitions() {
             });
             await completeTruthTableProblem(page, problem);
             await page.getByTestId('submission-submit').click();
-            await waitForTextContent(page.getByTestId('submission-output'), 'No submission sheet configured');
+            // Students see friendly copy, not the raw server failureMessage.
+            await waitForTextContent(page.getByTestId('submission-output'), 'Submission did not go through');
           },
         },
       ],
