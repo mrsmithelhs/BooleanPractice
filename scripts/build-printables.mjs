@@ -320,6 +320,17 @@ async function main() {
   const previewsDir = path.join(exportDir, 'previews');
   const galleryPreviewsDir = path.join(previewsDir, 'gallery');
 
+  // A full-set run starts from an empty export folder so files from sheets dropped
+  // from the set (e.g. unchosen candidates) can't be copied downstream alongside the
+  // manifest. Partial --sheets runs keep the other sheets' files.
+  if (!sheetFilter) {
+    if (!/^[\w-]+$/.test(setId)) {
+      console.error(`Refusing to clear export folder for unsafe set id "${setId}".`);
+      process.exit(1);
+    }
+    fs.rmSync(exportDir, { recursive: true, force: true });
+  }
+
   fs.mkdirSync(studentDir, { recursive: true });
   fs.mkdirSync(keysDir, { recursive: true });
   fs.mkdirSync(previewsDir, { recursive: true });

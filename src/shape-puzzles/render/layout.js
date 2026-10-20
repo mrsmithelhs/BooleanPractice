@@ -647,7 +647,7 @@ export function renderStudentPageHtml(sheet, regions, options = {}) {
 
     <div class="footer-block">
       <span>Mr. Smith's Engineering Tech — Digital Logic</span>
-      <span>Set: shapes-1 &bull; ${sheet.id}</span>
+      <span>Set: shapes-1 &bull; ${sheet.title}</span>
       <span class="page-number-text">Page 1</span>
     </div>
   </div>
