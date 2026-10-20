@@ -31,3 +31,7 @@ After the fixes: 139/139 unit, 31/31 e2e, lint 0 errors, build OK. Regenerated a
 - The owner's Chromebook printout of sheets 1 and 3.
 - Gem (sheet 2): `A AND B` of a rounded rectangle and an ellipse reveals a plain barrel shape. The orchestrator recommended the gem without having looked at it. The owner should confirm it from `previews/shapes-1-slot1-cand-b-gem-key.png`, or swap in the moon (`A AND NOT(B)`, which repeats sheet 1's expression).
 - Per-sheet PDF **filenames** still contain the picture names (e.g. `…cand-b-gem.pdf`). That's harmless for paper, but CourseENG should hand out the booklet, or rename the files, if students ever get the PDFs digitally.
+
+## Owner decision (2026-10-19)
+
+- **The gem stays as sheet 2.** The only remaining open item is the owner's Chromebook printout of sheets 1 and 3.
