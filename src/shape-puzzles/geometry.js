@@ -125,6 +125,33 @@ export function distanceToOutline(px, py, geometry) {
 }
 
 /**
+ * Determines whether two line segments (p1-p2 and p3-p4) intersect.
+ */
+export function segmentsIntersect(p1, p2, p3, p4) {
+  const ccw = (a, b, c) => (c.y - a.y) * (b.x - a.x) > (b.y - a.y) * (c.x - a.x);
+  return ccw(p1, p3, p4) !== ccw(p2, p3, p4) && ccw(p1, p2, p3) !== ccw(p1, p2, p4);
+}
+
+/**
+ * Checks whether a leader line segment (p1-p2) intersects any outline segment of otherShapes.
+ */
+export function leaderIntersectsAnyShape(p1, p2, otherShapes) {
+  for (const sh of otherShapes) {
+    const mp = toMultiPolygon(sh);
+    for (const poly of mp) {
+      for (const ring of poly) {
+        for (let r = 0; r < ring.length - 1; r += 1) {
+          const q1 = { x: ring[r][0], y: ring[r][1] };
+          const q2 = { x: ring[r + 1][0], y: ring[r + 1][1] };
+          if (segmentsIntersect(p1, p2, q1, q2)) return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+/**
  * Computes minimum distance from an axis-aligned box to a shape geometry.
  * Returns 0 if box intersects shape interior or contains shape vertices.
  */

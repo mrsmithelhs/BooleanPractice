@@ -187,7 +187,9 @@ export function renderFigureSvg(sheet, regions, { isKey = false, outlinesOnly = 
     const shapeGeom = sheet.shapes[v];
     const otherVars = (sheet.variables || []).filter((x) => x !== v);
     const otherShapes = otherVars.map((x) => sheet.shapes[x]);
-    const style = SHAPE_STYLES[v] || { strokeWidth: '0.7', dashArray: 'none', targetAngle: Math.PI * 0.5 };
+    const baseStyle = SHAPE_STYLES[v] || { strokeWidth: '0.7', dashArray: 'none', stroke: '#111', targetAngle: Math.PI * 0.5 };
+    const override = sheet.shapeStyles?.[v] || {};
+    const style = { ...baseStyle, ...override };
 
     // Anchor on shape's own outline >= 6 mm away from any other outline
     const anchor = findOutlineAnchorPoint(shapeGeom, otherShapes, {

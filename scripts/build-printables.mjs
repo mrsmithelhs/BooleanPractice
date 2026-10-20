@@ -99,7 +99,9 @@ function renderDistractorSvg(sheet, regions, distractor) {
   const shapePaths = (sheet.variables || [])
     .map((v) => {
       const shapeGeom = sheet.shapes[v];
-      const style = SHAPE_STYLES[v] || { strokeWidth: '0.7', dashArray: 'none', stroke: '#111' };
+      const baseStyle = SHAPE_STYLES[v] || { strokeWidth: '0.7', dashArray: 'none', stroke: '#111' };
+      const override = sheet.shapeStyles?.[v] || {};
+      const style = { ...baseStyle, ...override };
       const pathD = geometryToPathData(shapeGeom);
       return `<path d="${pathD}" fill="none" stroke="${style.stroke}" stroke-width="${style.strokeWidth}" stroke-dasharray="${style.dashArray}" />`;
     })
@@ -516,7 +518,7 @@ async function main() {
     truthTableValues,
     rowIndexBase: 0,
     rowNumberingNote: 'Manifest trueRows uses 0-based indexing matching evaluator truth table rows; printed student and key sheets display 1-based row numbers (1..4 / 1..8).',
-    badgeProgression: 'Region row-number badges are shown on the first sheet of each size (1A and 2A) and omitted on later sheets (1B, 1C, 2B, 2C, Fallback). Sheets without badges include an extra intermediate instruction step.',
+    badgeProgression: 'Region row-number badges are shown on the first sheet of each size (Mystery Picture 1 [Sun] and Mystery Picture 3 [Cabin]) and omitted on subsequent sheets (Mystery Picture 2 [Gem] and Mystery Picture 4 [Rocket]). Sheets without badges include an extra intermediate instruction step.',
     generatedAt: new Date().toISOString(),
     sheets: validatedSheets.map(({ sheet }) => {
       const defHash = computeSha256(

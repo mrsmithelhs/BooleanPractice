@@ -358,6 +358,44 @@ test.describe('Printables Legibility & Print Geometry (Plan 37)', () => {
               };
             });
 
+            // Item 3: Leader lines do not cross any other shape's outline
+            function ccw(a, b, c) {
+              return (c.y - a.y) * (b.x - a.x) > (b.y - a.y) * (c.x - a.x);
+            }
+            function doIntersect(p1, p2, p3, p4) {
+              return ccw(p1, p3, p4) !== ccw(p2, p3, p4) && ccw(p1, p2, p3) !== ccw(p1, p2, p4);
+            }
+
+            const leaderIntersections = [];
+            const labelGroups = Array.from(document.querySelectorAll('.shape-label-group'));
+            for (const g of labelGroups) {
+              const v = g.querySelector('.shape-label-text')?.textContent.trim() || '';
+              const line = g.querySelector('.leader-line');
+              if (!line) continue;
+              const p1 = { x: Number(line.getAttribute('x1')), y: Number(line.getAttribute('y1')) };
+              const p2 = { x: Number(line.getAttribute('x2')), y: Number(line.getAttribute('y2')) };
+
+              const otherOutlines = Array.from(document.querySelectorAll('.shape-outline')).filter(
+                (el) => !el.classList.contains(`shape-outline-${v}`)
+              );
+
+              for (const outline of otherOutlines) {
+                const len = outline.getTotalLength();
+                const step = 0.5; // mm
+                let prevPt = outline.getPointAtLength(0);
+                for (let l = step; l <= len; l += step) {
+                  const curPt = outline.getPointAtLength(l);
+                  if (doIntersect(p1, p2, prevPt, curPt)) {
+                    leaderIntersections.push(
+                      `Leader line for ${v} intersects outline ${outline.getAttribute('class')}`
+                    );
+                    break;
+                  }
+                  prevPt = curPt;
+                }
+              }
+            }
+
             return {
               labelRects: labelTexts.map(getRectMm),
               labelTextHeights: labelTexts.map(getSvgElementHeightMm),
@@ -374,6 +412,7 @@ test.describe('Printables Legibility & Print Geometry (Plan 37)', () => {
               labelBoxClearances,
               swatchesData,
               workedStepsData,
+              leaderIntersections,
               pageBounds: getRectMm(document.querySelector('.page-sheet')),
             };
           });
@@ -473,6 +512,12 @@ test.describe('Printables Legibility & Print Geometry (Plan 37)', () => {
           // 11. Content stays inside page bounds
           expect(metrics.pageBounds.width, 'Page sheet width within letter size').toBeLessThanOrEqual(187);
           expect(metrics.pageBounds.height, 'Page sheet height within letter size').toBeLessThanOrEqual(257);
+
+          // 12. Item 3: Leader lines do not cross any other shape outline
+          expect(
+            metrics.leaderIntersections,
+            `Leader lines must not cross any other shape outline in ${sheet.id} (${pageKind})`
+          ).toEqual([]);
         });
       }
     }

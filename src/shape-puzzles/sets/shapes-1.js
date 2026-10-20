@@ -19,7 +19,7 @@ const ADVANCED_INSTRUCTIONS_WITHOUT_BADGES = [
 
 // --- SLOT 1: 2-VARIABLE CANDIDATES ---
 
-// Candidate 1A: Crescent Moon (first 2-variable sheet: has region row numbers)
+// Candidate 1A: Crescent Moon (candidate retained in source; not in exported set)
 const moonA = createCircle({ cx: 85, cy: 48, r: 28, segments: 64 });
 const moonB = createCircle({ cx: 98, cy: 46, r: 24, segments: 64 });
 export const sheetSlot1CandAMoon = {
@@ -32,24 +32,27 @@ export const sheetSlot1CandAMoon = {
   shapes: { A: moonA, B: moonB },
   expression: 'a && !b',
   intendedTrueRows: [2],
-  instructions: INTRO_INSTRUCTIONS_WITH_BADGES,
-  showRegionRowNumbers: true,
+  instructions: ADVANCED_INSTRUCTIONS_WITHOUT_BADGES,
+  showRegionRowNumbers: false,
   frozen: false,
   rowIndexBase: 0,
   viewBox: { width: 180, height: 95 },
 };
 
-// Candidate 1B: Gem in Setting (no region row numbers)
+// Candidate 1B: Gem in Setting (Mystery Picture 2)
 const gemA = createRoundedRectangle({ x: 70, y: 18, width: 40, height: 60, radius: 10, segments: 16 });
 const bandB = createEllipse({ cx: 90, cy: 48, rx: 38, ry: 16, segments: 64 });
 export const sheetSlot1CandBGem = {
   id: 'shapes-1-slot1-cand-b-gem',
   slot: 1,
   slotCandidate: 'B',
-  title: 'Mystery Picture 1B',
+  title: 'Mystery Picture 2',
   pictureName: 'Faceted Gem in Ring Setting',
   variables: ['A', 'B'],
   shapes: { A: gemA, B: bandB },
+  shapeStyles: {
+    A: { targetAngle: Math.PI * 0.65 },
+  },
   expression: 'a && b',
   intendedTrueRows: [3],
   instructions: ADVANCED_INSTRUCTIONS_WITHOUT_BADGES,
@@ -59,21 +62,21 @@ export const sheetSlot1CandBGem = {
   viewBox: { width: 180, height: 95 },
 };
 
-// Candidate 1C: Rising Sun (no region row numbers)
+// Candidate 1C: Rising Sun (Mystery Picture 1)
 const sunA = createCircle({ cx: 90, cy: 45, r: 28, segments: 64 });
 const horizonB = createRoundedRectangle({ x: 32, y: 48, width: 116, height: 42, radius: 8, segments: 16 });
 export const sheetSlot1CandCSun = {
   id: 'shapes-1-slot1-cand-c-sun',
   slot: 1,
   slotCandidate: 'C',
-  title: 'Mystery Picture 1C',
+  title: 'Mystery Picture 1',
   pictureName: 'Sun Rising Over Horizon',
   variables: ['A', 'B'],
   shapes: { A: sunA, B: horizonB },
   expression: 'a && !b',
   intendedTrueRows: [2],
-  instructions: ADVANCED_INSTRUCTIONS_WITHOUT_BADGES,
-  showRegionRowNumbers: false,
+  instructions: INTRO_INSTRUCTIONS_WITH_BADGES,
+  showRegionRowNumbers: true,
   frozen: false,
   rowIndexBase: 0,
   viewBox: { width: 180, height: 95 },
@@ -81,7 +84,7 @@ export const sheetSlot1CandCSun = {
 
 // --- SLOT 2: 3-VARIABLE CANDIDATES ---
 
-// Candidate 2A: Space Rocket (first 3-variable sheet: has region row numbers)
+// Candidate 2A: Space Rocket (Mystery Picture 4)
 const rocketA = createPolygon([
   [90, 14],
   [108, 32],
@@ -105,20 +108,20 @@ export const sheetSlot2CandARocket = {
   id: 'shapes-1-slot2-cand-a-rocket',
   slot: 2,
   slotCandidate: 'A',
-  title: 'Mystery Picture 2A',
+  title: 'Mystery Picture 4',
   pictureName: 'Rocket Ship in Flight',
   variables: ['A', 'B', 'C'],
   shapes: { A: rocketA, B: wingsB, C: columnC },
   expression: '(a || b) && !c',
   intendedTrueRows: [2, 4, 6],
-  instructions: INTRO_INSTRUCTIONS_WITH_BADGES,
-  showRegionRowNumbers: true,
+  instructions: ADVANCED_INSTRUCTIONS_WITHOUT_BADGES,
+  showRegionRowNumbers: false,
   frozen: false,
   rowIndexBase: 0,
   viewBox: { width: 180, height: 95 },
 };
 
-// Candidate 2B: Cozy Cabin (no region row numbers)
+// Candidate 2B: Cozy Cabin (Mystery Picture 3)
 const houseA = createPolygon([
   [90, 16],
   [126, 42],
@@ -146,20 +149,23 @@ export const sheetSlot2CandBHouse = {
   id: 'shapes-1-slot2-cand-b-house',
   slot: 2,
   slotCandidate: 'B',
-  title: 'Mystery Picture 2B',
+  title: 'Mystery Picture 3',
   pictureName: 'Cozy Cabin with Hearth and Yard',
   variables: ['A', 'B', 'C'],
   shapes: { A: houseA, B: hearthB, C: groundC },
+  shapeStyles: {
+    C: { targetAngle: -Math.PI * 0.85 },
+  },
   expression: 'a && !b || c',
   intendedTrueRows: [1, 3, 4, 5, 7],
-  instructions: ADVANCED_INSTRUCTIONS_WITHOUT_BADGES,
-  showRegionRowNumbers: false,
+  instructions: INTRO_INSTRUCTIONS_WITH_BADGES,
+  showRegionRowNumbers: true,
   frozen: false,
   rowIndexBase: 0,
   viewBox: { width: 180, height: 95 },
 };
 
-// Candidate 2C: Fortress Tower (no region row numbers)
+// Candidate 2C: Fortress Tower (candidate retained in source; not in exported set)
 const castleA = createPolygon([
   [90, 20],
   [104, 34],
@@ -193,6 +199,9 @@ export const sheetSlot2CandCCastle = {
   pictureName: 'Fortress Tower with Gatehouse',
   variables: ['A', 'B', 'C'],
   shapes: { A: castleA, B: gateB, C: moatC },
+  shapeStyles: {
+    C: { targetAngle: -Math.PI * 0.85 },
+  },
   expression: '(a || b) && !c',
   intendedTrueRows: [2, 4, 6],
   instructions: ADVANCED_INSTRUCTIONS_WITHOUT_BADGES,
@@ -232,12 +241,9 @@ export const SET_SHAPES_1 = {
     fallback: sheetFallbackLens,
   },
   sheets: [
-    sheetSlot1CandAMoon,
-    sheetSlot1CandBGem,
     sheetSlot1CandCSun,
-    sheetSlot2CandARocket,
+    sheetSlot1CandBGem,
     sheetSlot2CandBHouse,
-    sheetSlot2CandCCastle,
-    sheetFallbackLens,
+    sheetSlot2CandARocket,
   ],
 };
