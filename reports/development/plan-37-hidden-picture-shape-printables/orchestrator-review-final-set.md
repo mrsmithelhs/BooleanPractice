@@ -35,3 +35,16 @@ After the fixes: 139/139 unit, 31/31 e2e, lint 0 errors, build OK. Regenerated a
 ## Owner decision (2026-10-19)
 
 - **The gem stays as sheet 2.** The only remaining open item is the owner's Chromebook printout of sheets 1 and 3.
+
+## CourseENG independent check (2026-10-19)
+
+- CourseENG Orch verified the `4183328` run on its own:
+  - all 56 hashes match;
+  - both booklets are 4-page US Letter;
+  - the trueRows match each expression;
+  - the keys' T rows and shaded regions agree;
+  - every piece of a split row has its badge.
+- It is holding the copy until the owner's printout is confirmed.
+- **Follow-ups noted, not blocking:**
+  1. On the rocket (sheet 4, no badges), some slivers are too thin for students to write "which shapes it is inside". If students struggle, a later version could let them write a row number or a short code (e.g. "AB") with a leader line to the margin.
+  2. Some wrong answers look close to the correct picture: cabin `A OR C` (IoU 0.86) and rocket `A OR B` (IoU 0.82). On those sheets the truth table and key are the real check, not the picture alone. CourseENG will say so in its teacher notes.
