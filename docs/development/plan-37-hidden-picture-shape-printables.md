@@ -1,7 +1,8 @@
 ---
 id: plan-37
 title: "Hidden-Picture Shape Printables (P1)"
-status: in-progress
+status: complete
+resolution: "Final 4-sheet shapes-1 set (sun, gem, cabin, rocket) generated at 4183328, verified by orchestrator and CourseENG, owner print-checked on US Letter 2026-10-19; released to CourseENG."
 depends_on: [plan-05]
 gate: "GATE-37A: stop after 2 end-to-end sheets (one 2-variable, one 3-variable) plus keys, wrong-answer galleries, and a review page; owner approval required before producing the rest of the set"
 summary: >-
