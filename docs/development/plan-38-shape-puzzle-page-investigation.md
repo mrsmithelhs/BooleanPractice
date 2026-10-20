@@ -62,6 +62,14 @@ Contracts to preserve in any proposal:
 - Keyboard and screen-reader access, plus an exact accessible fallback for the regions (DECISION-003).
 - The notation is a display layer, the parser stays unchanged, and any future input uses tap-to-build tokens (DECISION-007).
 - The truth-table row order matches `generateTruthTable`.
+- **Conventions settled in plan-37 (owner-approved 2026-10-19):**
+  - Words display uses `NOT(x)`, always parenthesizes mixed AND/OR, and leaves chains of the same operator plain. Reuse `src/notation/`.
+  - Rows are numbered 1–4 / 1–8 for students.
+  - Values are T/F.
+  - Row badges follow a fading scaffold: on for early puzzles, off later.
+  - Shape labels sit outside the shapes, with line-style swatches and leaders that end on their own outline.
+  - Reuse `src/shape-puzzles/` (geometry, validator, sets) rather than re-deriving regions.
+- **Evidence rule:** screenshots in the report are described only after opening them, and pictures and pedagogy are judged by the orchestrator and the owner, not the investigator. In plan-37, report text described features that weren't in the images.
 
 ## Questions and hypotheses
 
