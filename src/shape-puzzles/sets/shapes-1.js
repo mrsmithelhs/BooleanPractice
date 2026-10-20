@@ -131,11 +131,13 @@ const houseA = createPolygon([
   [62, 42],
   [54, 42],
 ]);
+// B's left edge sits 8 mm inside the house wall (x = 62) so the wall strip of
+// rows 5 and 6 stays wide enough to hold a row badge and to shade by pencil.
 const hearthB = createPolygon([
-  [67, 10],
-  [87, 10],
-  [87, 88],
-  [67, 88],
+  [70, 10],
+  [90, 10],
+  [90, 88],
+  [70, 88],
 ]);
 const groundC = createRoundedRectangle({
   x: 38,
@@ -154,6 +156,7 @@ export const sheetSlot2CandBHouse = {
   variables: ['A', 'B', 'C'],
   shapes: { A: houseA, B: hearthB, C: groundC },
   shapeStyles: {
+    B: { targetAngle: Math.PI * 0.55 },
     C: { targetAngle: -Math.PI * 0.85 },
   },
   expression: 'a && !b || c',

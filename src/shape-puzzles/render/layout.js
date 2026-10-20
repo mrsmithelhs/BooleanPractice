@@ -249,23 +249,35 @@ export function renderFigureSvg(sheet, regions, { isKey = false, outlinesOnly = 
       ? findObstacleFreeBadgePoint(reg0, placedBoxes, leaderLines, sheet.viewBox, 2.6)
       : { x: 154, y: 78 };
 
+    const radius = 2.6; // Inscribed clearance >= 1.0 mm for all numbered regions (dia >= 8 mm)
+    // A row split into disconnected pieces gets a badge in every piece; otherwise
+    // students leave the unbadged piece unshaded.
+    const minBadgePieceDiaMm = 2 * (radius + 1.0);
+
     rowNumbersHtml = regions
-      .map((r) => {
-        const radius = 2.6; // Inscribed clearance >= 1.0 mm for all numbered regions (dia >= 8 mm)
+      .flatMap((r) => {
         const displayRow = r.id + 1; // 1-based indexing for students (1..4 / 1..8)
-        let pt = r.labelPoint;
+        let points;
         if (r.includedVariables.length === 0) {
-          pt = badge0Point;
-        } else if (!pt || pt.x === 0) {
-          pt = r.pieces[0]?.center || { x: 90, y: 48 };
+          points = [badge0Point];
+        } else {
+          const tooSmall = r.pieces.filter((p) => p.inscribedCircleDiaMm < minBadgePieceDiaMm);
+          if (tooSmall.length > 0) {
+            throw new Error(
+              `Sheet "${sheet.id}" row ${displayRow}: ${tooSmall.length} piece(s) too small for a row badge (need inscribed dia >= ${minBadgePieceDiaMm.toFixed(1)} mm).`
+            );
+          }
+          points = r.pieces.map((p) => p.center);
         }
 
-        return `
-          <g class="region-row-number-group" id="row-number-${displayRow}">
+        return points.map(
+          (pt, pieceIndex) => `
+          <g class="region-row-number-group" id="row-number-${displayRow}-${pieceIndex + 1}" data-row="${displayRow}">
             <circle cx="${pt.x.toFixed(2)}" cy="${pt.y.toFixed(2)}" r="${radius}" fill="#fff" fill-opacity="0.9" stroke="#333" stroke-width="0.35" class="region-row-number-circle" />
             <text x="${pt.x.toFixed(2)}" y="${pt.y.toFixed(2)}" dominant-baseline="central" text-anchor="middle" font-family="Arial, sans-serif" font-size="3.2" font-weight="bold" fill="#111" class="region-row-number-text">${displayRow}</text>
           </g>
-        `;
+        `
+        );
       })
       .join('\n');
   }
