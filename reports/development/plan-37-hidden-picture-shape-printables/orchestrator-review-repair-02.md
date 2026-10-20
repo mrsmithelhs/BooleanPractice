@@ -29,3 +29,8 @@
 3. **Cabin C leader:** it currently runs almost along C's own bottom edge and crosses B's rectangle. Reroute it so it meets C's outline at a clear angle and crosses no other outline. Add a test: the leader segment crosses no other shape's outline.
 4. **Regenerate without `--draft`**, set the chosen sheets to `frozen: true` after classroom use (not before), and re-run the full suites.
 5. Report the final paths for CourseENG: the student booklet, the key booklet, the per-sheet PDFs, and the manifest.
+
+## Owner decision (2026-10-19)
+
+- **Final set confirmed:** sun 1C → gem 1B → cabin 2B → rocket 2A, as Mystery Picture 1–4.
+- The owner is running the Chromebook print test on the sun and cabin student pages. Post-gate items 1–5 may start now. If the printout shows a problem, it becomes one more batched fix before final regeneration.
