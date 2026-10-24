@@ -102,6 +102,30 @@ This file is orchestrator/owner-owned. Implementers propose but do not edit.
 
 **Supersedes / related:** DECISION-001, DECISION-002, DECISION-003; plan-37, plan-38.
 
+### DECISION-008 — Shape puzzle page (P3) interaction design
+
+**Date:** 2026-10-24
+
+**Decision:** The online shape-puzzle page (plan-39) works as follows:
+
+- It is a second Vite entry (`puzzle.html`) on the existing static build, with its own lean components and no reuse of `VennDiagram.vue`.
+- **Shading:** two-state, starting clean (no hatching).
+- **Shapes:** colored outlines plus plan-37 line styles, with outside labels.
+- **Truth table:** full table beside the diagram on desktop, compact inspector on narrow screens. Whole expression in one step, with an optional breakdown.
+- **Order of work:** students fill the truth-table output column themselves, and shading is checked only after the outputs are correct.
+- **Answer keys:** none on the student surface. The teacher view is only behind `?teacher=1`.
+
+**Rationale:** plan-38's evidence:
+- greyscale ruled out color-only labels;
+- the tri-state's hatched start hurt legibility;
+- the full table fits at 1366×768.
+
+The orchestrator's review found that the prototype's pre-filled output column turned the puzzle into coloring, which conflicts with the project's prediction-first contract (DECISION-006).
+
+**Source:** The owner accepted the six GATE-38A recommendations directly on 2026-10-24.
+
+**Supersedes / related:** DECISION-003, DECISION-006, DECISION-007; plan-38, plan-39.
+
 ## Proposed but not yet accepted
 
 *(No new proposals were created by Plan 34. Unresolved owner decisions belong in `docs/open-questions.md`.)*

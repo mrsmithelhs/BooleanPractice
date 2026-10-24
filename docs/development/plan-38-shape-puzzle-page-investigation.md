@@ -1,7 +1,8 @@
 ---
 id: plan-38
 title: "Shape Puzzle Page Investigation (P3)"
-status: in-progress
+status: complete
+resolution: "Investigation accepted at GATE-38A (Q1 multi-page, Q2 lean component, Q4b ruled out); owner accepted six recommendations 2026-10-24 (DECISION-008); implementation packet plan-39 drafted."
 depends_on: [plan-37]
 gate: "GATE-38A: investigation report and proposed implementation packet outline go to the owner; no production source changes in this packet"
 summary: >-
