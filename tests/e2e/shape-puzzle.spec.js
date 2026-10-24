@@ -49,6 +49,101 @@ test.describe('Shape Puzzle Page (Plan 39 / P3)', () => {
     await expect(page.locator('[data-testid="output-cell-2"]')).toContainText('T');
   });
 
+  test('no bulk-fill controls exist without teacher=1', async ({ page }) => {
+    await page.goto('/puzzle.html');
+    await expect(page.locator('[data-testid="table-fill-true"]')).toHaveCount(0);
+    await expect(page.locator('[data-testid="table-fill-false"]')).toHaveCount(0);
+
+    // But in teacher view, they exist:
+    await page.goto('/puzzle.html?teacher=1');
+    await expect(page.locator('[data-testid="table-fill-true"]')).toBeVisible();
+    await expect(page.locator('[data-testid="table-fill-false"]')).toBeVisible();
+  });
+
+  test('after a wrong truth-table check, no row carries a correct or error class', async ({
+    page,
+  }) => {
+    await page.goto('/puzzle.html?set=shapes-1&sheet=1');
+
+    // Enter incorrect value for row 0 (enter T instead of F)
+    await page.locator('[data-testid="output-cell-0"]').click(); // T
+    await page.locator('[data-testid="output-cell-1"]').click();
+    await page.locator('[data-testid="output-cell-1"]').click(); // F
+    await page.locator('[data-testid="output-cell-2"]').click(); // T
+    await page.locator('[data-testid="output-cell-3"]').click();
+    await page.locator('[data-testid="output-cell-3"]').click(); // F
+
+    // Check outputs
+    await page.locator('[data-testid="btn-check-table"]').click();
+
+    // Verify staged feedback message appears
+    await expect(page.locator('[data-testid="puzzle-feedback"]')).toContainText(
+      'does not match yet',
+    );
+
+    // Assert that NO row carries correct or error class
+    await expect(page.locator('.table-row.is-row-correct')).toHaveCount(0);
+    await expect(page.locator('.table-row.is-row-error')).toHaveCount(0);
+    await expect(page.locator('.mobile-row-tab.is-correct')).toHaveCount(0);
+  });
+
+  test('after a wrong shading check, no region carries a missed or extra class', async ({
+    page,
+  }) => {
+    await page.goto('/puzzle.html?set=shapes-1&sheet=1');
+
+    // Solve truth table first (F, F, T, F)
+    await page.locator('[data-testid="output-cell-0"]').click();
+    await page.locator('[data-testid="output-cell-0"]').click();
+    await page.locator('[data-testid="output-cell-1"]').click();
+    await page.locator('[data-testid="output-cell-1"]').click();
+    await page.locator('[data-testid="output-cell-2"]').click();
+    await page.locator('[data-testid="output-cell-3"]').click();
+    await page.locator('[data-testid="output-cell-3"]').click();
+    await page.locator('[data-testid="btn-check-table"]').click();
+    await expect(page.locator('[data-testid="btn-check-shading"]')).toBeEnabled();
+
+    // Intentionally shade WRONG region (region 0 instead of region 2)
+    await page.locator('[data-testid="region-0"]').dispatchEvent('click');
+
+    // Check shading
+    await page.locator('[data-testid="btn-check-shading"]').click();
+
+    // Feedback message guides student
+    await expect(page.locator('[data-testid="puzzle-feedback"]')).toContainText(
+      'do not match yet',
+    );
+
+    // NO region carries missed or extra class!
+    await expect(page.locator('.is-checked-missed')).toHaveCount(0);
+    await expect(page.locator('.is-checked-extra')).toHaveCount(0);
+  });
+
+  test('all 8 rows and check button are visible at 1366x768 with no inner scroll in truth table card', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1366, height: 768 });
+    await page.goto('/puzzle.html?set=shapes-1&sheet=3');
+
+    // Inner scroll check: .table-scroll-wrap has no vertical scrollbar
+    const isScrollable = await page
+      .locator('.table-scroll-wrap')
+      .evaluate((el) => el.scrollHeight > el.clientHeight);
+    expect(isScrollable).toBe(false);
+
+    // Last row (row 8) is fully in viewport
+    const row8 = page.locator('[data-testid="output-cell-7"]');
+    await expect(row8).toBeInViewport();
+    const row8Box = await row8.boundingBox();
+    expect(row8Box.y + row8Box.height).toBeLessThanOrEqual(768);
+
+    // Check button is fully in viewport
+    const checkBtn = page.locator('[data-testid="btn-check-table"]');
+    await expect(checkBtn).toBeInViewport();
+    const btnBox = await checkBtn.boundingBox();
+    expect(btnBox.y + btnBox.height).toBeLessThanOrEqual(768);
+  });
+
   test('toggles expression notation between Words and Java symbols', async ({ page }) => {
     await page.goto('/puzzle.html');
 

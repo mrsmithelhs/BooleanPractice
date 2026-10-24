@@ -5,7 +5,9 @@
     data-testid="shape-puzzle-canvas"
   >
     <div class="canvas-header-bar">
-      <h3 class="canvas-title">Shape Diagram</h3>
+      <h3 class="canvas-title">
+        Shape Diagram
+      </h3>
       <span class="canvas-subtitle">Step 2: Shade TRUE regions</span>
     </div>
 
@@ -44,7 +46,13 @@
         :aria-label="`Interactive logic puzzle diagram for ${sheet.title}`"
       >
         <defs>
-          <filter id="focus-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <filter
+            id="focus-glow"
+            x="-20%"
+            y="-20%"
+            width="140%"
+            height="140%"
+          >
             <feDropShadow
               dx="0"
               dy="0"
@@ -65,7 +73,11 @@
         />
 
         <!-- Interactive Region Layers (Hit & Fill) -->
-        <g class="region-layer" role="group" aria-label="Puzzle regions to shade">
+        <g
+          class="region-layer"
+          role="group"
+          aria-label="Puzzle regions to shade"
+        >
           <g
             v-for="region in regions"
             :key="region.id"
@@ -75,8 +87,6 @@
               'is-focused': activeFocusRow === region.id + 1,
               'is-shaded': shadedRegionIds.has(region.id),
               'is-correct': isSolved && isRegionIntendedTrue(region.id),
-              'is-checked-missed': shadingChecked && !shadingCorrect && isRegionMissed(region.id),
-              'is-checked-extra': shadingChecked && !shadingCorrect && isRegionExtra(region.id),
             }"
             role="button"
             tabindex="0"
@@ -102,7 +112,10 @@
         </g>
 
         <!-- Shape Outlines Layer (Solid / Dashed / Dash-dot with Distinct Colors) -->
-        <g class="shape-outlines-layer" pointer-events="none">
+        <g
+          class="shape-outlines-layer"
+          pointer-events="none"
+        >
           <path
             v-for="outline in shapeOutlines"
             :key="outline.variable"
@@ -116,8 +129,15 @@
         </g>
 
         <!-- Outside Shape Labels Layer (Boxes, Leaders, and Swatches) -->
-        <g class="shape-labels-layer" pointer-events="none">
-          <g v-for="lbl in labelBoxes" :key="`lbl-${lbl.variable}`" class="shape-label-item">
+        <g
+          class="shape-labels-layer"
+          pointer-events="none"
+        >
+          <g
+            v-for="lbl in labelBoxes"
+            :key="`lbl-${lbl.variable}`"
+            class="shape-label-item"
+          >
             <!-- Leader Line -->
             <line
               :x1="lbl.lineStart.x"
@@ -129,7 +149,12 @@
               stroke-dasharray="1.5 1.5"
             />
             <!-- Anchor Dot on Shape Edge -->
-            <circle :cx="lbl.anchor.x" :cy="lbl.anchor.y" r="0.9" :fill="lbl.color" />
+            <circle
+              :cx="lbl.anchor.x"
+              :cy="lbl.anchor.y"
+              r="0.9"
+              :fill="lbl.color"
+            />
             <!-- Outside Label Box -->
             <rect
               :x="lbl.box.x"
@@ -169,8 +194,15 @@
         </g>
 
         <!-- Row Badges Layer (Fading Scaffold) -->
-        <g v-if="sheet.showRegionRowNumbers" class="row-badges-layer" pointer-events="none">
-          <template v-for="region in regions" :key="`badges-${region.id}`">
+        <g
+          v-if="sheet.showRegionRowNumbers"
+          class="row-badges-layer"
+          pointer-events="none"
+        >
+          <template
+            v-for="region in regions"
+            :key="`badges-${region.id}`"
+          >
             <g
               v-for="(badge, bIdx) in regionBadges[region.id]"
               :key="`b-${region.id}-${bIdx}`"
@@ -205,9 +237,14 @@
 
     <!-- Screen-reader Region List Fallback -->
     <details class="canvas-sr-details">
-      <summary class="canvas-sr-summary">Text region breakdown &amp; toggle controls</summary>
+      <summary class="canvas-sr-summary">
+        Text region breakdown &amp; toggle controls
+      </summary>
       <ul class="canvas-sr-list">
-        <li v-for="region in regions" :key="`sr-${region.id}`">
+        <li
+          v-for="region in regions"
+          :key="`sr-${region.id}`"
+        >
           <span>{{ regionAriaLabel(region) }}</span>
           <button
             type="button"
@@ -312,14 +349,6 @@ const trueRowsSet = computed(() => new Set(props.sheet.intendedTrueRows || []));
 
 function isRegionIntendedTrue(id) {
   return trueRowsSet.value.has(id);
-}
-
-function isRegionMissed(id) {
-  return trueRowsSet.value.has(id) && !props.shadedRegionIds.has(id);
-}
-
-function isRegionExtra(id) {
-  return !trueRowsSet.value.has(id) && props.shadedRegionIds.has(id);
 }
 
 // Color palette for shape outlines and outside labels (Plan-38 Option c)
@@ -475,10 +504,6 @@ function getRegionStroke(id) {
   if (props.activeHoverRow === displayRow) {
     return '#0284c7'; // Cyan hover ring
   }
-  if (props.shadingChecked && !props.shadingCorrect) {
-    if (isRegionMissed(id)) return '#d97706'; // Amber missed outline
-    if (isRegionExtra(id)) return '#dc2626'; // Red extra outline
-  }
   return 'none';
 }
 
@@ -486,9 +511,6 @@ function getRegionStrokeWidth(id) {
   const displayRow = id + 1;
   if (props.activeFocusRow === displayRow || props.activeHoverRow === displayRow) {
     return '1.5';
-  }
-  if (props.shadingChecked && !props.shadingCorrect && (isRegionMissed(id) || isRegionExtra(id))) {
-    return '1.2';
   }
   return '0';
 }
@@ -596,7 +618,7 @@ function onRegionClick(id) {
 .shape-puzzle-svg {
   display: block;
   width: 100%;
-  max-height: 380px;
+  max-height: 330px;
   background: #ffffff;
 }
 
@@ -612,14 +634,6 @@ function onRegionClick(id) {
 
 .region-group.is-focused .region-path {
   filter: url(#focus-glow);
-}
-
-.region-group.is-checked-missed .region-path {
-  stroke-dasharray: 2 1.5;
-}
-
-.region-group.is-checked-extra .region-path {
-  stroke-dasharray: 2 1.5;
 }
 
 /* Accessibility Details */

@@ -1,28 +1,58 @@
 <template>
-  <div class="shape-puzzle-page-app" data-testid="shape-puzzle-page">
+  <div
+    class="shape-puzzle-page-app"
+    data-testid="shape-puzzle-page"
+  >
     <!-- Fallback Error View -->
-    <div v-if="urlError" class="puzzle-error-container" role="alert">
-      <h2 class="error-title">Puzzle Not Found</h2>
-      <p class="error-message">{{ urlError }}</p>
-      <button type="button" class="btn-error-reset" @click="resetToDefault">
+    <div
+      v-if="urlError"
+      class="puzzle-error-container"
+      role="alert"
+    >
+      <h2 class="error-title">
+        Puzzle Not Found
+      </h2>
+      <p class="error-message">
+        {{ urlError }}
+      </p>
+      <button
+        type="button"
+        class="btn-error-reset"
+        @click="resetToDefault"
+      >
         Go to Mystery Picture 1
       </button>
     </div>
 
     <!-- Main Puzzle View -->
-    <div v-else-if="currentSheet" class="puzzle-layout-wrapper">
+    <div
+      v-else-if="currentSheet"
+      class="puzzle-layout-wrapper"
+    >
       <!-- Top Navigation & Header Bar -->
       <header class="puzzle-top-bar">
         <div class="top-title-group">
-          <h1 class="main-puzzle-title">Shape Logic Puzzles</h1>
-          <span class="sheet-title-badge" data-testid="sheet-title">{{ currentSheet.title }}</span>
-          <span v-if="isTeacher" class="teacher-view-badge" data-testid="teacher-badge">
+          <h1 class="main-puzzle-title">
+            Shape Logic Puzzles
+          </h1>
+          <span
+            class="sheet-title-badge"
+            data-testid="sheet-title"
+          >{{ currentSheet.title }}</span>
+          <span
+            v-if="isTeacher"
+            class="teacher-view-badge"
+            data-testid="teacher-badge"
+          >
             Teacher Key
           </span>
         </div>
 
         <!-- Sheet Selector Controls -->
-        <nav class="sheet-nav-group" aria-label="Sheet selection">
+        <nav
+          class="sheet-nav-group"
+          aria-label="Sheet selection"
+        >
           <button
             type="button"
             class="sheet-nav-btn prev-btn"
@@ -63,10 +93,19 @@
       </header>
 
       <!-- Expression & Notation Banner -->
-      <section class="expression-banner" aria-labelledby="expression-heading">
+      <section
+        class="expression-banner"
+        aria-labelledby="expression-heading"
+      >
         <div class="expression-content">
-          <span id="expression-heading" class="expression-label">Expression:</span>
-          <span class="expression-code" data-testid="expression-text">
+          <span
+            id="expression-heading"
+            class="expression-label"
+          >Expression:</span>
+          <span
+            class="expression-code"
+            data-testid="expression-text"
+          >
             {{ formattedExpression }}
           </span>
         </div>
@@ -94,9 +133,15 @@
         aria-live="polite"
         data-testid="puzzle-feedback"
       >
-        <span v-if="isSolved" class="feedback-solved-icon">🎉</span>
+        <span
+          v-if="isSolved"
+          class="feedback-solved-icon"
+        >🎉</span>
         <span class="feedback-text">
-          <strong v-if="isSolved" data-testid="solved-picture-name">
+          <strong
+            v-if="isSolved"
+            data-testid="solved-picture-name"
+          >
             Picture Revealed: {{ currentSheet.pictureName }}!
           </strong>
           <span v-else>{{ feedbackMessage }}</span>
@@ -436,7 +481,7 @@ onMounted(() => {
 .shape-puzzle-page-app {
   max-width: 1240px;
   margin: 0 auto;
-  padding: 10px 16px 20px 16px;
+  padding: 6px 14px 10px 14px;
   display: flex;
   flex-direction: column;
 }
@@ -475,7 +520,7 @@ onMounted(() => {
   align-items: center;
   flex-wrap: wrap;
   gap: 12px;
-  padding-bottom: 8px;
+  padding-bottom: 6px;
   border-bottom: 1px solid #1e293b;
 }
 
@@ -576,8 +621,8 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   gap: 16px;
-  margin-top: 8px;
-  padding: 8px 14px;
+  margin-top: 6px;
+  padding: 6px 12px;
   background: #151e32;
   border: 1px solid #24324f;
   border-radius: 6px;
@@ -590,7 +635,7 @@ onMounted(() => {
 }
 
 .expression-label {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: #94a3b8;
   text-transform: uppercase;
@@ -599,7 +644,7 @@ onMounted(() => {
 
 .expression-code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   font-weight: 800;
   color: #38bdf8;
 }
@@ -608,9 +653,9 @@ onMounted(() => {
   background: #1e293b;
   border: 1px solid #334155;
   color: #cbd5e1;
-  padding: 4px 10px;
+  padding: 3px 8px;
   border-radius: 4px;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -624,15 +669,16 @@ onMounted(() => {
 
 /* Status / Feedback Banner */
 .puzzle-feedback-banner {
-  margin-top: 8px;
-  padding: 8px 14px;
+  margin-top: 6px;
+  padding: 6px 12px;
+  min-height: 34px;
   border-radius: 6px;
   background: #1e293b;
   border: 1px solid #334155;
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.86rem;
+  font-size: 0.84rem;
   color: #e2e8f0;
 }
 
@@ -640,7 +686,7 @@ onMounted(() => {
   background: #064e3b;
   border-color: #10b981;
   color: #d1fae5;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
 }
 
 .puzzle-feedback-banner.is-error {
@@ -650,15 +696,15 @@ onMounted(() => {
 }
 
 .feedback-solved-icon {
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 /* Two-column Interactive Workspace Grid */
 .puzzle-workspace-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
-  gap: 16px;
-  margin-top: 10px;
+  gap: 12px;
+  margin-top: 8px;
   align-items: start;
 }
 

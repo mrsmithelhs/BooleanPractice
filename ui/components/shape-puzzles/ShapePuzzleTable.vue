@@ -1,13 +1,23 @@
 <template>
-  <div class="shape-puzzle-table-root" data-testid="shape-puzzle-table">
+  <div
+    class="shape-puzzle-table-root"
+    data-testid="shape-puzzle-table"
+  >
     <!-- Desktop Full Table View (>= 860px) -->
     <div class="desktop-table-container">
       <div class="table-header-bar">
-        <h3 class="table-heading">Truth Table</h3>
+        <h3 class="table-heading">
+          Truth Table
+        </h3>
         <span class="table-subheading">Step 1: Predict outputs</span>
       </div>
 
-      <div class="bulk-actions-bar" role="group" aria-label="Bulk output edit controls">
+      <div
+        v-if="isTeacher"
+        class="bulk-actions-bar"
+        role="group"
+        aria-label="Bulk output edit controls"
+      >
         <button
           type="button"
           class="btn-bulk"
@@ -53,11 +63,27 @@
       </details>
 
       <div class="table-scroll-wrap">
-        <table class="puzzle-truth-table" role="table" aria-label="Truth table for shape puzzle">
+        <table
+          class="puzzle-truth-table"
+          role="table"
+          aria-label="Truth table for shape puzzle"
+        >
           <thead>
             <tr>
-              <th scope="col" class="th-row">Row</th>
-              <th v-for="v in variables" :key="v" scope="col" class="th-var">{{ v }}</th>
+              <th
+                scope="col"
+                class="th-row"
+              >
+                Row
+              </th>
+              <th
+                v-for="v in variables"
+                :key="v"
+                scope="col"
+                class="th-var"
+              >
+                {{ v }}
+              </th>
 
               <!-- Intermediate columns if break it down open -->
               <template v-if="isBreakDownOpen">
@@ -71,10 +97,17 @@
                 </th>
               </template>
 
-              <th scope="col" class="th-target-output">
+              <th
+                scope="col"
+                class="th-target-output"
+              >
                 {{ targetExpressionLabel }}
               </th>
-              <th scope="col" class="th-shaded-status" title="Current shading on diagram">
+              <th
+                scope="col"
+                class="th-shaded-status"
+                title="Current shading on diagram"
+              >
                 Shaded
               </th>
             </tr>
@@ -87,8 +120,7 @@
               :class="{
                 'is-row-hovered': activeHoverRow === idx + 1,
                 'is-row-focused': activeFocusRow === idx + 1,
-                'is-row-correct': outputsChecked && isRowOutputCorrect(idx),
-                'is-row-error': outputsChecked && !isRowOutputCorrect(idx),
+                'is-row-correct': outputsCorrect,
               }"
               @mouseenter="emit('row-hover', idx + 1)"
               @mouseleave="emit('row-hover', null)"
@@ -98,7 +130,11 @@
               <td class="td-row">
                 <span class="row-badge-pill">{{ idx + 1 }}</span>
               </td>
-              <td v-for="v in variables" :key="`${idx}-${v}`" class="td-var">
+              <td
+                v-for="v in variables"
+                :key="`${idx}-${v}`"
+                class="td-var"
+              >
                 {{ getRowVarValue(row, v) ? 'T' : 'F' }}
               </td>
 
@@ -167,12 +203,18 @@
     <!-- Mobile Compact Row View (< 860px) -->
     <div class="mobile-inspector-container">
       <div class="inspector-header">
-        <h3 class="inspector-title">Truth Table Inspector</h3>
+        <h3 class="inspector-title">
+          Truth Table Inspector
+        </h3>
         <span class="inspector-step">Step 1: Set output for each row</span>
       </div>
 
       <!-- Row Selector Bar -->
-      <div class="mobile-row-selector" role="tablist" aria-label="Select row to inspect">
+      <div
+        class="mobile-row-selector"
+        role="tablist"
+        aria-label="Select row to inspect"
+      >
         <button
           v-for="(row, idx) in tableData.rows"
           :key="`m-row-${idx}`"
@@ -182,7 +224,7 @@
           :class="{
             'is-selected': selectedMobileRow === idx,
             'is-filled': studentOutputs[idx] !== null,
-            'is-correct': outputsChecked && isRowOutputCorrect(idx),
+            'is-correct': outputsCorrect,
           }"
           :aria-selected="selectedMobileRow === idx"
           :data-testid="`mobile-tab-row-${idx + 1}`"
@@ -194,7 +236,10 @@
       </div>
 
       <!-- Active Row Card -->
-      <div v-if="activeMobileRowData" class="mobile-row-card">
+      <div
+        v-if="activeMobileRowData"
+        class="mobile-row-card"
+      >
         <div class="mobile-card-row-head">
           <span class="card-row-num">Row {{ selectedMobileRow + 1 }}</span>
           <span
@@ -206,7 +251,11 @@
         </div>
 
         <div class="mobile-vars-row">
-          <div v-for="v in variables" :key="`m-var-${v}`" class="m-var-pill">
+          <div
+            v-for="v in variables"
+            :key="`m-var-${v}`"
+            class="m-var-pill"
+          >
             <span class="m-var-name">{{ v }}:</span>
             <span class="m-var-value">{{ getRowVarValue(activeMobileRowData, v) ? 'T' : 'F' }}</span>
           </div>
@@ -369,11 +418,6 @@ function toggleRowOutput(idx) {
   emit('update-output', idx, next);
 }
 
-function isRowOutputCorrect(idx) {
-  const expected = tableData.value.rows[idx]?.result;
-  return props.studentOutputs[idx] === expected;
-}
-
 // Mobile row selection
 const selectedMobileRow = ref(0);
 
@@ -477,13 +521,13 @@ function selectMobileRow(idx) {
 /* Desktop Table */
 .table-scroll-wrap {
   overflow-x: auto;
-  max-height: 380px;
+  overflow-y: visible;
 }
 
 .puzzle-truth-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.88rem;
+  font-size: 0.84rem;
   text-align: center;
 }
 
@@ -491,7 +535,8 @@ function selectMobileRow(idx) {
   background: #f8fafc;
   color: #334155;
   font-weight: 600;
-  padding: 8px 10px;
+  padding: 4px 6px;
+  font-size: 0.8rem;
   border-bottom: 2px solid #cbd5e1;
   position: sticky;
   top: 0;
@@ -499,9 +544,10 @@ function selectMobileRow(idx) {
 }
 
 .puzzle-truth-table td {
-  padding: 6px 10px;
+  padding: 2px 6px;
   border-bottom: 1px solid #f1f5f9;
   color: #0f172a;
+  font-size: 0.82rem;
 }
 
 .table-row {
@@ -518,16 +564,16 @@ function selectMobileRow(idx) {
   outline: 2px solid #f59e0b;
 }
 
-.table-row.is-row-error {
-  background: #fef2f2;
+.table-row.is-row-correct {
+  background: #f0fdf4;
 }
 
 .row-badge-pill {
   display: inline-block;
-  min-width: 22px;
-  height: 22px;
-  line-height: 20px;
-  font-size: 0.8rem;
+  min-width: 18px;
+  height: 18px;
+  line-height: 16px;
+  font-size: 0.72rem;
   font-weight: 700;
   background: #f1f5f9;
   border: 1px solid #cbd5e1;
@@ -544,7 +590,7 @@ function selectMobileRow(idx) {
 .td-subexpr {
   background: #fafafa;
   color: #64748b;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   border-left: 1px dashed #e2e8f0;
   border-right: 1px dashed #e2e8f0;
 }
@@ -559,11 +605,11 @@ function selectMobileRow(idx) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 32px;
-  font-size: 0.95rem;
+  width: 38px;
+  height: 24px;
+  font-size: 0.85rem;
   font-weight: 700;
-  border-radius: 6px;
+  border-radius: 4px;
   border: 1.5px solid #cbd5e1;
   background: #ffffff;
   cursor: pointer;
@@ -580,13 +626,20 @@ function selectMobileRow(idx) {
   outline-offset: 1px;
 }
 
-.cell-output-btn.val-true {
+.cell-output-btn.val-true,
+.cell-output-btn.val-false {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+
+.table-row.is-row-correct .cell-output-btn.val-true {
   background: #dcfce7;
   color: #15803d;
   border-color: #86efac;
 }
 
-.cell-output-btn.val-false {
+.table-row.is-row-correct .cell-output-btn.val-false {
   background: #fee2e2;
   color: #b91c1c;
   border-color: #fca5a5;
@@ -613,20 +666,20 @@ function selectMobileRow(idx) {
 /* Footer & Check */
 .table-actions-footer,
 .mobile-footer-actions {
-  padding: 10px 14px;
+  padding: 6px 12px;
   border-top: 1px solid #e2e8f0;
   display: flex;
   justify-content: flex-end;
 }
 
 .btn-check-table {
-  padding: 8px 16px;
-  font-size: 0.88rem;
+  padding: 6px 14px;
+  font-size: 0.82rem;
   font-weight: 700;
   color: #ffffff;
   background: #2563eb;
   border: none;
-  border-radius: 6px;
+  border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.15s ease;
 }
