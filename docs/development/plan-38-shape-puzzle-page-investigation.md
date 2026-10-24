@@ -1,11 +1,9 @@
 ---
 id: plan-38
 title: "Shape Puzzle Page Investigation (P3)"
-status: ready
+status: in-progress
 depends_on: [plan-37]
 gate: "GATE-38A: investigation report and proposed implementation packet outline go to the owner; no production source changes in this packet"
-superseded_by: null
-resolution: null
 summary: >-
   Investigate-first packet for P3: a separate, stripped-down online "shade the expression" page that uses irregular shapes
   from plan-37, shows AND/OR/NOT words with a toggle to Java symbols, and keeps every region linked to its truth-table row.
