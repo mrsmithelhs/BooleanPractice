@@ -1,7 +1,20 @@
-import { getHintStage } from '@shared/feedback/index.js';
+import { buildTruthTableHint, getHintStage } from '@shared/feedback/index.js';
 import { parseBooleanExpression } from '@shared/parser/index.js';
 
 export { getHintStage, buildTruthTableHint } from '@shared/feedback/index.js';
+
+// The AP truth-table hint's first stage says "Recheck the current row", but this page
+// checks the whole output column at once, so it has no current row. Later stages name
+// a specific row and are reused unchanged.
+export function buildShapePuzzleTableHint(options) {
+  if (getHintStage(options.attemptCount) === 'neutral') {
+    return options.isBlank
+      ? `Some rows for ${options.step.label} are still blank. Fill every row with T or F.`
+      : `Some rows for ${options.step.label} do not match yet. Recheck each row using the expression.`;
+  }
+
+  return buildTruthTableHint(options);
+}
 
 function describeRegionLocation(regionId, variables) {
   const inside = [];

@@ -201,7 +201,7 @@ import { computed, onMounted, ref } from 'vue';
 import ShapePuzzleCanvas from './ShapePuzzleCanvas.vue';
 import ShapePuzzleTable from './ShapePuzzleTable.vue';
 import { AVAILABLE_SETS, buildPuzzleUrl, parsePuzzleUrl } from './url.js';
-import { buildShapePuzzleShadingHint, buildTruthTableHint } from './feedback.js';
+import { buildShapePuzzleShadingHint, buildShapePuzzleTableHint } from './feedback.js';
 import { generateTruthTable } from '@shared/truth-table/index.js';
 import { formatExpressionSymbols, formatExpressionWords } from '@shared/notation/index.js';
 
@@ -378,7 +378,7 @@ function handleCheckOutputs() {
 
   if (firstBlankIdx !== -1) {
     const row = rows[firstBlankIdx];
-    feedbackMessage.value = buildTruthTableHint({
+    feedbackMessage.value = buildShapePuzzleTableHint({
       attemptCount: outputAttemptCount.value,
       step: { label: exprLabel, node: ast },
       row,
@@ -393,7 +393,7 @@ function handleCheckOutputs() {
 
   if (firstIncorrectIdx !== -1) {
     const row = rows[firstIncorrectIdx];
-    feedbackMessage.value = buildTruthTableHint({
+    feedbackMessage.value = buildShapePuzzleTableHint({
       attemptCount: outputAttemptCount.value,
       step: { label: exprLabel, node: ast },
       row,

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { parsePuzzleUrl, buildPuzzleUrl } from '@/components/shape-puzzles/url.js';
 import {
   buildShapePuzzleShadingHint,
+  buildShapePuzzleTableHint,
   buildTruthTableHint,
   getHintStage,
 } from '@/components/shape-puzzles/feedback.js';
@@ -118,5 +119,28 @@ describe('Shape Puzzle Flow & Helpers', () => {
       expect(h3).toContain('Row 3 is TRUE');
       expect(h3).toContain('inside Shape A');
     });
+  });
+});
+
+describe('shape puzzle table hint wrapper', () => {
+  const step = { label: 'A AND NOT(B)', node: parseBooleanExpression('a && !b') };
+  const row = { assignment: { A: true, B: true } };
+
+  it('first-stage hints address the whole column, not a current row', () => {
+    const wrong = buildShapePuzzleTableHint({ attemptCount: 1, step, row, isBlank: false });
+    const blank = buildShapePuzzleTableHint({ attemptCount: 1, step, row, isBlank: true });
+    expect(wrong).toContain('do not match yet');
+    expect(blank).toContain('still blank');
+    for (const hint of [wrong, blank]) {
+      expect(hint).not.toContain('current row');
+    }
+  });
+
+  it('later stages reuse the shared truth-table hint unchanged', () => {
+    for (const attemptCount of [2, 3]) {
+      expect(buildShapePuzzleTableHint({ attemptCount, step, row })).toBe(
+        buildTruthTableHint({ attemptCount, step, row }),
+      );
+    }
   });
 });

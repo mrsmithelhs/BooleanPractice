@@ -73,13 +73,43 @@ test.describe('Shape Puzzle Page (Plan 39 / P3)', () => {
     await page.locator('[data-testid="output-cell-3"]').click();
     await page.locator('[data-testid="output-cell-3"]').click(); // F
 
+    // Snapshot how every row and output cell looks before the check, so the test
+    // catches any per-row reveal (not only the old class names).
+    // Hover/focus and CSS transitions also change row styles, so neutralize them first.
+    await page.addStyleTag({ content: '*, *::before, *::after { transition: none !important; }' });
+    const rowLooks = async () => {
+      await page.mouse.move(0, 0);
+      await page.evaluate(() => document.activeElement?.blur());
+      return page.locator('.table-row').evaluateAll((rows) =>
+        rows.map((row) => {
+          row.classList.remove('is-row-hovered', 'is-row-focused');
+          const rowStyle = getComputedStyle(row);
+          const cell = row.querySelector('.cell-output-btn');
+          const cellStyle = cell ? getComputedStyle(cell) : null;
+          return [
+            row.className,
+            rowStyle.backgroundColor,
+            rowStyle.color,
+            cell?.className,
+            cellStyle?.backgroundColor,
+            cellStyle?.borderColor,
+            cellStyle?.color,
+          ].join('|');
+        }),
+      );
+    };
+    const before = await rowLooks();
+
     // Check outputs
     await page.locator('[data-testid="btn-check-table"]').click();
 
-    // Verify staged feedback message appears
-    await expect(page.locator('[data-testid="puzzle-feedback"]')).toContainText(
-      'does not match yet',
-    );
+    // Verify staged feedback message appears, without the AP "current row" wording
+    const feedback = page.locator('[data-testid="puzzle-feedback"]');
+    await expect(feedback).toContainText('do not match yet');
+    await expect(feedback).not.toContainText('current row');
+
+    // Rows look exactly as they did before the failed check
+    expect(await rowLooks()).toEqual(before);
 
     // Assert that NO row carries correct or error class
     await expect(page.locator('.table-row.is-row-correct')).toHaveCount(0);
