@@ -126,6 +126,17 @@ The orchestrator's review found that the prototype's pre-filled output column tu
 
 **Supersedes / related:** DECISION-003, DECISION-006, DECISION-007; plan-38, plan-39.
 
+**Amendment (2026-10-24, owner, after the GATE-39A preview):** The "order of work" bullet above is replaced.
+- Each sheet asks for **one** representation:
+  - **table** sheets: the student fills the output column, and shading isn't available;
+  - **shade** sheets: the student shades the regions from the expression, and the table is hidden.
+- After a correct check, the page fills in the other representation as feedback, which makes the table↔region link visible.
+- Modes alternate through the set, table first: in shapes-1, sheets 1 and 3 are table sheets, and sheets 2 and 4 are shade sheets.
+
+Why the owner changed it: once students see that the table and the regions are linked, doing both turns the second step into a mechanical translation. Shade-only sheets test reading the expression straight onto the regions.
+
+Still open: the "picture revealed" framing is weak when the outlines already draw the picture. It is revisited with the next shape sets.
+
 ## Proposed but not yet accepted
 
 *(No new proposals were created by Plan 34. Unresolved owner decisions belong in `docs/open-questions.md`.)*

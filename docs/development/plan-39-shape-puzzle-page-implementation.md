@@ -48,7 +48,7 @@ It reuses the shared semantics, the plan-37 geometry, and the conventions from p
 2. **Colored outlines plus outside labels** (plan-38 option c). Each shape gets a distinct color *and* its plan-37 line style (solid, dashed, dash-dot), with outside label boxes, swatches, and leaders. It must stay fully distinguishable in greyscale.
 3. **Full truth table beside the diagram on desktop (≥ 860 px). A compact row inspector on narrow screens.**
 4. **Whole expression in one step.** An optional "Break it down" disclosure adds subexpression columns. It is never mandatory.
-5. **Students fill the output column.**
+5. **Students fill the output column.** *(Amended 2026-10-24 after the GATE-39A preview. Sheets now alternate between table-only and shade-only, and the page fills in the other representation after a correct check. See the DECISION-008 amendment and `reports/development/plan-39-shape-puzzle-page-implementation/orchestrator-repair-02-alternating-modes.md`.)*
    - The table starts with the inputs filled and the output blank.
    - Students enter T/F per row, and it is checked like the existing truth-table mode.
    - Shading can be checked only after the output column is correct.
