@@ -170,7 +170,10 @@ You are expected to invent other pictures from your own knowledge: icons, animal
      - 1366×768 with no vertical scroll still holds for a 3-shape sheet in both modes;
      - the isolation test still passes.
    - The plan-37 print-legibility tests run on shapes-2.
-7. **Docs:**
+7. **Page polish carried over from the plan-39 Repair 02 review:**
+   - **Solved frame edges.** In the solved state, the diagram loses the top and bottom edges of its frame (plan-39 screenshots 02 and 05). Make the frame show all four sides in every state, and add an e2e check that the frame's rendered box matches its own bounds before and after a solve.
+   - **Neutral F styling.** In the solved or verified table, F values are tinted red and T values green, so students may read a correct F as "wrong". Give F a neutral style and keep T's emphasis subtle. Never use red for a value that is correct.
+8. **Docs:**
    - `docs/shape-printables.md`: the work-backwards method, decoy staging, and the giveaway metric. Make it a short "how to author a set" section that the next set can follow;
    - `docs/shape-puzzle-page.md`: reveal overlays and their data format.
 
