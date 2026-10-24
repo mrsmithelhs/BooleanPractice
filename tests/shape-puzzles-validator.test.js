@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { validateSheet } from '../src/shape-puzzles/validator.js';
 import { createCircle, createPolygon } from '../src/shape-puzzles/shapes.js';
 
+
 describe('shape puzzle sheet validator', () => {
   it('passes a well-formed 2-variable sheet with sufficient area and inscribed circles', () => {
     // 140 x 100 viewBox. Two overlapping circles with ample margin.

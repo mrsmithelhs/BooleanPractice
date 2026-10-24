@@ -7,6 +7,12 @@
   --accent-green: #059669;
   --accent-amber: #d97706;
   --border-color: #334155;
+  --overlay-detail-stroke: #0f172a;
+  --overlay-detail-fill: rgba(255, 255, 255, 0.9);
+  --overlay-accent: #f59e0b;
+  --overlay-accent-stroke: #d97706;
+  --overlay-highlight: #ffffff;
+  --overlay-star: #fbbf24;
   font-family:
     system-ui,
     -apple-system,
@@ -38,4 +44,13 @@ body {
 
 #app {
   min-height: 100vh;
+}
+
+.shape-puzzle-canvas-root.is-greyscale {
+  --overlay-detail-stroke: #1e293b;
+  --overlay-detail-fill: rgba(255, 255, 255, 0.9);
+  --overlay-accent: #475569;
+  --overlay-accent-stroke: #334155;
+  --overlay-highlight: #ffffff;
+  --overlay-star: #64748b;
 }

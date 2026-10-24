@@ -272,6 +272,7 @@
       <div
         v-if="activeMobileRowData"
         class="mobile-row-card"
+        :class="{ 'is-card-correct': outputsCorrect }"
       >
         <div class="mobile-card-row-head">
           <span class="card-row-num">Row {{ selectedMobileRow + 1 }}</span>
@@ -678,16 +679,18 @@ function selectMobileRow(idx) {
   border-color: #94a3b8;
 }
 
-.table-row.is-row-correct .cell-output-btn.val-true {
-  background: #dcfce7;
-  color: #15803d;
-  border-color: #86efac;
+.table-row.is-row-correct .cell-output-btn.val-true,
+.mobile-row-card.is-card-correct .cell-output-btn.val-true {
+  background: #ecfdf5;
+  color: #047857;
+  border-color: #a7f3d0;
 }
 
-.table-row.is-row-correct .cell-output-btn.val-false {
-  background: #fee2e2;
-  color: #b91c1c;
-  border-color: #fca5a5;
+.table-row.is-row-correct .cell-output-btn.val-false,
+.mobile-row-card.is-card-correct .cell-output-btn.val-false {
+  background: #f8fafc;
+  color: #475569;
+  border-color: #cbd5e1;
 }
 
 .cell-output-btn.val-blank {

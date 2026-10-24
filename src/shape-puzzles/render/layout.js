@@ -613,6 +613,7 @@ function getBaseCss() {
 
 export function renderStudentPageHtml(sheet, regions, options = {}) {
   const convention = options.truthTableValues || sheet.truthTableValues || 'TF';
+  const setId = options.setId || sheet.setId || (sheet.id && sheet.id.startsWith('shapes-2') ? 'shapes-2' : 'shapes-1');
   const wordsExpr = formatExpressionWords(sheet.expression);
   const figureSvg = renderFigureSvg(sheet, regions, { isKey: false, convention });
   const tableHtml = renderTruthTableHtml(sheet, regions, { isKey: false, convention });
@@ -659,7 +660,7 @@ export function renderStudentPageHtml(sheet, regions, options = {}) {
 
     <div class="footer-block">
       <span>Mr. Smith's Engineering Tech — Digital Logic</span>
-      <span>Set: shapes-1 &bull; ${sheet.title}</span>
+      <span>Set: ${setId} &bull; ${sheet.title}</span>
       <span class="page-number-text">Page 1</span>
     </div>
   </div>
@@ -669,6 +670,7 @@ export function renderStudentPageHtml(sheet, regions, options = {}) {
 
 export function renderKeyPageHtml(sheet, regions, options = {}) {
   const convention = options.truthTableValues || sheet.truthTableValues || 'TF';
+  const setId = options.setId || sheet.setId || (sheet.id && sheet.id.startsWith('shapes-2') ? 'shapes-2' : 'shapes-1');
   const wordsExpr = formatExpressionWords(sheet.expression);
   const symbolExpr = formatExpressionSymbols(sheet.expression);
   const figureSvg = renderFigureSvg(sheet, regions, { isKey: true, convention });
@@ -713,7 +715,7 @@ export function renderKeyPageHtml(sheet, regions, options = {}) {
 
     <div class="footer-block">
       <span>Mr. Smith's Engineering Tech &bull; Teacher Answer Key</span>
-      <span>Set: shapes-1 &bull; ${sheet.id}</span>
+      <span>Set: ${setId} &bull; ${sheet.id}</span>
       <span class="page-number-text">Key Page 1</span>
     </div>
   </div>

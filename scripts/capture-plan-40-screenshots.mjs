@@ -1,0 +1,111 @@
+import { preview } from 'vite';
+import { chromium } from 'playwright';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { mkdir, rm } from 'node:fs/promises';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const repoRoot = resolve(__dirname, '..');
+const outDir = resolve(
+  repoRoot,
+  'reports/development/plan-40-camouflaged-shape-sets-and-reveal-overlays/screenshots',
+);
+
+async function capturePlan40Screenshots() {
+  await rm(outDir, { recursive: true, force: true });
+  await mkdir(outDir, { recursive: true });
+
+  console.log('Starting preview server...');
+  const server = await preview({
+    root: resolve(repoRoot, 'ui'),
+    configFile: resolve(repoRoot, 'vite.config.js'),
+    preview: {
+      port: 4173,
+      host: '127.0.0.1',
+    },
+  });
+
+  const baseUrl = 'http://127.0.0.1:4173';
+  console.log(`Preview server listening at ${baseUrl}`);
+
+  const browser = await chromium.launch();
+  const context = await browser.newContext({
+    viewport: { width: 1366, height: 768 },
+    deviceScaleFactor: 1,
+  });
+
+  const page = await context.newPage();
+
+  // 1. Shapes-1 Sheet 1 Solved with Overlay (Sun with radiating rays, neutral F styling)
+  console.log('Capturing 01-shapes-1-sheet1-sun-solved-overlay.png...');
+  await page.goto(`${baseUrl}/puzzle.html?set=shapes-1&sheet=1&teacher=1`);
+  await page.waitForSelector('[data-testid="reveal-overlay-layer"]');
+  await page.screenshot({ path: resolve(outDir, '01-shapes-1-sheet1-sun-solved-overlay.png') });
+
+  // 2. Shapes-1 Sheet 2 Solved with Overlay (Gem faceted setting)
+  console.log('Capturing 02-shapes-1-sheet2-gem-solved-overlay.png...');
+  await page.goto(`${baseUrl}/puzzle.html?set=shapes-1&sheet=2&teacher=1`);
+  await page.waitForSelector('[data-testid="reveal-overlay-layer"]');
+  await page.screenshot({ path: resolve(outDir, '02-shapes-1-sheet2-gem-solved-overlay.png') });
+
+  // 3. Shapes-2 Sheet 1 Unsolved (Wrench: Table mode, outlines only, no overlay in DOM)
+  console.log('Capturing 03-shapes-2-sheet1-wrench-unsolved.png...');
+  await page.goto(`${baseUrl}/puzzle.html?set=shapes-2&sheet=1`);
+  await page.waitForSelector('[data-testid="shape-puzzle-page"]');
+  await page.screenshot({ path: resolve(outDir, '03-shapes-2-sheet1-wrench-unsolved.png') });
+
+  // 4. Shapes-2 Sheet 1 Solved with Overlay (Wrench: head cut-out and handle line)
+  console.log('Capturing 04-shapes-2-sheet1-wrench-solved-overlay.png...');
+  await page.locator('[data-testid="output-cell-0"]').click();
+  await page.locator('[data-testid="output-cell-0"]').click(); // F
+  await page.locator('[data-testid="output-cell-1"]').click();
+  await page.locator('[data-testid="output-cell-1"]').click(); // F
+  await page.locator('[data-testid="output-cell-2"]').click(); // T
+  await page.locator('[data-testid="output-cell-3"]').click();
+  await page.locator('[data-testid="output-cell-3"]').click(); // F
+  await page.locator('[data-testid="btn-check-table"]').click();
+  await page.waitForSelector('[data-testid="reveal-overlay-layer"]');
+  await page.screenshot({ path: resolve(outDir, '04-shapes-2-sheet1-wrench-solved-overlay.png') });
+
+  // 5. Shapes-2 Sheet 4 Student View (Sea Turtle: Shade mode with decoy fin)
+  console.log('Capturing 05-shapes-2-sheet4-turtle-student.png...');
+  await page.goto(`${baseUrl}/puzzle.html?set=shapes-2&sheet=4`);
+  await page.waitForSelector('[data-testid="shape-puzzle-canvas"]');
+  await page.screenshot({ path: resolve(outDir, '05-shapes-2-sheet4-turtle-student.png') });
+
+  // 6. Shapes-2 Sheet 4 Solved with Overlay (Sea Turtle shell scutes)
+  console.log('Capturing 06-shapes-2-sheet4-turtle-solved-overlay.png...');
+  await page.goto(`${baseUrl}/puzzle.html?set=shapes-2&sheet=4&teacher=1`);
+  await page.waitForSelector('[data-testid="reveal-overlay-layer"]');
+  await page.screenshot({ path: resolve(outDir, '06-shapes-2-sheet4-turtle-solved-overlay.png') });
+
+  // 7. Shapes-2 Sheet 5 Challenge Chip (Satellite, Extension Tier)
+  console.log('Capturing 07-shapes-2-sheet5-challenge-chip.png...');
+  await page.goto(`${baseUrl}/puzzle.html?set=shapes-2&sheet=5`);
+  await page.waitForSelector('[data-testid="challenge-chip"]');
+  await page.screenshot({ path: resolve(outDir, '07-shapes-2-sheet5-challenge-chip.png') });
+
+  // 8. Greyscale View (Sheet 3 with dashed outlines and overlay in teacher view)
+  console.log('Capturing 08-greyscale-mode-sheet3.png...');
+  await page.goto(`${baseUrl}/puzzle.html?set=shapes-1&sheet=3&teacher=1`);
+  await page.waitForSelector('[data-testid="reveal-overlay-layer"]');
+  await page.evaluate(() => document.documentElement.classList.add('is-greyscale'));
+  await page.screenshot({ path: resolve(outDir, '08-greyscale-mode-sheet3.png') });
+
+  // 9. Phone View (390 x 844) of Shapes-2 Sheet 2 (Biplane)
+  console.log('Capturing 09-phone-view-shapes-2-sheet2.png...');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`${baseUrl}/puzzle.html?set=shapes-2&sheet=2`);
+  await page.waitForSelector('[data-testid="shape-puzzle-canvas"]');
+  await page.screenshot({ path: resolve(outDir, '09-phone-view-shapes-2-sheet2.png') });
+
+  console.log('Closing browser and server...');
+  await browser.close();
+  await server.close();
+  console.log('Plan-40 screenshots captured successfully!');
+}
+
+capturePlan40Screenshots().catch((err) => {
+  console.error('Failed to capture screenshots:', err);
+  process.exit(1);
+});

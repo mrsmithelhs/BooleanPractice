@@ -399,4 +399,176 @@ test.describe('Shape Puzzle Page (Plan 39 / P3)', () => {
     clientWidth = await page.evaluate(() => document.documentElement.clientWidth);
     expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 2);
   });
+
+  test('reveal overlay layer does NOT exist in DOM before solve, and appears after solve or in teacher mode', async ({
+    page,
+  }) => {
+    // 1. Before solve in Table mode: no reveal overlay layer in DOM
+    await page.goto('/puzzle.html?set=shapes-1&sheet=1');
+    await expect(page.locator('[data-testid="reveal-overlay-layer"]')).toHaveCount(0);
+
+    // Incorrect check does NOT reveal overlay
+    await page.locator('[data-testid="output-cell-0"]').click(); // T (wrong)
+    await page.locator('[data-testid="btn-check-table"]').click();
+    await expect(page.locator('[data-testid="reveal-overlay-layer"]')).toHaveCount(0);
+
+    // Solve correctly:
+    await page.locator('[data-testid="output-cell-0"]').click(); // F
+    await page.locator('[data-testid="output-cell-1"]').click();
+    await page.locator('[data-testid="output-cell-1"]').click(); // F
+    await page.locator('[data-testid="output-cell-2"]').click(); // T
+    await page.locator('[data-testid="output-cell-3"]').click();
+    await page.locator('[data-testid="output-cell-3"]').click(); // F
+    await page.locator('[data-testid="btn-check-table"]').click();
+
+    // Now reveal overlay layer is present and has rendered primitives
+    await expect(page.locator('[data-testid="reveal-overlay-layer"]')).toBeVisible();
+    const primitives = page.locator('.overlay-prim');
+    expect(await primitives.count()).toBeGreaterThan(0);
+
+    // 2. Before solve in Shade mode: no overlay layer in DOM
+    await page.goto('/puzzle.html?set=shapes-1&sheet=2');
+    await expect(page.locator('[data-testid="reveal-overlay-layer"]')).toHaveCount(0);
+
+    // Solve correctly (Gem is region 3):
+    await page.locator('[data-testid="region-3"]').dispatchEvent('click');
+    await page.locator('[data-testid="btn-check-shading"]').click();
+    await expect(page.locator('[data-testid="reveal-overlay-layer"]')).toBeVisible();
+
+    // 3. Teacher key immediately reveals overlay layer
+    await page.goto('/puzzle.html?set=shapes-1&sheet=1&teacher=1');
+    await expect(page.locator('[data-testid="reveal-overlay-layer"]')).toBeVisible();
+  });
+
+  test('frame boundary maintains 4 visible edges before and after solve without bounding box change', async ({
+    page,
+  }) => {
+    await page.goto('/puzzle.html?set=shapes-1&sheet=1');
+    const svg = page.locator('.shape-puzzle-svg');
+    const frame = page.locator('[data-testid="frame-boundary"]');
+    await expect(frame).toBeVisible();
+
+    const svgBoxBefore = await svg.boundingBox();
+    const boxBefore = await frame.boundingBox();
+    expect(boxBefore).not.toBeNull();
+    expect(boxBefore.width).toBeGreaterThan(50);
+    expect(boxBefore.height).toBeGreaterThan(50);
+
+    const relXBefore = boxBefore.x - svgBoxBefore.x;
+    const relYBefore = boxBefore.y - svgBoxBefore.y;
+
+    // Solve puzzle
+    await page.locator('[data-testid="output-cell-0"]').click();
+    await page.locator('[data-testid="output-cell-0"]').click(); // F
+    await page.locator('[data-testid="output-cell-1"]').click();
+    await page.locator('[data-testid="output-cell-1"]').click(); // F
+    await page.locator('[data-testid="output-cell-2"]').click(); // T
+    await page.locator('[data-testid="output-cell-3"]').click();
+    await page.locator('[data-testid="output-cell-3"]').click(); // F
+    await page.locator('[data-testid="btn-check-table"]').click();
+
+    await expect(page.locator('[data-testid="puzzle-feedback"]')).toHaveClass(/is-solved/);
+    const svgBoxAfter = await svg.boundingBox();
+    const boxAfter = await frame.boundingBox();
+    expect(boxAfter).not.toBeNull();
+
+    const relXAfter = boxAfter.x - svgBoxAfter.x;
+    const relYAfter = boxAfter.y - svgBoxAfter.y;
+
+    // Verify relative position and dimensions match within 0.5px
+    expect(Math.abs(relXAfter - relXBefore)).toBeLessThanOrEqual(0.5);
+    expect(Math.abs(relYAfter - relYBefore)).toBeLessThanOrEqual(0.5);
+    expect(Math.abs(boxAfter.width - boxBefore.width)).toBeLessThanOrEqual(0.5);
+    expect(Math.abs(boxAfter.height - boxBefore.height)).toBeLessThanOrEqual(0.5);
+  });
+
+  test('solved truth table uses neutral slate styling for correct F, subtle green for T, never red', async ({
+    page,
+  }) => {
+    await page.goto('/puzzle.html?set=shapes-1&sheet=1');
+
+    // Solve
+    await page.locator('[data-testid="output-cell-0"]').click();
+    await page.locator('[data-testid="output-cell-0"]').click(); // F
+    await page.locator('[data-testid="output-cell-1"]').click();
+    await page.locator('[data-testid="output-cell-1"]').click(); // F
+    await page.locator('[data-testid="output-cell-2"]').click(); // T
+    await page.locator('[data-testid="output-cell-3"]').click();
+    await page.locator('[data-testid="output-cell-3"]').click(); // F
+    await page.locator('[data-testid="btn-check-table"]').click();
+
+    // Table rows are marked correct
+    const row0 = page.locator('.table-row').nth(0);
+    await expect(row0).toHaveClass(/is-row-correct/);
+
+    // Cell 0 is correct F -> neutral slate styling: rgb(248, 250, 252)
+    const cell0 = page.locator('[data-testid="output-cell-0"]');
+    await expect(cell0).toHaveClass(/val-false/);
+    const cell0Bg = await cell0.evaluate((el) => getComputedStyle(el).backgroundColor);
+    expect(cell0Bg).toBe('rgb(248, 250, 252)');
+
+    // Cell 2 is correct T -> subtle green styling: #ecfdf5
+    const cell2 = page.locator('[data-testid="output-cell-2"]');
+    await expect(cell2).toHaveClass(/val-true/);
+    const cell2Bg = await cell2.evaluate((el) => getComputedStyle(el).backgroundColor);
+    const [r2, g2, b2] = cell2Bg.match(/\d+/g).map(Number);
+    expect(r2).toBeGreaterThanOrEqual(235);
+    expect(g2).toBeGreaterThanOrEqual(250);
+    expect(b2).toBeGreaterThanOrEqual(240);
+
+    // Ensure no cell in the solved table has red background or red text
+    const styles = await page.locator('.cell-output-btn').evaluateAll((cells) =>
+      cells.map((c) => {
+        const s = getComputedStyle(c);
+        return { bg: s.backgroundColor, color: s.color };
+      }),
+    );
+    for (const style of styles) {
+      expect(style.bg).not.toContain('254, 226, 226'); // #fee2e2
+      expect(style.color).not.toContain('185, 28, 28'); // #b91c1c
+      expect(style.color).not.toContain('220, 38, 38'); // #dc2626
+    }
+  });
+
+  test('prefers-reduced-motion disables animations on reveal overlay elements', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/puzzle.html?set=shapes-1&sheet=1&teacher=1');
+
+    const overlayLayer = page.locator('[data-testid="reveal-overlay-layer"]');
+    await expect(overlayLayer).toBeVisible();
+
+    const animation = await page
+      .locator('.overlay-prim')
+      .first()
+      .evaluate((el) => getComputedStyle(el).animationName);
+    expect(animation).toBe('none');
+  });
+
+  test('shapes-2 set is navigable and extension sheets display Challenge chip', async ({
+    page,
+  }) => {
+    // Slot 1 (Wrench) - Core, 2 shapes, table mode
+    await page.goto('/puzzle.html?set=shapes-2&sheet=1');
+    await expect(page.locator('[data-testid="sheet-title"]')).toContainText('Mystery Picture 1');
+    await expect(page.locator('[data-testid="shape-puzzle-table"]')).toBeVisible();
+    await expect(page.locator('[data-testid="challenge-chip"]')).toHaveCount(0);
+
+    // Slot 2 (Biplane) - Core, 3 shapes, shade mode
+    await page.goto('/puzzle.html?set=shapes-2&sheet=2');
+    await expect(page.locator('[data-testid="sheet-title"]')).toContainText('Mystery Picture 2');
+    await expect(page.locator('[data-testid="shape-puzzle-table"]')).toHaveCount(0);
+    await expect(page.locator('[data-testid="btn-check-shading"]')).toBeVisible();
+    await expect(page.locator('[data-testid="challenge-chip"]')).toHaveCount(0);
+
+    // Slot 5 (Satellite) - Extension, table mode -> Challenge chip visible
+    await page.goto('/puzzle.html?set=shapes-2&sheet=5');
+    await expect(page.locator('[data-testid="sheet-title"]')).toContainText('Challenge Picture 5');
+    await expect(page.locator('[data-testid="challenge-chip"]')).toBeVisible();
+    await expect(page.locator('[data-testid="challenge-chip"]')).toContainText('Challenge');
+
+    // Slot 6 (Falcon) - Extension, shade mode -> Challenge chip visible
+    await page.goto('/puzzle.html?set=shapes-2&sheet=6');
+    await expect(page.locator('[data-testid="sheet-title"]')).toContainText('Challenge Picture 6');
+    await expect(page.locator('[data-testid="challenge-chip"]')).toBeVisible();
+  });
 });

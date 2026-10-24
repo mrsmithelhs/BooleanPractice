@@ -1,8 +1,10 @@
 import { SET_SHAPES_1 } from '@shared/shape-puzzles/sets/shapes-1.js';
+import { SET_SHAPES_2 } from '@shared/shape-puzzles/sets/shapes-2.js';
 import { getSheetMode } from './modes.js';
 
 export const AVAILABLE_SETS = {
   [SET_SHAPES_1.id]: SET_SHAPES_1,
+  [SET_SHAPES_2.id]: SET_SHAPES_2,
 };
 
 export function parsePuzzleUrl(searchString = '') {
@@ -63,7 +65,7 @@ export function parsePuzzleUrl(searchString = '') {
     setId,
     sheetIndex,
     sheetNumber: sheetNum,
-    sheet: set.sheets[sheetIndex],
+    sheet: { ...set.sheets[sheetIndex], setId: set.id },
     isTeacher,
     mode,
     modeOverride,

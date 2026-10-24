@@ -40,6 +40,11 @@
             data-testid="sheet-title"
           >{{ currentSheet.title }}</span>
           <span
+            v-if="currentSheet.tier === 'extension'"
+            class="tier-challenge-chip"
+            data-testid="challenge-chip"
+          >Challenge</span>
+          <span
             v-if="isTeacher"
             class="teacher-view-badge"
             data-testid="teacher-badge"
@@ -607,6 +612,18 @@ onMounted(() => {
   border: 1px solid #ea580c;
   padding: 2px 8px;
   border-radius: 4px;
+}
+
+.tier-challenge-chip {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: #6d28d9;
+  color: #f5f3ff;
+  border: 1px solid #8b5cf6;
+  padding: 2px 8px;
+  border-radius: 12px;
 }
 
 /* Sheet Nav Buttons */

@@ -20,6 +20,9 @@ import {
 } from '../src/shape-puzzles/render/layout.js';
 import { geometryToPathData } from '../src/shape-puzzles/geometry.js';
 import { SET_SHAPES_1 } from '../src/shape-puzzles/sets/shapes-1.js';
+import { SET_SHAPES_2 } from '../src/shape-puzzles/sets/shapes-2.js';
+import { computeSheetGiveaway } from '../src/shape-puzzles/giveaway.js';
+import { getSheetOverlay } from '../src/shape-puzzles/reveal-overlays/index.js';
 import { validateSheet } from '../src/shape-puzzles/validator.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -28,6 +31,7 @@ const REPO_ROOT = path.resolve(__dirname, '..');
 
 const SETS = {
   'shapes-1': SET_SHAPES_1,
+  'shapes-2': SET_SHAPES_2,
 };
 
 function computeSha256(bufferOrString) {
@@ -121,10 +125,109 @@ function renderDistractorSvg(sheet, regions, distractor) {
   `;
 }
 
-function generateReviewHtml({ setDef, validatedSheets, distractorsBySheet, manifest }) {
+function renderSolvedOverlaySvg(sheet, regions, overlayPrimitives) {
+  const vbWidth = sheet.viewBox?.width ?? 180;
+  const vbHeight = sheet.viewBox?.height ?? 95;
+  const trueRowsSet = new Set(sheet.intendedTrueRows || []);
+
+  const shaded = regions
+    .map((r) => {
+      const isTrue = trueRowsSet.has(r.id);
+      const fill = isTrue ? '#059669' : '#f8fafc';
+      return `<path d="${r.pathD}" fill="${fill}" stroke="none" />`;
+    })
+    .join('\n');
+
+  const shapePaths = (sheet.variables || [])
+    .map((v) => {
+      const shapeGeom = sheet.shapes[v];
+      const baseStyle = SHAPE_STYLES[v] || { strokeWidth: '0.7', dashArray: 'none', stroke: '#111' };
+      const override = sheet.shapeStyles?.[v] || {};
+      const style = { ...baseStyle, ...override };
+      const pathD = geometryToPathData(shapeGeom);
+      return `<path d="${pathD}" fill="none" stroke="${style.stroke}" stroke-width="${style.strokeWidth}" stroke-dasharray="${style.dashArray}" />`;
+    })
+    .join('\n');
+
+  const frameD = sheet.framePolygon
+    ? geometryToPathData(sheet.framePolygon)
+    : `M 1 1 L ${vbWidth - 1} 1 L ${vbWidth - 1} ${vbHeight - 1} L 1 ${vbHeight - 1} Z`;
+  const framePath = `<path d="${frameD}" fill="none" stroke="#475569" stroke-width="0.5" />`;
+
+  const overlaySvgElements = (overlayPrimitives || [])
+    .map((prim) => {
+      let stroke = '#0f172a';
+      let fill = 'none';
+      let strokeWidth = '0.45';
+
+      if (prim.style === 'detail-stroke') {
+        stroke = '#0f172a';
+        fill = 'none';
+        strokeWidth = '0.45';
+      } else if (prim.style === 'detail-fill') {
+        fill = 'rgba(255, 255, 255, 0.9)';
+        stroke = '#0f172a';
+        strokeWidth = '0.35';
+      } else if (prim.style === 'accent') {
+        fill = '#f59e0b';
+        stroke = '#d97706';
+        strokeWidth = '0.4';
+      } else if (prim.style === 'highlight') {
+        fill = '#ffffff';
+        stroke = '#ffffff';
+        strokeWidth = '0.3';
+      } else if (prim.style === 'star') {
+        fill = '#fbbf24';
+        stroke = '#d97706';
+        strokeWidth = '0.35';
+      }
+
+      switch (prim.type) {
+        case 'line':
+          return `<line x1="${prim.x1}" y1="${prim.y1}" x2="${prim.x2}" y2="${prim.y2}" stroke="${stroke}" stroke-width="${strokeWidth}" stroke-linecap="round" />`;
+        case 'circle':
+          return `<circle cx="${prim.cx}" cy="${prim.cy}" r="${prim.r}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" />`;
+        case 'ellipse':
+          return `<ellipse cx="${prim.cx}" cy="${prim.cy}" rx="${prim.rx}" ry="${prim.ry}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" />`;
+        case 'polyline':
+          return `<polyline points="${prim.points}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" />`;
+        case 'polygon':
+          return `<polygon points="${prim.points}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" />`;
+        case 'path':
+          return `<path d="${prim.d}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" stroke-linecap="round" />`;
+        default:
+          return '';
+      }
+    })
+    .join('\n');
+
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${vbWidth} ${vbHeight}" width="${vbWidth}mm" height="${vbHeight}mm" class="solved-overlay-svg" style="display:block;background:#fff;">
+      <rect x="0" y="0" width="${vbWidth}" height="${vbHeight}" fill="#fff" />
+      ${shaded}
+      ${framePath}
+      <g class="reveal-overlay">${overlaySvgElements}</g>
+      ${shapePaths}
+    </svg>
+  `;
+}
+
+function getGiveawayJudgment(sheet, giveaway) {
+  if (!giveaway) return 'N/A';
+  if (giveaway.flagged) {
+    return `Flagged (max IoU = ${giveaway.maxIou}) because the expression is TRUE for ${sheet.intendedTrueRows.length} minterms (${(giveaway.allShapes.iou * 100).toFixed(0)}% overlap with shapes union). The three shape boundaries themselves remain abstract rects.`;
+  }
+  if (sheet.slot === 4 || sheet.slot === 5 || sheet.slot === 6) {
+    return `Clean silhouette camouflage (max IoU = ${giveaway.maxIou} < 0.75). Camouflaged with decoy lobe that resembles part of the figure but is removed by expression.`;
+  }
+  return `Clean camouflage (max IoU = ${giveaway.maxIou} < 0.75). Outlines alone do not reveal the target picture silhouette.`;
+}
+
+function generateReviewHtml({ setDef, validatedSheets, distractorsBySheet, giveawaysBySheet, manifest }) {
   const sheetCards = validatedSheets
     .map(({ sheet, regions, validationResult }) => {
       const distInfo = distractorsBySheet[sheet.id];
+      const giveaway = giveawaysBySheet ? giveawaysBySheet[sheet.id] : null;
       const wordsExpr = formatExpressionWords(sheet.expression);
       const symbolExpr = formatExpressionSymbols(sheet.expression);
 
@@ -191,6 +294,29 @@ function generateReviewHtml({ setDef, validatedSheets, distractorsBySheet, manif
               <div class="preview-caption">
                 Outlines-only leakage view (student print size)
               </div>
+            </div>
+
+            <div class="preview-item">
+              <h3>Solved + Overlay Preview</h3>
+              <img src="previews/${sheet.id}-overlay.png" alt="${sheet.id} Solved with Overlay">
+              <div class="preview-caption">
+                Solved regions with constellation reveal overlay
+              </div>
+            </div>
+          </div>
+
+          <div class="preview-quad metrics-row">
+            <div class="preview-item giveaway-panel">
+              <h3>Outline Giveaway Metric</h3>
+              ${giveaway ? `
+                <p><b>Max IoU:</b> <b>${giveaway.maxIou}</b> &nbsp; <span class="${giveaway.flagged ? 'flag-pill' : 'badge-valid'}">${giveaway.flagged ? 'FLAGGED (IoU ≥ 0.75)' : 'PASS (< 0.75)'}</span></p>
+                <p><b>By Shape:</b> ${Object.entries(giveaway.byShape).map(([v, s]) => `${v}: <b>${s.iou}</b>${s.flagged ? ' ⚠️' : ''}`).join(', ')}</p>
+                <p><b>All Shapes Union:</b> <b>${giveaway.allShapes.iou}</b>${giveaway.allShapes.flagged ? ' ⚠️' : ''}</p>
+                ${giveaway.flags.length ? `<p style="color:#b45309;font-size:12px;margin:4px 0;"><b>Flags:</b> ${giveaway.flags.join('; ')}</p>` : ''}
+                <div style="font-size:12px;color:#334155;margin-top:8px;background:#f8fafc;padding:6px;border-radius:4px;border:1px solid #e2e8f0;">
+                  <b>Leakage Screen Judgment:</b> ${getGiveawayJudgment(sheet, giveaway)}
+                </div>
+              ` : '<p>No giveaway data available.</p>'}
             </div>
 
             <div class="preview-item metrics-panel">
@@ -290,10 +416,16 @@ async function main() {
 
   const { sourceCommit, sourceDirty } = checkGitStatus(isDraft);
 
-  // Filter sheets if specified
-  const targetSheets = sheetFilter
-    ? setDef.sheets.filter((s) => sheetFilter.includes(s.id))
-    : setDef.sheets;
+  // Filter sheets if specified, or in draft mode include all slot candidates for shapes-2
+  let targetSheets;
+  if (sheetFilter) {
+    const pool = setDef.slots ? Object.values(setDef.slots).flat() : setDef.sheets;
+    targetSheets = pool.filter((s) => sheetFilter.includes(s.id));
+  } else if (isDraft && setId === 'shapes-2' && setDef.slots) {
+    targetSheets = Object.values(setDef.slots).flat();
+  } else {
+    targetSheets = setDef.sheets;
+  }
 
   if (targetSheets.length === 0) {
     console.error('No sheets matched the specified filter.');
@@ -348,6 +480,7 @@ async function main() {
 
   const manifestFiles = [];
   const distractorsBySheet = {};
+  const giveawaysBySheet = {};
   const studentPagesHtml = [];
   const keyPagesHtml = [];
   const truthTableValues = setDef.truthTableValues || 'TF';
@@ -362,9 +495,11 @@ async function main() {
       regions,
     });
     distractorsBySheet[sheet.id] = distractors;
+    const giveaway = computeSheetGiveaway(sheet, { regions });
+    giveawaysBySheet[sheet.id] = giveaway;
 
-    const studentHtml = renderStudentPageHtml(sheet, regions, { truthTableValues });
-    const keyHtml = renderKeyPageHtml(sheet, regions, { truthTableValues });
+    const studentHtml = renderStudentPageHtml(sheet, regions, { truthTableValues, setId: setDef.id });
+    const keyHtml = renderKeyPageHtml(sheet, regions, { truthTableValues, setId: setDef.id });
     studentPagesHtml.push(studentHtml);
     keyPagesHtml.push(keyHtml);
 
@@ -475,6 +610,23 @@ async function main() {
       });
     }
 
+    // 4c. Render Solved + Overlay Preview
+    const overlayPrimitives = getSheetOverlay(sheet.id, setId);
+    const overlaySvg = renderSolvedOverlaySvg(sheet, regions, overlayPrimitives);
+    const overlayHtml = `<!doctype html><html><body style="margin:0;padding:8px;background:#fff;display:inline-block;">${overlaySvg}</body></html>`;
+    await previewPage.setContent(overlayHtml, { waitUntil: 'load' });
+    const overlayEl = await previewPage.locator('.solved-overlay-svg');
+    const overlayPngBuffer = await overlayEl.screenshot();
+    const overlayFileName = `${sheet.id}-overlay.png`;
+    const overlayPngPath = path.join(previewsDir, overlayFileName);
+    fs.writeFileSync(overlayPngPath, overlayPngBuffer);
+    manifestFiles.push({
+      path: `previews/${overlayFileName}`,
+      kind: 'overlay-preview',
+      sheetId: sheet.id,
+      sha256: computeSha256(overlayPngBuffer),
+    });
+
     await previewPage.close();
   }
 
@@ -554,6 +706,8 @@ async function main() {
         instructions: sheet.instructions,
         showRegionRowNumbers: sheet.showRegionRowNumbers,
         frozen: sheet.frozen,
+        tier: sheet.tier || null,
+        giveaway: giveawaysBySheet[sheet.id] || null,
         definitionHash: defHash,
         generatorCommit: sourceCommit,
       };
@@ -574,6 +728,7 @@ async function main() {
     setDef,
     validatedSheets,
     distractorsBySheet,
+    giveawaysBySheet,
     manifest,
   });
   const reviewPath = path.join(exportDir, 'review.html');

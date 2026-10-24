@@ -75,13 +75,12 @@
           </filter>
         </defs>
 
-        <!-- Outer Boundary Frame -->
+        <!-- Outer Boundary Frame Background -->
         <path
           :d="framePathD"
           fill="#ffffff"
-          stroke="#475569"
-          stroke-width="0.5"
-          class="frame-boundary"
+          stroke="none"
+          class="frame-background"
         />
 
         <!-- Interactive Region Layers (Hit & Fill) -->
@@ -122,6 +121,70 @@
               class="region-path"
             />
           </g>
+        </g>
+
+        <!-- Outer Boundary Frame Outline (rendered above regions so region fills never cover stroke) -->
+        <path
+          :d="framePathD"
+          fill="none"
+          stroke="#475569"
+          stroke-width="0.5"
+          class="frame-boundary"
+          data-testid="frame-boundary"
+          pointer-events="none"
+        />
+
+        <!-- Reveal Overlay Layer (Online only, drawn after success or in teacher view) -->
+        <g
+          v-if="(isSolved || isTeacher) && currentOverlay && currentOverlay.length > 0"
+          class="reveal-overlay-layer"
+          aria-hidden="true"
+          data-testid="reveal-overlay-layer"
+          pointer-events="none"
+        >
+          <template
+            v-for="(prim, pIdx) in currentOverlay"
+            :key="`ovl-${pIdx}`"
+          >
+            <line
+              v-if="prim.type === 'line'"
+              :x1="prim.x1"
+              :y1="prim.y1"
+              :x2="prim.x2"
+              :y2="prim.y2"
+              :class="`overlay-prim overlay-${prim.style}`"
+            />
+            <circle
+              v-else-if="prim.type === 'circle'"
+              :cx="prim.cx"
+              :cy="prim.cy"
+              :r="prim.r"
+              :class="`overlay-prim overlay-${prim.style}`"
+            />
+            <ellipse
+              v-else-if="prim.type === 'ellipse'"
+              :cx="prim.cx"
+              :cy="prim.cy"
+              :rx="prim.rx"
+              :ry="prim.ry"
+              :class="`overlay-prim overlay-${prim.style}`"
+            />
+            <polyline
+              v-else-if="prim.type === 'polyline'"
+              :points="prim.points"
+              :class="`overlay-prim overlay-${prim.style}`"
+            />
+            <polygon
+              v-else-if="prim.type === 'polygon'"
+              :points="prim.points"
+              :class="`overlay-prim overlay-${prim.style}`"
+            />
+            <path
+              v-else-if="prim.type === 'path'"
+              :d="prim.d"
+              :class="`overlay-prim overlay-${prim.style}`"
+            />
+          </template>
         </g>
 
         <!-- Shape Outlines Layer (Solid / Dashed / Dash-dot with Distinct Colors) -->
@@ -285,6 +348,7 @@ import {
 } from '@shared/shape-puzzles/geometry.js';
 import { createRectangle } from '@shared/shape-puzzles/shapes.js';
 import { SHAPE_STYLES } from '@shared/shape-puzzles/render/layout.js';
+import { getSheetOverlay } from '@shared/shape-puzzles/reveal-overlays/index.js';
 
 const props = defineProps({
   sheet: {
@@ -365,6 +429,10 @@ const regions = computed(() => {
 });
 
 const trueRowsSet = computed(() => new Set(props.sheet.intendedTrueRows || []));
+
+const currentOverlay = computed(() => {
+  return props.sheet?.id ? getSheetOverlay(props.sheet.id, props.sheet?.setId) : [];
+});
 
 function isRegionIntendedTrue(id) {
   return trueRowsSet.value.has(id);
@@ -647,6 +715,72 @@ function onRegionClick(id) {
   width: 100%;
   max-height: 330px;
   background: #ffffff;
+  overflow: visible;
+}
+
+/* Outer boundary frame */
+.frame-boundary {
+  stroke: #475569;
+  stroke-width: 0.5px;
+}
+
+/* Reveal Overlay Layer */
+.reveal-overlay-layer {
+  pointer-events: none;
+}
+
+.overlay-prim {
+  animation: overlay-draw-in 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes overlay-draw-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay-prim {
+    animation: none !important;
+  }
+}
+
+.overlay-detail-stroke {
+  fill: none;
+  stroke: var(--overlay-detail-stroke, #0f172a);
+  stroke-width: 0.45;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.overlay-detail-fill {
+  fill: var(--overlay-detail-fill, rgba(255, 255, 255, 0.9));
+  stroke: var(--overlay-detail-stroke, #0f172a);
+  stroke-width: 0.35;
+  stroke-linejoin: round;
+}
+
+.overlay-accent {
+  fill: var(--overlay-accent, #f59e0b);
+  stroke: var(--overlay-accent-stroke, #d97706);
+  stroke-width: 0.4;
+  stroke-linejoin: round;
+}
+
+.overlay-highlight {
+  fill: var(--overlay-highlight, #ffffff);
+  stroke: var(--overlay-highlight, #ffffff);
+  stroke-width: 0.3;
+}
+
+.overlay-star {
+  fill: var(--overlay-star, #fbbf24);
+  stroke: var(--overlay-accent-stroke, #d97706);
+  stroke-width: 0.35;
+  stroke-linecap: round;
 }
 
 .region-group {
