@@ -20,7 +20,7 @@
         <span
           v-else
           class="table-subheading"
-        >Step 1: Predict outputs</span>
+        >Predict outputs</span>
       </div>
 
       <div
@@ -115,6 +115,7 @@
                 {{ targetExpressionLabel }}
               </th>
               <th
+                v-if="outputsCorrect || isTeacher"
                 scope="col"
                 class="th-shaded-status"
                 title="Current shading on diagram"
@@ -183,7 +184,10 @@
               </td>
 
               <!-- Shading Status Indicator -->
-              <td class="td-shaded-status">
+              <td
+                v-if="outputsCorrect || isTeacher"
+                class="td-shaded-status"
+              >
                 <span
                   class="shading-indicator"
                   :class="{ 'is-shaded': shadedRegionIds.has(idx) }"
@@ -235,7 +239,7 @@
         <span
           v-else
           class="inspector-step"
-        >Step 1: Set output for each row</span>
+        >Set the output for each row</span>
       </div>
 
       <!-- Row Selector Bar -->
@@ -272,6 +276,7 @@
         <div class="mobile-card-row-head">
           <span class="card-row-num">Row {{ selectedMobileRow + 1 }}</span>
           <span
+            v-if="outputsCorrect || isTeacher"
             class="card-shaded-tag"
             :class="{ 'is-shaded': shadedRegionIds.has(selectedMobileRow) }"
           >
