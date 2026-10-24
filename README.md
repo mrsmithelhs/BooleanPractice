@@ -44,6 +44,7 @@ For detailed guides, see the following files in the `docs/` directory:
 - [Architecture](docs/architecture.md): Core module boundaries and technical decisions.
 - [Project Structure](docs/project-structure.md): Rules for repository organization.
 - [Deployment](docs/deployment.md): GitHub Pages and GAS deployment workflows.
+- [Shape Logic Puzzles](docs/shape-puzzle-page.md): Interactive online shape puzzle practice page at `puzzle.html`.
 - [Local Dev Console](docs/local-dev-console.md): Guide to the `dev:control` menu.
 - [UI Tour Capture](docs/ui-tour-capture.md): The blind UI review and synthesis workflow.
 

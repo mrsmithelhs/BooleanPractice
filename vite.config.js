@@ -46,6 +46,13 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: '../dist',
       emptyOutDir: true,
+      manifest: true,
+      rollupOptions: {
+        input: {
+          main: resolve(__dirname, 'ui/index.html'),
+          puzzle: resolve(__dirname, 'ui/puzzle.html'),
+        },
+      },
     },
   };
 });
