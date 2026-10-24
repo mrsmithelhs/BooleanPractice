@@ -1,11 +1,9 @@
 ---
 id: plan-39
 title: "Shape Puzzle Page Implementation (P3)"
-status: ready
+status: in-progress
 depends_on: [plan-38]
 gate: "GATE-39A: page implemented, build isolation re-verified, full suites green, local preview screenshots; owner review before any deploy (GATE-39B is the owner's own Pages deploy and sign-off)"
-superseded_by: null
-resolution: null
 summary: >-
   Build the P3 online shape-puzzle page as a second Vite entry (puzzle.html) on the existing static Pages build. Students fill
   the truth-table output column, then shade the regions of irregular shapes for an AND/OR/NOT expression; feedback uses the
