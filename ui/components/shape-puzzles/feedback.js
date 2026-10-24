@@ -16,7 +16,7 @@ export function buildShapePuzzleTableHint(options) {
   return buildTruthTableHint(options);
 }
 
-function describeRegionLocation(regionId, variables) {
+export function describeRegionLocation(regionId, variables) {
   const inside = [];
   const outside = [];
 
@@ -29,10 +29,13 @@ function describeRegionLocation(regionId, variables) {
     }
   });
 
-  const insideText = inside.length > 0 ? `inside ${inside.join(' and ')}` : 'outside all shapes';
-  const outsideText =
-    outside.length > 0 && inside.length > 0 ? ` (${outside.join(', ')} outside)` : '';
-  return `${insideText}${outsideText}`;
+  if (inside.length === 0) {
+    return 'outside all shapes';
+  }
+  if (outside.length === 0) {
+    return `inside ${inside.join(' and ')}`;
+  }
+  return `inside ${inside.join(' and ')} and outside ${outside.join(' and ')}`;
 }
 
 function describeOperatorGuidance(ast) {
@@ -47,7 +50,47 @@ function describeOperatorGuidance(ast) {
   if (ast.type === 'UnaryExpression') {
     return 'The NOT operator inverts the region, selecting everything outside.';
   }
-  return 'Compare the TRUE rows in your table directly against the diagram regions.';
+  return 'Test the expression against each region’s inside/outside conditions.';
+}
+
+/**
+ * Shade-only hint ladder (Repair 02 / M3):
+ * Never mentions truth table or row numbers because the student has no table.
+ */
+export function buildShapePuzzleShadeOnlyHint({
+  attemptCount,
+  sheet,
+  missedRegionIds = [],
+  extraRegionIds = [],
+}) {
+  const stage = getHintStage(attemptCount);
+  const variables = sheet.variables || [];
+  const ast =
+    typeof sheet.expression === 'string'
+      ? parseBooleanExpression(sheet.expression)
+      : sheet.expression;
+
+  if (stage === 'neutral') {
+    return 'The shaded regions do not match yet. For each region, decide whether it is inside or outside each shape, then test the expression.';
+  }
+
+  if (stage === 'guided') {
+    return `Try checking the regions again. ${describeOperatorGuidance(ast)}`;
+  }
+
+  // Stage 3 (specific): names one missed or extra region by location only
+  if (missedRegionIds.length > 0) {
+    const firstMissed = missedRegionIds[0];
+    const loc = describeRegionLocation(firstMissed, variables);
+    return `The region ${loc} makes the expression TRUE, so it should be shaded.`;
+  }
+  if (extraRegionIds.length > 0) {
+    const firstExtra = extraRegionIds[0];
+    const loc = describeRegionLocation(firstExtra, variables);
+    return `The region ${loc} makes the expression FALSE, so it should not be shaded.`;
+  }
+
+  return 'The shaded regions do not match yet. Recheck the shapes and expression.';
 }
 
 export function buildShapePuzzleShadingHint({

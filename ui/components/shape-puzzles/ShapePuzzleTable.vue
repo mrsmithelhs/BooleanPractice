@@ -9,7 +9,18 @@
         <h3 class="table-heading">
           Truth Table
         </h3>
-        <span class="table-subheading">Step 1: Predict outputs</span>
+        <span
+          v-if="readOnly"
+          class="table-subheading"
+        >Completed truth table</span>
+        <span
+          v-else-if="outputsCorrect"
+          class="table-subheading"
+        >Outputs verified</span>
+        <span
+          v-else
+          class="table-subheading"
+        >Step 1: Predict outputs</span>
       </div>
 
       <div
@@ -189,14 +200,21 @@
 
       <div class="table-actions-footer">
         <button
+          v-if="!outputsCorrect && !readOnly"
           type="button"
           class="btn-check-table"
           data-testid="btn-check-table"
-          :disabled="outputsCorrect && !isTeacher"
           @click="emit('check-outputs')"
         >
-          {{ outputsCorrect ? '✓ Outputs Verified' : 'Check Table Outputs' }}
+          Check Table Outputs
         </button>
+        <div
+          v-else
+          class="table-verified-badge"
+          data-testid="table-verified-badge"
+        >
+          ✓ Outputs Verified
+        </div>
       </div>
     </div>
 
@@ -206,7 +224,18 @@
         <h3 class="inspector-title">
           Truth Table Inspector
         </h3>
-        <span class="inspector-step">Step 1: Set output for each row</span>
+        <span
+          v-if="readOnly"
+          class="inspector-step"
+        >Completed truth table</span>
+        <span
+          v-else-if="outputsCorrect"
+          class="inspector-step"
+        >Outputs verified</span>
+        <span
+          v-else
+          class="inspector-step"
+        >Step 1: Set output for each row</span>
       </div>
 
       <!-- Row Selector Bar -->
@@ -288,14 +317,21 @@
 
       <div class="mobile-footer-actions">
         <button
+          v-if="!outputsCorrect && !readOnly"
           type="button"
           class="btn-check-table"
           data-testid="btn-check-table-mobile"
-          :disabled="outputsCorrect && !isTeacher"
           @click="emit('check-outputs')"
         >
-          {{ outputsCorrect ? '✓ Outputs Verified' : 'Check Table Outputs' }}
+          Check Table Outputs
         </button>
+        <div
+          v-else
+          class="table-verified-badge"
+          data-testid="table-verified-badge-mobile"
+        >
+          ✓ Outputs Verified
+        </div>
       </div>
     </div>
   </div>
@@ -340,6 +376,10 @@ const props = defineProps({
     default: 'words', // 'words' | 'symbols'
   },
   isTeacher: {
+    type: Boolean,
+    default: false,
+  },
+  readOnly: {
     type: Boolean,
     default: false,
   },
@@ -405,7 +445,7 @@ function formatAnswer(val) {
 }
 
 function toggleRowOutput(idx) {
-  if (props.outputsCorrect && !props.isTeacher) return;
+  if (props.readOnly || (props.outputsCorrect && !props.isTeacher)) return;
   const curr = props.studentOutputs[idx];
   let next = null;
   if (curr === null) {
@@ -686,6 +726,18 @@ function selectMobileRow(idx) {
 
 .btn-check-table:hover:not(:disabled) {
   background: #1d4ed8;
+}
+
+.table-verified-badge {
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: #10b981;
+  border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-check-table:disabled {

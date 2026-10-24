@@ -1,4 +1,5 @@
 import { SET_SHAPES_1 } from '@shared/shape-puzzles/sets/shapes-1.js';
+import { getSheetMode } from './modes.js';
 
 export const AVAILABLE_SETS = {
   [SET_SHAPES_1.id]: SET_SHAPES_1,
@@ -10,6 +11,18 @@ export function parsePuzzleUrl(searchString = '') {
   const sheetParam = params.get('sheet') || '1';
   const teacherParam = params.get('teacher');
   const isTeacher = teacherParam === '1' || teacherParam === 'true';
+  const modeParam = params.get('mode');
+
+  let modeOverride = null;
+  let modeWarning = null;
+  if (modeParam !== null) {
+    const normalizedMode = modeParam.toLowerCase();
+    if (normalizedMode === 'table' || normalizedMode === 'shade') {
+      modeOverride = normalizedMode;
+    } else {
+      modeWarning = `Unknown mode "${modeParam}". Using default mode for this sheet.`;
+    }
+  }
 
   const set = AVAILABLE_SETS[setId];
   if (!set) {
@@ -20,6 +33,9 @@ export function parsePuzzleUrl(searchString = '') {
       sheetIndex: 0,
       sheet: null,
       isTeacher,
+      mode: 'table',
+      modeOverride,
+      modeWarning,
     };
   }
 
@@ -32,10 +48,15 @@ export function parsePuzzleUrl(searchString = '') {
       sheetIndex: 0,
       sheet: null,
       isTeacher,
+      mode: 'table',
+      modeOverride,
+      modeWarning,
     };
   }
 
   const sheetIndex = sheetNum - 1;
+  const mode = getSheetMode(sheetIndex, modeOverride);
+
   return {
     isValid: true,
     error: null,
@@ -44,15 +65,26 @@ export function parsePuzzleUrl(searchString = '') {
     sheetNumber: sheetNum,
     sheet: set.sheets[sheetIndex],
     isTeacher,
+    mode,
+    modeOverride,
+    modeWarning,
   };
 }
 
-export function buildPuzzleUrl({ setId = 'shapes-1', sheetNumber = 1, isTeacher = false }) {
+export function buildPuzzleUrl({
+  setId = 'shapes-1',
+  sheetNumber = 1,
+  isTeacher = false,
+  mode = null,
+}) {
   const params = new URLSearchParams();
   params.set('set', setId);
   params.set('sheet', String(sheetNumber));
   if (isTeacher) {
     params.set('teacher', '1');
+  }
+  if (mode === 'table' || mode === 'shade') {
+    params.set('mode', mode);
   }
   return `?${params.toString()}`;
 }

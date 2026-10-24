@@ -19,6 +19,7 @@ The page contract is parameter-driven via standard query parameters:
 
 ```text
 puzzle.html?set=shapes-1&sheet=1
+puzzle.html?set=shapes-1&sheet=2&mode=table
 puzzle.html?set=shapes-1&sheet=3&teacher=1
 ```
 
@@ -26,42 +27,39 @@ puzzle.html?set=shapes-1&sheet=3&teacher=1
 |---|---|---|---|
 | `set` | string | `shapes-1` | Identifier of the shape puzzle set (e.g. `shapes-1`). Unknown values display a fallback notice. |
 | `sheet` | integer | `1` | 1-based index of the sheet within the set (1 to 4 for `shapes-1`). Out-of-bounds values display a fallback notice. |
-| `teacher` | flag (`1` or `true`) | absent | Unlocks the teacher key view with prefilled outputs, shaded regions, and revealed picture name. |
+| `mode` | string (`table` or `shade`) | Alternating | Optional mode override. Sheets 1 and 3 default to `table`, sheets 2 and 4 default to `shade`. Unknown values trigger a fallback warning banner and use the sheet's default mode. |
+| `teacher` | flag (`1` or `true`) | absent | Unlocks the teacher key view with prefilled outputs, shaded regions, mode badge, and revealed picture name. |
 
 ---
 
-## 3. Pedagogical Flow & Interaction Model
+## 3. Alternating Modes & Pedagogical Flow (DECISION-008 Amendment)
 
-The puzzle follows a two-step reasoning model rather than trial-and-error clicking:
+Rather than requiring both representations on every sheet (which becomes a mechanical translation once the link is understood), sheets alternate representation, starting with truth table:
 
-1. **Step 1 — Predict Truth Table Outputs:**
-   - Input columns ($A, B$ or $A, B, C$) are prefilled with truth values ($T/F$).
-   - The expression output column starts blank (`–`).
-   - Students cycle or toggle values ($T$, $F$, or blank) for each row.
-   - An optional **"Break it down"** disclosure expands subexpression columns for students who need intermediate reasoning steps. It is never mandatory.
-   - Students click **Check Table Outputs**. Staged feedback follows the hint ladder:
-     - *Attempt 1 (Neutral):* Identifies the row needing attention.
-     - *Attempt 2 (Guided):* Explains the logical operator rules (AND / OR / NOT).
-     - *Attempt 3+ (Specific):* Provides targeted variable and subexpression reasoning.
-2. **Step 2 — Shade Diagram Regions:**
-   - Shading can be checked only after the truth table outputs are verified correct.
-   - Regions start clean and unshaded. Clicking or pressing Space/Enter toggles shading between unshaded and solid vibrant blue.
-   - Hovering or focusing a region highlights the corresponding row in the truth table, and vice-versa.
-   - Clicking **Check Shading** validates against the set's `intendedTrueRows`. If incorrect, feedback provides staged guidance without revealing the answer key.
-3. **Step 3 — Solved Picture Reveal:**
-   - When all intended regions are correctly shaded, the picture is revealed in solid fill.
-   - The picture name (e.g., *Sun Rising Over Horizon*, *Cozy Cabin with Hearth and Yard*) is revealed **only after success**. It never appears in the student DOM or page title before solving.
+- **Sheets 1 and 3: Table Mode**
+  - **Task:** Students deduce the truth table output column from the boolean expression and shape variable assignments.
+  - **Canvas role:** The canvas displays contours, line styles, outside labels, and row badges as a visual reference. Regions are **not** shading controls (no click or space toggle, not in the tab order, no Check/Clear Shading buttons). Hovering/focusing rows in the table continues to highlight the corresponding region as an orienting scaffold.
+  - **Solved Feedback:** Checking correct outputs immediately auto-shades the TRUE regions in emerald green (`#059669`) and reveals the hidden picture.
+
+- **Sheets 2 and 4: Shade Mode**
+  - **Task:** Students read the boolean expression directly onto the geometry and shade regions without an intermediate table.
+  - **DOM:** Zero truth table elements exist in the DOM before success (neither desktop table nor mobile inspector). The single diagram pane centers and uses the freed width, fitting 1366×768 without scrolling.
+  - **Canvas role:** Shading is unlocked immediately from the start. Students toggle regions via mouse click, touch, or keyboard (Space/Enter).
+  - **Hints:** Staged hints rely exclusively on inside/outside shape conditions and boolean operator rules, **never mentioning a truth table or row numbers**.
+  - **Solved Feedback:** Checking correct shading reveals the picture and makes the completed, verified truth table appear with read-only outputs.
 
 ---
 
-## 4. Key Design Decisions (DECISION-008)
+## 4. Key Design Decisions & Guarantees
 
-1. **Two-state clean shading:** Regions start unshaded (white) with crisp borders; toggling applies vibrant blue fill.
+1. **Two-state clean shading:** Regions start unshaded (white) with crisp borders; toggling applies vibrant blue fill (`#2563eb`). Solved regions render in emerald picture fill (`#059669`).
 2. **Colored outlines plus line styles:** Each shape outline features a distinct color (A: blue, B: crimson, C: emerald) *and* distinct dash style (solid, dashed, dash-dot), outside label boxes, swatches, and leader lines. 100% distinguishable in greyscale.
-3. **Responsive screen layouts:** Full truth table beside diagram on desktop ($\ge 860$ px); compact single-row inspector with row selector tabs on mobile ($< 860$ px). Fits 1366×768 with no vertical scroll in default state.
-4. **Whole expression in one step:** Subexpression breakdown is optional via a disclosure.
-5. **Output gating:** Students must verify the truth table before region shading can be checked.
-6. **No student answer key:** Zero "solve" or key buttons on student view. Teacher key accessible only via `?teacher=1`.
+3. **No-reveal feedback on failed checks:**
+   - In Table Mode, an incorrect check triggers staged hints without coloring individual rows red or green (no per-row correctness reveal).
+   - In Shade Mode, an incorrect check triggers staged hints without outlining missed or extra regions in amber or red.
+   - Verified by e2e tests comparing computed styles before and after failed checks.
+4. **No student answer key:** Zero "solve" or key buttons appear on the student UI. The picture name is completely absent from the DOM and title until the sheet is solved.
+5. **Teacher key view:** Available exclusively via `?teacher=1`. Displays both representations prefilled and solved, with bulk output editing controls and an amber badge indicating the student mode for that sheet.
 
 ---
 

@@ -8,20 +8,32 @@
       <h3 class="canvas-title">
         Shape Diagram
       </h3>
-      <span class="canvas-subtitle">Step 2: Shade TRUE regions</span>
+      <span
+        v-if="mode === 'shade'"
+        class="canvas-subtitle"
+      >Shade TRUE regions</span>
+      <span
+        v-else-if="isSolved"
+        class="canvas-subtitle"
+      >TRUE regions revealed</span>
+      <span
+        v-else
+        class="canvas-subtitle"
+      >Visual diagram</span>
     </div>
 
-    <div class="canvas-toolbar">
+    <div
+      v-if="mode === 'shade'"
+      class="canvas-toolbar"
+    >
       <button
         type="button"
         class="btn-canvas-action"
         data-testid="btn-check-shading"
-        :disabled="!outputsCorrect || (isSolved && !isTeacher)"
-        :title="!outputsCorrect ? 'Verify truth table outputs before checking shading' : ''"
+        :disabled="isSolved && !isTeacher"
         @click="emit('check-shading')"
       >
         <span v-if="isSolved">✓ Solved</span>
-        <span v-else-if="!outputsCorrect">🔒 Complete Table First</span>
         <span v-else>Check Shading</span>
       </button>
 
@@ -29,7 +41,7 @@
         type="button"
         class="btn-canvas-action btn-canvas-secondary"
         data-testid="btn-clear-shading"
-        :disabled="!outputsCorrect || (isSolved && !isTeacher)"
+        :disabled="isSolved && !isTeacher"
         @click="emit('clear-shading')"
       >
         Clear Shading
@@ -87,19 +99,20 @@
               'is-focused': activeFocusRow === region.id + 1,
               'is-shaded': shadedRegionIds.has(region.id),
               'is-correct': isSolved && isRegionIntendedTrue(region.id),
+              'is-static': mode === 'table',
             }"
-            role="button"
-            tabindex="0"
+            :role="mode === 'shade' ? 'button' : undefined"
+            :tabindex="mode === 'shade' ? 0 : -1"
             :data-testid="`region-${region.id}`"
             :aria-label="regionAriaLabel(region)"
-            :aria-pressed="shadedRegionIds.has(region.id)"
+            :aria-pressed="mode === 'shade' ? shadedRegionIds.has(region.id) : undefined"
             @click="onRegionClick(region.id)"
             @keydown.enter.prevent="onRegionClick(region.id)"
             @keydown.space.prevent="onRegionClick(region.id)"
-            @focus="emit('region-focus', region.id + 1)"
-            @blur="emit('region-focus', null)"
-            @mouseenter="emit('region-hover', region.id + 1)"
-            @mouseleave="emit('region-hover', null)"
+            @focus="mode === 'shade' && emit('region-focus', region.id + 1)"
+            @blur="mode === 'shade' && emit('region-focus', null)"
+            @mouseenter="mode === 'shade' && emit('region-hover', region.id + 1)"
+            @mouseleave="mode === 'shade' && emit('region-hover', null)"
           >
             <path
               :d="region.pathD"
@@ -238,18 +251,19 @@
     <!-- Screen-reader Region List Fallback -->
     <details class="canvas-sr-details">
       <summary class="canvas-sr-summary">
-        Text region breakdown &amp; toggle controls
+        Text region breakdown{{ mode === 'shade' ? ' & toggle controls' : '' }}
       </summary>
       <ul class="canvas-sr-list">
         <li
           v-for="region in regions"
           :key="`sr-${region.id}`"
         >
-          <span>{{ regionAriaLabel(region) }}</span>
+          <span class="fallback-region-desc">{{ regionAriaLabel(region) }}</span>
           <button
+            v-if="mode === 'shade'"
             type="button"
             class="btn-sr-toggle"
-            :disabled="!outputsCorrect || (isSolved && !isTeacher)"
+            :disabled="isSolved && !isTeacher"
             @click="onRegionClick(region.id)"
           >
             Toggle Shading
@@ -312,6 +326,11 @@ const props = defineProps({
   isGreyscale: {
     type: Boolean,
     default: false,
+  },
+  mode: {
+    type: String,
+    default: 'shade',
+    validator: (v) => ['table', 'shade'].includes(v),
   },
 });
 
@@ -516,17 +535,25 @@ function getRegionStrokeWidth(id) {
 }
 
 function regionAriaLabel(r) {
-  const rowNum = r.id + 1;
+  const parts = [];
+  if (props.sheet.showRegionRowNumbers) {
+    parts.push(`Row ${r.id + 1}:`);
+  }
   const inc =
-    r.includedVariables.length > 0 ? r.includedVariables.join(' and ') : 'outside all shapes';
+    r.includedVariables.length > 0 ? `inside ${r.includedVariables.join(' and ')}` : 'outside all shapes';
   const exc = (props.sheet.variables || []).filter((v) => !r.includedVariables.includes(v));
   const excText =
     exc.length > 0 && r.includedVariables.length > 0 ? `, outside ${exc.join(' and ')}` : '';
-  const state = props.shadedRegionIds.has(r.id) ? 'shaded' : 'unshaded';
-  return `Row ${rowNum}: inside ${inc}${excText}, currently ${state}`;
+  parts.push(`${inc}${excText}`);
+  if (props.mode === 'shade') {
+    const state = props.shadedRegionIds.has(r.id) ? 'shaded' : 'unshaded';
+    parts.push(`currently ${state}`);
+  }
+  return parts.join(' ');
 }
 
 function onRegionClick(id) {
+  if (props.mode === 'table') return;
   if (props.isSolved && !props.isTeacher) return;
   emit('toggle-region', id);
 }
@@ -628,7 +655,11 @@ function onRegionClick(id) {
   transition: opacity 0.12s ease;
 }
 
-.region-group:hover:not(.is-solved) .region-path {
+.region-group.is-static {
+  cursor: default;
+}
+
+.region-group:hover:not(.is-solved):not(.is-static) .region-path {
   fill-opacity: 0.85;
 }
 

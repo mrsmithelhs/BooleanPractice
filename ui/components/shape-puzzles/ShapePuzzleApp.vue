@@ -44,7 +44,7 @@
             class="teacher-view-badge"
             data-testid="teacher-badge"
           >
-            Teacher Key
+            Teacher Key · Mode: {{ currentMode }}
           </span>
         </div>
 
@@ -125,6 +125,16 @@
         </div>
       </section>
 
+      <!-- Mode Fallback Warning Banner (if unknown mode in URL) -->
+      <div
+        v-if="modeWarning"
+        class="mode-fallback-banner"
+        role="alert"
+        data-testid="mode-fallback-message"
+      >
+        {{ modeWarning }}
+      </div>
+
       <!-- Status & Feedback Area -->
       <div
         class="puzzle-feedback-banner"
@@ -148,9 +158,12 @@
         </span>
       </div>
 
-      <!-- Main Two-Column Interactive Stage -->
-      <main class="puzzle-workspace-grid">
-        <!-- Step 2: Shape Diagram Canvas (Left) -->
+      <!-- Main Interactive Stage: 2-column or 1-column single-pane -->
+      <main
+        class="puzzle-workspace-grid"
+        :class="{ 'is-single-pane': currentMode === 'shade' && !isSolved && !isTeacher }"
+      >
+        <!-- Shape Diagram Canvas (Left or Center) -->
         <div class="workspace-canvas-col">
           <ShapePuzzleCanvas
             :sheet="currentSheet"
@@ -163,6 +176,7 @@
             :active-hover-row="activeHoverRow"
             :active-focus-row="activeFocusRow"
             :is-greyscale="isGreyscale"
+            :mode="currentMode"
             @toggle-region="handleToggleRegion"
             @check-shading="handleCheckShading"
             @clear-shading="handleClearShading"
@@ -171,8 +185,11 @@
           />
         </div>
 
-        <!-- Step 1: Truth Table (Right) -->
-        <div class="workspace-table-col">
+        <!-- Truth Table (Right): only in table mode or when solved or teacher -->
+        <div
+          v-if="currentMode === 'table' || isSolved || isTeacher"
+          class="workspace-table-col"
+        >
           <ShapePuzzleTable
             :sheet="currentSheet"
             :student-outputs="studentOutputs"
@@ -183,6 +200,7 @@
             :active-focus-row="activeFocusRow"
             :notation-mode="notationMode"
             :is-teacher="isTeacher"
+            :read-only="currentMode === 'shade' && isSolved"
             @update-output="handleUpdateOutput"
             @fill-all-outputs="handleFillAllOutputs"
             @clear-outputs="handleClearOutputs"
@@ -201,7 +219,11 @@ import { computed, onMounted, ref } from 'vue';
 import ShapePuzzleCanvas from './ShapePuzzleCanvas.vue';
 import ShapePuzzleTable from './ShapePuzzleTable.vue';
 import { AVAILABLE_SETS, buildPuzzleUrl, parsePuzzleUrl } from './url.js';
-import { buildShapePuzzleShadingHint, buildShapePuzzleTableHint } from './feedback.js';
+import { getSheetMode } from './modes.js';
+import {
+  buildShapePuzzleShadeOnlyHint,
+  buildShapePuzzleTableHint,
+} from './feedback.js';
 import { generateTruthTable } from '@shared/truth-table/index.js';
 import { formatExpressionSymbols, formatExpressionWords } from '@shared/notation/index.js';
 
@@ -211,12 +233,18 @@ const currentSetId = ref('shapes-1');
 const currentSheetNumber = ref(1);
 const isTeacher = ref(false);
 const isGreyscale = ref(false);
+const currentModeOverride = ref(null);
+const modeWarning = ref(null);
 
 const activeSet = computed(() => AVAILABLE_SETS[currentSetId.value] || null);
 const totalSheets = computed(() => activeSet.value?.sheets?.length || 4);
 const currentSheet = computed(() => {
   if (!activeSet.value) return null;
   return activeSet.value.sheets[currentSheetNumber.value - 1] || null;
+});
+
+const currentMode = computed(() => {
+  return getSheetMode(currentSheetNumber.value - 1, currentModeOverride.value);
 });
 
 // Practice Progress State
@@ -265,6 +293,8 @@ function loadFromUrl() {
   currentSetId.value = parsed.setId;
   currentSheetNumber.value = parsed.sheetNumber;
   isTeacher.value = parsed.isTeacher;
+  currentModeOverride.value = parsed.modeOverride;
+  modeWarning.value = parsed.modeWarning;
 
   initSheetState();
 }
@@ -284,8 +314,8 @@ function initSheetState() {
     shadingCorrect.value = true;
     feedbackMessage.value = 'Teacher key view: Showing solved outputs and regions.';
     isFeedbackError.value = false;
-  } else {
-    // Student view: blank outputs, clean unshaded diagram
+  } else if (currentMode.value === 'table') {
+    // Table mode: student fills table outputs; canvas is not interactive
     studentOutputs.value = Array(rowCount).fill(null);
     outputsChecked.value = false;
     outputsCorrect.value = false;
@@ -297,7 +327,22 @@ function initSheetState() {
     shadingAttemptCount.value = 1;
 
     feedbackMessage.value =
-      'Step 1: Fill the truth table output column with T or F, then click Check Table Outputs.';
+      'Fill the truth table output column with T or F, then click Check Table Outputs.';
+    isFeedbackError.value = false;
+  } else {
+    // Shade mode: student shades canvas directly; table is hidden
+    studentOutputs.value = Array(rowCount).fill(null);
+    outputsChecked.value = false;
+    outputsCorrect.value = false;
+    outputAttemptCount.value = 1;
+
+    shadedRegionIds.value = new Set();
+    shadingChecked.value = false;
+    shadingCorrect.value = false;
+    shadingAttemptCount.value = 1;
+
+    feedbackMessage.value =
+      'Shade the regions in the diagram that make the expression TRUE, then click Check Shading.';
     isFeedbackError.value = false;
   }
 }
@@ -310,6 +355,7 @@ function goToSheet(sheetNum) {
     setId: currentSetId.value,
     sheetNumber: sheetNum,
     isTeacher: isTeacher.value,
+    mode: currentModeOverride.value,
   });
   window.history.pushState(null, '', newUrl);
   initSheetState();
@@ -318,6 +364,8 @@ function goToSheet(sheetNum) {
 function resetToDefault() {
   currentSetId.value = 'shapes-1';
   currentSheetNumber.value = 1;
+  currentModeOverride.value = null;
+  modeWarning.value = null;
   const newUrl = buildPuzzleUrl({ setId: 'shapes-1', sheetNumber: 1, isTeacher: false });
   window.history.pushState(null, '', newUrl);
   loadFromUrl();
@@ -410,12 +458,17 @@ function handleCheckOutputs() {
   outputsCorrect.value = true;
   outputsChecked.value = true;
   isFeedbackError.value = false;
-  feedbackMessage.value =
-    'Truth table outputs verified! Now shade every region whose row is TRUE to reveal the picture.';
+
+  // In Table mode, automatically fill in the other representation (shading TRUE regions):
+  shadedRegionIds.value = new Set(currentSheet.value.intendedTrueRows || []);
+  shadingCorrect.value = true;
+  shadingChecked.value = true;
+  feedbackMessage.value = `Picture Revealed: ${currentSheet.value.pictureName}! Great job!`;
 }
 
 // Region Shading Actions
 function handleToggleRegion(id) {
+  if (currentMode.value === 'table') return;
   if (isSolved.value && !isTeacher.value) return;
 
   const next = new Set(shadedRegionIds.value);
@@ -432,19 +485,13 @@ function handleToggleRegion(id) {
 }
 
 function handleClearShading() {
+  if (currentMode.value === 'table') return;
   if (isSolved.value && !isTeacher.value) return;
   shadedRegionIds.value = new Set();
   shadingChecked.value = false;
 }
 
 function handleCheckShading() {
-  if (!outputsCorrect.value && !isTeacher.value) {
-    feedbackMessage.value =
-      'Please complete and verify the truth table output column before checking shading.';
-    isFeedbackError.value = true;
-    return;
-  }
-
   const intended = new Set(currentSheet.value.intendedTrueRows || []);
   const student = shadedRegionIds.value;
 
@@ -455,13 +502,17 @@ function handleCheckShading() {
     shadingCorrect.value = true;
     shadingChecked.value = true;
     isFeedbackError.value = false;
-    // Solved! pictureName is revealed
+
+    // In Shade mode, automatically fill in the other representation (verified truth table):
+    studentOutputs.value = tableData.value.rows.map((r) => r.result);
+    outputsCorrect.value = true;
+    outputsChecked.value = true;
     feedbackMessage.value = `Picture Revealed: ${currentSheet.value.pictureName}! Great job!`;
   } else {
     shadingCorrect.value = false;
     shadingChecked.value = true;
     isFeedbackError.value = true;
-    feedbackMessage.value = buildShapePuzzleShadingHint({
+    feedbackMessage.value = buildShapePuzzleShadeOnlyHint({
       attemptCount: shadingAttemptCount.value,
       sheet: currentSheet.value,
       missedRegionIds: missed,
@@ -668,6 +719,17 @@ onMounted(() => {
 }
 
 /* Status / Feedback Banner */
+.mode-fallback-banner {
+  margin-top: 6px;
+  padding: 6px 12px;
+  background: #1e293b;
+  border: 1px solid #f59e0b;
+  border-radius: 6px;
+  color: #fef3c7;
+  font-size: 0.84rem;
+  text-align: center;
+}
+
 .puzzle-feedback-banner {
   margin-top: 6px;
   padding: 6px 12px;
@@ -706,6 +768,14 @@ onMounted(() => {
   gap: 12px;
   margin-top: 8px;
   align-items: start;
+}
+
+.puzzle-workspace-grid.is-single-pane {
+  grid-template-columns: 1fr;
+  max-width: 820px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
 }
 
 /* Responsive Narrow Screen (< 860px) */
