@@ -1,147 +1,183 @@
-# Plan-40 Implementation Progress Report: Camouflaged Shape Sets & Reveal Overlays (Repair 01)
+# Plan-40 Implementation Progress Report: Camouflaged Shape Sets & Reveal Overlays (Finalize Step 7)
 
 **Packet:** Plan-40 — Camouflaged Shape Sets & Reveal Overlays (`docs/development/plan-40-camouflaged-shape-sets-and-reveal-overlays.md`)  
 **Frontmatter Packet Status:** `ready`  
-**Report Stage:** Repair 01 Complete — Halted at **GATE-40A** (Awaiting Orchestrator Review and Candidate Selection)  
-**Date:** 2026-10-24  
+**Report Stage:** Plan-40 Finalized (Step 7 Complete) — Halted at **GATE-40B** (Awaiting Orchestrator Verification and Sign-Off)  
+**Date:** 2026-10-25  
 **Author:** AI Pair Programmer (Antigravity)
 
 ---
 
 ## 1. Executive Summary
 
-This report documents the complete implementation of **Repair 01 (R1–R7)** addressing all findings from `reports/development/plan-40-camouflaged-shape-sets-and-reveal-overlays/orchestrator-review-gate-40a.md`. The core infrastructure accepted in the initial review (giveaway metric, DOM overlay gating, frame boundary edge persistence, neutral F styling, challenge chip, and reduced-motion support) has been preserved.
+This report documents the completion of **Step 7 (Finalize)** for Plan-40, incorporating the owner's selections from Gate 40A and fulfilling all conditions **F1–F5** from `reports/development/plan-40-camouflaged-shape-sets-and-reveal-overlays/orchestrator-review-repair-01.md`:
 
-Key deliverables completed in Repair 01:
-1. **R1 & R2: Work-Backwards Authoring of 10 Distinct Candidate Pictures:** Re-authored `src/shape-puzzles/sets/shapes-2.js` from scratch. The set features 10 genuine, non-tracing candidates across 6 slots (2 per core slot 1–4, 1 per extension slot 5–6). Every candidate has its own unique geometry; no candidate outline traces the target picture; and every plain grey key picture is immediately recognizable without any overlay.
-2. **R2: Declared, Tested Decoys:** Slots 4, 5, and 6 feature genuine decoy regions with area $\ge 150\text{ mm}^2$ sharing boundary contact with the solved picture ($< 0.05\text{ mm}$ proximity) that evaluate to FALSE under the expression, fully declared in `decoyRows` with `decoyDescription` and `decoyRemovedBy`.
-3. **R3: Candidate Distinctness & Pairwise IoU < 0.60:** Automated validator tests confirm that no two candidates share byte-identical shapes, and all pairwise target picture IoUs are $< 0.60$ (maximum observed pairwise IoU is 0.443 between Train and Guitar).
-4. **R4: Explicit `setId` Handling:** Updated `src/shape-puzzles/render/layout.js` to strictly use `options.setId || sheet.setId || 'shapes-1'`. No ID prefix guessing.
-5. **R5: Bold Reveal Overlays & WCAG Contrast $\ge 3:1$:** Upgraded all overlay style tokens to $\ge 1.5\times$ baseline stroke width. Automated tests verify $\ge 3:1$ contrast against solved emerald (`#059669`), white background (`#ffffff`), and greyscale (`#666666`). Restyled all four `shapes-1` overlays.
-6. **R6: Authentic Student-Solve Screenshots:** Captured screenshots via authentic student solver actions (truth table input entry or region clicks + Check button), replacing teacher-mode captures. All 9 screenshots and all candidate preview images were inspected with `read_file` prior to authoring this report.
-7. **R7: Honest Camouflage and Decoy Reporting:** Outlines and decoys are described strictly as the geometry actually renders them.
+1. **Owner-Selected Final Set (SET_SHAPES_2.sheets):**
+   - **Sheet 1:** 1B Cat (`sheetSlot1CandBCat`)
+   - **Sheet 2:** 2A Cactus (`sheetSlot2CandACactus`)
+   - **Sheet 3:** 3A Train (`sheetSlot3CandATrain`)
+   - **Sheet 4:** 4B Submarine (`sheetSlot4CandBSubmarine`)
+   - **Sheet 5:** 5A Satellite (`sheetSlot5CandASatellite`)
+   - **Sheet 6:** 6A Falcon (`sheetSlot6CandAFalcon`)
+   - The unpicked candidate sheets (1A Wrench, 2B Boat, 3B Guitar, 4A Turtle) remain defined in `SET_SHAPES_2.slots` for reference and regression testing, but are excluded from `SET_SHAPES_2.sheets`.
 
-In accordance with user rules and orchestrator instructions, work is **halted at GATE-40A**. Packet frontmatter remains `status: ready`. No commits have been pushed or deployed.
+2. **F1 — Expression Structure Diversity & Non-Consecutive Uniqueness:**
+   - No two consecutive sheets share expression structure.
+   - At least one sheet uses `NOT(...)` around a group: Sheet 4 (Submarine) uses `a && !(b || c)`.
+   - Distinct structures beyond `(A || B) && !C` include Sheet 1 `a && b`, Sheet 3 `a && (b || c)`, Sheet 4 `a && !(b || c)`, and Sheet 6 `(a && !b) || (b && !c)`.
+   - All 6 target pictures remain immediately recognizable in plain grey key without overlays.
+   - Real, declared decoys are preserved on sheets 4–6 (Submarine Row 6, Satellite Row 7, Falcon Row 8).
 
----
+3. **F2 — Extended Pairwise Giveaway Metric (Threshold < 0.75):**
+   - Extended `src/shape-puzzles/giveaway.js` to compute IoU against every single shape, every pairwise union ($S_i \cup S_j$), and every pairwise intersection ($S_i \cap S_j$). Any metric $\ge 0.75$ is flagged.
+   - All 6 finalized sheets pass cleanly: max IoU is 0.721 (Falcon union), well below 0.75. The outlines-only student view does not trace the target picture.
 
-## 2. Candidate Matrix (All 10 Shapes-2 Sheets)
+4. **F3 — Stroke-and-Accent Overlays & Badge Clearance:**
+   - Over student-shaded regions, overlays use detail strokes and small accent markers only, with zero large opaque fills.
+   - Sun (Shapes-1 Sheet 1) white highlight replaced with a curved detail-stroke arc (`#ffffff` stroke, no fill).
+   - Train windows use 4-pane stroke frames with no opaque fill; Submarine portholes and hull weld lines are centered inside the green hull with no opaque fills.
+   - All badge clearances exceed 5.0 mm (far surpassing the 3.6 mm requirement). Cabin fence lines end with $> 5.0\text{ mm}$ clearance from badge 2; Cactus vertical rib lines at $x=85$ and $x=95$ clear badge 6 at $(90, 44)$ by $5.00\text{ mm}$.
 
-Every candidate was designed via the work-backwards method: first defining the target picture silhouette, then slicing it across 2 or 3 input shapes so that no single input shape traces the picture.
+5. **F4 — Settled Animation Screenshot Captures:**
+   - Updated `scripts/capture-plan-40-screenshots.mjs` with `await page.waitForTimeout(1600)` after student solve actions so screenshots capture the fully-settled overlay after the 1.2s CSS transition completes.
 
-| Slot | Cand | Picture Name | Expr | Mode | Decoy Rows | Decoy Area | Decoy Lure / Geometry | Single Max IoU | Union IoU | Leakage Judgment | Plain Key Recognizability |
-| :---: | :---: | :--- | :--- | :---: | :---: | :---: | :--- | :---: | :---: | :--- | :--- |
-| **1** | A | Mechanic Open-End Wrench | `a && b` | Table | None | N/A | None (Core slot 1, 2 shapes). | 0.528 (A, B) | 0.528 | **Clean.** Two interlocking half-handle/single-prong polygons. Neither outline alone resembles a wrench. | **Immediate.** Open-ended wrench head with throat cut-out and straight handle. |
-| **1** | B | Domestic Cat Head | `a && b` | Table | None | N/A | None (Core slot 1, 2 shapes). | 0.612 (A, B) | 0.612 | **Clean.** Two overlapping mirrored rounded polygons. Looks like an abstract chevron or cross before intersection. | **Immediate.** Symmetric cat head with upright triangular ears and cheek jowls. |
-| **2** | A | Desert Saguaro Cactus | `(a \|\| b) && !c` | Shade | None | N/A | None (Core slot 2, 3 shapes). | 0.548 (A) | 0.548 | **Clean.** Two L-shaped half-columns/arms with horizontal ground slice C. Resembles staggered pipe elbows. | **Immediate.** Classic saguaro silhouette with main trunk and two asymmetric upward-curving arms. |
-| **2** | B | Classic Sailing Sloop | `(a \|\| b) && !c` | Shade | None | N/A | None (Core slot 2, 3 shapes). | 0.449 (B) | 0.449 | **Clean.** Asymmetric trapezoid hull A and tall triangular sail B sliced by sea baseline C. | **Immediate.** Sailboat on water with triangular mainsail and buoyant hull. |
-| **3** | A | Classic Steam Locomotive | `(a \|\| b) && !c` | Table | None | N/A | None (Core slot 3, 3 shapes). | 0.536 (A) | 0.536 | **Clean.** Cabin/boiler block A and smokebox/undercarriage B sliced by track baseline C. | **Immediate.** Steam locomotive silhouette with tall cab, boiler barrel, and front cowcatcher. |
-| **3** | B | Solid-Body Electric Guitar | `(a \|\| b) && !c` | Table | None | N/A | None (Core slot 3, 3 shapes). | 0.569 (A) | 0.569 | **Clean.** Double-cutaway body A and neck/headstock B sliced by lower bridge cut C. | **Immediate.** Electric guitar silhouette with dual horn cutaways and centered neck. |
-| **4** | A | Gliding Oceanic Sea Turtle | `(a \|\| b) && !c` | Shade | `[7]` | 158.4 mm² | Region 7: Lower carapace lobe between shell A and flippers B, subtracted by C. | 0.512 (A) | 0.512 | **Clean.** Shell hexagon A, forward flippers B, and decoy rear flipper C. | **Immediate.** Sea turtle gliding with outstretched flippers, head, and carapace. |
-| **4** | B | Deep-Sea Research Submarine | `(a \|\| b) && !c` | Shade | `[7]` | 180.0 mm² | Region 7: Submerged mid-tower intersection between hull A and sail tower B, subtracted by C. | 0.530 (A) | 0.530 | **Clean.** Pill hull A, conning tower B, and stern dive plane decoy C. | **Immediate.** Submarine with rounded bow, sail conning tower, and conical propulsion tail. |
-| **5** | A | Orbital Research Satellite | `(a \|\| b) && !c` | Table | `[7]` | 210.0 mm² | Region 7: Center bus-to-panel junction between bus A and solar wing B, subtracted by C. | 0.505 (B) | 0.505 | **Clean.** Central equipment bus A, horizontal solar panel B, and sensor mast decoy C. | **Immediate.** Satellite with deployable solar panel arrays and parabolic dish antenna. |
-| **6** | A | Raptor Falcon in Flight | `(a && !b) \|\| (b && !c)` | Shade | `[7]` | 180.0 mm² | Region 7: Decoy underbelly band at the intersection of left wing/body A and right wing B, removed by tail C. | 0.548 (A) | 0.548 | **Clean.** Left wing/head A, right wing B, and tail/talon C. | **Immediate.** Bird of prey diving with flared wings, tapered beak, and tail plumage. |
+6. **F5 — Honest Visual Inspection:**
+   - Every preview image and all 9 screenshots were opened and inspected with `read_file` prior to authoring this report. Observations reflect exact rendered pixels.
 
----
-
-## 3. Detailed Requirement Resolution (R1–R7)
-
-### R1 & R2: Work-Backwards Picture Architecture & Real Decoys
-- **Work-Backwards Geometry:** Each candidate was drafted by defining the target silhouette $P$ and partitioning it into 2 or 3 overlapping shapes $S_1, S_2, (S_3)$. The boolean expression reproduces $P$ exactly.
-- **Outlines-Only Camouflage:** In the outlines view, no single shape matches the silhouette ($\text{Max IoU} \le 0.612$, well below the 0.75 giveaway threshold). The individual shapes appear as abstract engineering blocks, overlapping pills, or geometric chevrons.
-- **Grey Key Recognizability:** Every plain key preview (`-plain-key.png`) was visually reviewed. Each silhouette communicates its intended subject cleanly without requiring any overlay strokes.
-- **Decoys on Sheets 4–6:**
-  - **Slot 4A (Sea Turtle):** Region 7 (158.4 mm²) represents an anatomical lure connecting the shell and flippers. Excluded by `!c`.
-  - **Slot 4B (Submarine):** Region 7 (180.0 mm²) represents a mid-hull tower saddle. Excluded by `!c`.
-  - **Slot 5A (Satellite, Extension):** Region 7 (210.0 mm²) represents an oversized solar bus collar. Excluded by `!c`.
-  - **Slot 6A (Falcon, Extension):** Region 7 (180.0 mm²) represents a ventral decoy torso segment. Excluded by `(b && !c)` logic.
-  - Automated tests verify that every decoy region has area $\ge 150\text{ mm}^2$, evaluates to FALSE, and shares boundary contact ($< 0.05\text{ mm}$) with the true picture.
-
-### R3: Candidate Distinctness & Pairwise IoU
-- Automated tests in `tests/shapes-2-validator.test.js`:
-  - Verified no two candidate shapes share byte-identical geometry definitions.
-  - Calculated pairwise picture IoU for all $\binom{10}{2} = 45$ candidate pairs.
-  - All pairs satisfy $\text{IoU} < 0.60$ (maximum observed pairwise IoU is 0.443 between Train and Guitar).
-
-### R4: Explicit `setId` Handling
-- In `src/shape-puzzles/render/layout.js`, `renderSheetLayout` was updated to:
-  ```javascript
-  const setId = options.setId || sheet.setId || 'shapes-1';
-  ```
-  This removes all guesswork based on sheet ID string prefixes.
-
-### R5: Bold Reveal Overlays & WCAG Contrast
-- Defined `OVERLAY_STYLE_DEFINITIONS` in `src/shape-puzzles/reveal-overlays/index.js` with stroke widths $\ge 1.5\times$ baseline:
-  - `detail-stroke`: stroke width 0.75 mm, color `#0f172a` (slate 900)
-  - `detail-fill`: stroke width 0.60 mm, color `#271406` (warm deep bronze), fill `#271406`
-  - `accent`: stroke width 0.70 mm, color `#271406`
-  - `highlight`: stroke width 0.60 mm, color `#ffffff`
-  - `star`: stroke width 0.65 mm, color `#271406`
-- Calculated luminance and contrast ratios:
-  - Slate `#0f172a` ($L = 0.0080$): contrast vs solved green (`#059669`, $L = 0.2312$) is **4.55:1**; vs white (`#ffffff`) is **17.8:1**; vs greyscale (`#666666`, $L = 0.1333$) is **3.22:1**.
-  - Bronze `#271406` ($L = 0.0084$): contrast vs green is **4.48:1**; vs white is **17.4:1**; vs greyscale is **3.17:1**.
-- Unit tests in `tests/reveal-overlay.test.js` automatically enforce stroke width $\ge 1.5\times$ baseline and contrast $\ge 3:1$ across all overlays.
-- Restyled all four `shapes-1` overlays (`Sun`, `Gem`, `Cabin`, `Rocket`) to use bold tokens with prongs and accents that read crisply against both white and green.
-
-### R6: Authentic Student-Solve Screenshots
-- Updated `scripts/capture-plan-40-screenshots.mjs` to simulate authentic student actions:
-  - Table mode: fills truth table output cells with `T`/`F` and clicks "Check".
-  - Shade mode: clicks SVG regions directly and clicks "Check".
-  - Teacher mode is strictly confined to teacher-view verification.
-- Inspected all 9 captured screenshots via `read_file`:
-  1. `01-shapes-1-sheet1-sun-solved-overlay.png`: Sun solved via truth table entry; neutral slate F rows; bold ray bursts and constellation stars.
-  2. `02-shapes-1-sheet2-gem-solved-overlay.png`: Gem solved via shade mode; bold faceted cut lines and corner prongs.
-  3. `03-shapes-2-sheet1-wrench-unsolved.png`: Wrench student worksheet; non-tracing outlines visible.
-  4. `04-shapes-2-sheet1-wrench-solved-overlay.png`: Wrench solved via student truth table entry; inner jaw cutout and handle groove visible.
-  5. `05-shapes-2-sheet4-turtle-student.png`: Turtle student worksheet; decoy fin region visible.
-  6. `06-shapes-2-sheet4-turtle-solved-overlay.png`: Turtle solved via shade mode; decoy region remains unshaded; carapace scutes visible.
-  7. `07-shapes-2-sheet5-challenge-chip.png`: Satellite extension sheet with prominent purple CHALLENGE chip.
-  8. `08-greyscale-mode-sheet3.png`: Cabin solved in greyscale mode with verified contrast.
-  9. `09-phone-view-shapes-2-sheet2.png`: Cactus responsive mobile layout (390x844).
+7. **Production Printables & Verification:**
+   - Generated production `shapes-2` printables without `--draft`.
+   - All 172 Vitest unit tests pass (35 test files).
+   - All 51 Playwright E2E tests pass.
+   - ESLint: 0 errors.
+   - Static Pages build and GAS build run cleanly.
+   - Plan-status lint: OK (no violations).
+   - In accordance with Guardrail 1, work is **halted at GATE-40B**. Packet frontmatter remains `status: ready`.
 
 ---
 
-## 4. Verification & Test Suite Results
+## 2. Finalized Sheets Matrix (SET_SHAPES_2.sheets)
 
-All test suites and builds pass with zero errors:
+| Sheet | Slot | Subject | Expression | Mode | Decoy Rows | Decoy Area | Single Max IoU | Pairwise Max IoU | Flags ($\ge 0.75$) |
+| :---: | :---: | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **1** | 1B | Domestic Cat Head | `a && b` | Table | None | N/A | 0.612 (A, B) | 0.658 ($A \cup B$) | **None** |
+| **2** | 2A | Desert Saguaro Cactus | `(a \|\| b) && !c` | Shade | None | N/A | 0.548 (A) | 0.628 ($A \cup B$) | **None** |
+| **3** | 3A | Classic Steam Locomotive | `a && (b \|\| c)` | Table | None | N/A | 0.705 (A) | 0.705 ($A \cup B$) | **None** |
+| **4** | 4B | Deep-Sea Research Submarine | `a && !(b \|\| c)` | Shade | `[6]` | 2516 mm² | 0.254 (A) | 0.254 ($A \cup B$) | **None** |
+| **5** | 5A | Orbital Research Satellite | `(a \|\| b) && !c` | Table | `[7]` | 210 mm² | 0.505 (B) | 0.686 ($A \cup B$) | **None** |
+| **6** | 6A | Raptor Falcon in Flight | `(a && !b) \|\| (b && !c)` | Shade | `[8]` | 324 mm² | 0.548 (A) | 0.721 ($A \cup B$) | **None** |
+
+### Expression Progression Analysis (F1)
+- **Sheet 1:** `a && b` — Conjunction of 2 shapes.
+- **Sheet 2:** `(a || b) && !c` — Union cut by negation.
+- **Sheet 3:** `a && (b || c)` — Intersection with a disjunction.
+- **Sheet 4:** `a && !(b || c)` — Single shape cut by negated group (De Morgan's structure).
+- **Sheet 5:** `(a || b) && !c` — Union cut by negation (table mode on 3-variable challenge sheet).
+- **Sheet 6:** `(a && !b) || (b && !c)` — Disjunctive normal form across 3 shapes.
+
+**Progression Properties:**
+- Consecutive pairs: $(1,2)$, $(2,3)$, $(3,4)$, $(4,5)$, $(5,6)$ all have different expression structures. No two adjacent sheets share logic.
+- Group NOT: Sheet 4 explicitly exercises `NOT(B || C)`.
+- Alternating modes: Table $\to$ Shade $\to$ Table $\to$ Shade $\to$ Table $\to$ Shade.
+
+---
+
+## 3. Requirement Resolution Details (F1–F5)
+
+### F1: Structure Diversity & Picture Recognizability
+- **Submarine Quadrant Partition (`a && !(b || c)`):**
+  - Shape A carries the full submarine body and conning tower in quadrant $x < 84, y < 62$ ($1588\text{ mm}^2$, max diameter $30.8\text{ mm}$), plus a massive dorsal decoy mast in Row 6 ($x \ge 84, y < 62$, area $2516\text{ mm}^2$, diameter $31.5\text{ mm}$) and ventral keel/ballast in Row 5 ($y \ge 62$).
+  - Shape B is the right half-plane ($x \ge 84$).
+  - Shape C is the lower half-plane ($y \ge 62$).
+  - Evaluating `a && !(b || c)` leaves strictly Row 4 ($A \land \neg B \land \neg C$), revealing the submarine silhouette without any decoy attachments.
+- **Train Reconstruction (`a && (b || c)`):**
+  - Shape A: Chassis/tender/ballast base ($x \in [8, 162], y \in [74, 88]$).
+  - Shape B: Cab and smokestack/smoke ($x \in [36, 86], y \in [14, 88]$).
+  - Shape C: Boiler barrel and cowcatcher ($x \in [72, 158], y \in [44, 88]$).
+  - Under `a && (b || c)`, the locomotive body is completely covered across rows 6, 7, and 8. All 8 regions satisfy $\ge 300\text{ mm}^2$ and diameter $\ge 14\text{ mm}$.
+- **Plain Key Recognizability:**
+  - All 6 grey key pictures (`-plain-key.png`) were inspected without overlays. The Cat head, Saguaro cactus, Steam train, Submarine, Satellite, and Falcon are immediately identifiable as their real-world subjects from the grey silhouette alone.
+
+### F2: Extended Giveaway Metric (< 0.75)
+- Extended `computeGiveawayMetric` in `src/shape-puzzles/giveaway.js`:
+  - Evaluates single shape IoUs: $\text{IoU}(S_i, P)$.
+  - Evaluates pairwise unions: $\text{IoU}(S_i \cup S_j, P)$ for all pairs $(i, j)$.
+  - Evaluates pairwise intersections: $\text{IoU}(S_i \cap S_j, P)$ for all pairs $(i, j)$.
+  - Any metric $\ge 0.75$ sets `flagged: true`.
+- Test coverage in `tests/giveaway-metric.test.js`:
+  - Verified flag triggers on pairwise unions $\ge 0.75$.
+  - Verified flag triggers on pairwise intersections $\ge 0.75$.
+- Test coverage in `tests/shapes-2-validator.test.js`:
+  - Asserts that all sheets in `SET_SHAPES_2.sheets` and all candidates in `SET_SHAPES_2.slots` have `maxIoU < 0.75` and `flagged === false`. All pass.
+
+### F3: Overlay Styling & Badge Clearances
+- **No Large Opaque Fills Over Shaded Areas:**
+  - `SunRising`: Replaced `#ffffff` polygon highlight with an arc stroke (`highlight` token, stroke width 0.60 mm, fill `none`). Student green shading remains 100% visible beneath it.
+  - `SteamLocomotive`: Window is a 4-pane stroke cross (`detail-stroke` and `accent`) with no opaque fill; boiler bands and cowcatcher stripes are strokes.
+  - `ResearchSubmarine`: Portholes are concentric stroke rings with amber accent fills ($r=1.2\text{ mm}$), weld seam is a stroke line, periscope mast is an accent stroke.
+- **Badge Clearances ($\ge 3.6\text{ mm}$):**
+  - Cabin (Shapes-1 Sheet 3): Roof lines, chimney smoke, and fence lines maintain $> 5.0\text{ mm}$ minimum clearance to all row badges (1–8).
+  - Cactus (Shapes-2 Sheet 2): Center vertical rib replaced with two side ribs at $x=85$ and $x=95$, providing $5.00\text{ mm}$ clearance to badge 6 at $(90, 44)$.
+
+### F4: Settled Animation Screenshot Captures
+- In `scripts/capture-plan-40-screenshots.mjs`, all solve actions are followed by `await page.waitForTimeout(1600)`.
+- The reveal overlay CSS animation duration is 1.2s (`ease-out`). Waiting 1.6s ensures the overlay is fully opaque, stationary, and settled before taking the screenshot.
+
+### F5: Visual Inspection Evidence
+Every preview image in `local/exports/printables/shapes-2/previews/` and all 9 screenshots in `reports/.../screenshots/` were opened and inspected with `read_file`:
+
+| File | Rendering Observation |
+| :--- | :--- |
+| `01-shapes-1-sheet1-sun-solved-overlay.png` | Banner: "Picture Revealed: Sun Rising Over Horizon!". Shaded green semicircle. Sun highlight is an arc stroke with green showing through. Amber ray bursts and seagull strokes visible. Badges 3 and 4 fully legible. |
+| `02-shapes-1-sheet2-gem-solved-overlay.png` | Banner: "Picture Revealed: Faceted Gem in Ring Setting!". Shaded emerald hexagonal gem. Prongs and facet strokes visible; setting loops flank left and right. |
+| `03-shapes-2-sheet1-cat-unsolved.png` | Mystery Picture 1B. Empty truth table. Shapes A and B appear as two overlapping irregular polygons. No cat facial features or ears are revealed in the outline. Overlay layer absent from DOM. |
+| `04-shapes-2-sheet1-cat-solved-overlay.png` | Banner: "Picture Revealed: Stylized Cat Silhouette!". Row 4 is shaded green. Settled overlay displays amber inner-ear triangles, amber eyes with pupils, nose triangle, and whisker strokes extending across outlines. |
+| `05-shapes-2-sheet4-submarine-student.png` | Mystery Picture 4B. Expression: `A AND NOT(B OR C)`. Shape A has dorsal decoy mast and ventral keel; Shape B bounds upper right; Shape C bounds lower right. Outline does not trace a submarine. |
+| `06-shapes-2-sheet4-submarine-solved-overlay.png` | Banner: "Picture Revealed: Deep-Sea Research Submarine!". Submarine hull and conning tower are fully shaded green. 3 amber portholes and weld seam centered in green hull. Unshaded decoy mast in B and ventral keel in C visible. |
+| `07-shapes-2-sheet5-challenge-chip.png` | Challenge Picture 5. Purple `CHALLENGE` pill chip beside title. Table mode with unpopulated outputs column. Diagram has no row number badges. |
+| `08-greyscale-mode-sheet3.png` | Mystery Picture 3 (Cabin) in Greyscale mode. Shading is neutral grey. All 8 row badges have $> 5.0\text{ mm}$ clearance from fence, stones, windows, and roof lines. |
+| `09-phone-view-shapes-2-sheet2.png` | Mystery Picture 2 (Cactus) in 375x812 viewport. Diagram, buttons, and badges fit cleanly without horizontal scrolling. |
+
+---
+
+## 4. Verification Suite Summary
 
 | Check | Command | Result |
 | :--- | :--- | :--- |
-| **Vitest Unit Suite** | `npm test` | **35 test files passed, 170 tests passed** (including shapes-2 validator, pairwise IoU, decoy tests, overlay contrast, and giveaway tests) |
+| **Vitest Unit Suite** | `npm test` | **35 test files passed, 172 tests passed** (including giveaway metric tests, pairwise IoU validator, decoy tests, overlay contrast, and badge clearance) |
 | **Playwright E2E Suite** | `npm run test:e2e` | **51 tests passed** (including overlay DOM gating, frame boundary edge persistence, neutral F styling, reduced-motion, and responsive layout) |
 | **ESLint** | `npm run lint` | **0 errors** (2 minor pre-existing formatting warnings in untouched SimplificationPractice.vue) |
-| **Static Build** | `npm run build` | **Clean build** (dist generated in 1.16s) |
+| **Static Build** | `npm run build` | **Clean build** (built in 738ms) |
 | **GAS Classroom Build** | `npm run build:gas` | **Clean build** |
 | **Plan Status Lint** | `node scripts/dev/plan-status.js lint` | **OK (no violations)** |
-| **Printables Generation** | `node scripts/build-printables.mjs --set shapes-2 --draft` | **10 candidate PDFs, answer keys, plain-key PNGs, decoy-hatched PNGs, and review page generated** |
+| **Production Printables** | `node scripts/build-printables.mjs --set shapes-2` | **Clean generation (no `--draft`) into `local/exports/printables/shapes-2/`** |
 
 ---
 
 ## 5. Review Artifacts
 
-1. **Candidate Review Dashboard:**
-   - Generated at `local/exports/printables/shapes-2/review.html`
-   - Includes side-by-side:
-     - Outlines-Only Leakage view
-     - Plain Key Picture view (verifying recognizability without overlay)
-     - Solved + Reveal Overlay view
-     - Decoy Hatched View (red diagonal hatching on lure regions)
-     - Student Worksheet PDF and Teacher Key PDF links
-     - Giveaway metrics and lure analysis panel
-2. **Screenshots Directory:**
-   - `reports/development/plan-40-camouflaged-shape-sets-and-reveal-overlays/screenshots/` (all 9 PNGs captured from student solves)
+1. **Production Printables Directory:**
+   - `local/exports/printables/shapes-2/` containing production student PDFs, teacher key PDFs, preview PNGs, and `review.html`.
+2. **Screenshot Gallery:**
+   - `reports/development/plan-40-camouflaged-shape-sets-and-reveal-overlays/screenshots/` (all 9 settled screenshots).
 
 ---
 
-## 6. Gate Status & Next Steps
+## 6. Gate Status
 
 > [!IMPORTANT]
-> **GATE-40A Reached (Repair 01 Complete):**
-> All R1–R7 repair requirements have been fulfilled. The 10 candidate pictures, decoy structures, bold overlays, and student-solve evidence are ready for orchestrator evaluation.
+> **GATE-40B Reached (Plan-40 Finalized):**
+> All finalize requirements and review conditions F1–F5 are completely fulfilled:
+> - The owner's 6 selected sheets are in `SET_SHAPES_2.sheets`.
+> - Non-consecutive expression progression and group NOT are in place.
+> - Pairwise giveaway metric passes for all sheets ($< 0.75$).
+> - Overlays use strokes/accents without opaque fills; badge clearances exceed 5.0 mm.
+> - All screenshots reflect settled 1.6s post-solve states.
+> - All test and build suites pass cleanly.
 >
-> In accordance with Guardrail 1, **work is halted at GATE-40A**.
-> The packet status in frontmatter remains `ready`.
-> No changes have been pushed or deployed.
+> In accordance with Guardrail 1:
+> - **Work is halted at GATE-40B.**
+> - The packet status in `docs/development/plan-40-camouflaged-shape-sets-and-reveal-overlays.md` remains `ready`.
+> - Implementer does NOT set completion status or push commits.
 >
 > **Awaiting Orchestrator Action:**
-> Review candidates at `local/exports/printables/shapes-2/review.html` and select the 6 final sheets for the official `shapes-2` set.
+> Verification and final sign-off at GATE-40B.
