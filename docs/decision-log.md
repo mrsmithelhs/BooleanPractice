@@ -137,6 +137,36 @@ Why the owner changed it: once students see that the table and the regions are l
 
 Still open: the "picture revealed" framing is weak when the outlines already draw the picture. It is revisited with the next shape sets.
 
+### DECISION-009 — Student usage files and a local-only teacher view
+
+**Date:** 2026-10-25
+
+**Decision:** Student progress is verified through files the student exports, following the BrowserBattlegorithms pattern. It is not done through a backend.
+
+- **Student side (Pages build):**
+  - The puzzle page records the student's own activity in browser storage, on that device only.
+  - A "Download my progress" button exports it as a JSON usage file, with the student's typed name and a class code.
+  - Nothing is sent anywhere.
+- **Teacher side (local only):**
+  - `admin.html` is served by the dev server and is **never** part of `dist/`, Pages, or `gas-dist/`.
+  - The owner drops many usage files into it to see progress, and flags that suggest copied or edited files.
+- **Signals that distinguish students:**
+  - a random per-browser install id;
+  - a per-load session id;
+  - monotonic event sequence numbers;
+  - a hash chain across events;
+  - a SHA-256 integrity hash over the whole file;
+  - per-attempt timing and check results;
+  - the class code.
+- **Honest limit:** the site is static and public, so a determined student can edit a file and recompute every hash. The signals catch lazy copying (the same file renamed, one browser's file submitted under two names, files from outside the class) and careless edits. The teacher view words its flags as "review", never as proof, and "not flagged" does not mean the work is independent.
+
+**Rationale:**
+- It keeps DECISION-002: no backend, no accounts, no student data on any server.
+- The owner already runs this workflow in BrowserBattlegorithms.
+- The optional GAS build (Plan 20) stays the route for real identity, and is not used for this.
+
+**Supersedes / related:** DECISION-002 and DECISION-008 (the puzzle page). Plan-41. BrowserBattlegorithms `docs/subsystems/usage-and-admin.md`.
+
 ## Proposed but not yet accepted
 
 *(No new proposals were created by Plan 34. Unresolved owner decisions belong in `docs/open-questions.md`.)*
