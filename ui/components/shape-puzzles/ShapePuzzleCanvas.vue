@@ -751,36 +751,39 @@ function onRegionClick(id) {
 .overlay-detail-stroke {
   fill: none;
   stroke: var(--overlay-detail-stroke, #0f172a);
-  stroke-width: 0.45;
+  stroke-width: 0.75;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
 .overlay-detail-fill {
-  fill: var(--overlay-detail-fill, rgba(255, 255, 255, 0.9));
+  fill: var(--overlay-detail-fill, #ffffff);
   stroke: var(--overlay-detail-stroke, #0f172a);
-  stroke-width: 0.35;
+  stroke-width: 0.60;
   stroke-linejoin: round;
 }
 
 .overlay-accent {
   fill: var(--overlay-accent, #f59e0b);
-  stroke: var(--overlay-accent-stroke, #d97706);
-  stroke-width: 0.4;
+  stroke: var(--overlay-accent-stroke, #271406);
+  stroke-width: 0.70;
   stroke-linejoin: round;
 }
 
 .overlay-highlight {
   fill: var(--overlay-highlight, #ffffff);
-  stroke: var(--overlay-highlight, #ffffff);
-  stroke-width: 0.3;
+  stroke: var(--overlay-detail-stroke, #0f172a);
+  stroke-width: 0.60;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .overlay-star {
   fill: var(--overlay-star, #fbbf24);
-  stroke: var(--overlay-accent-stroke, #d97706);
-  stroke-width: 0.35;
+  stroke: var(--overlay-accent-stroke, #271406);
+  stroke-width: 0.65;
   stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .region-group {

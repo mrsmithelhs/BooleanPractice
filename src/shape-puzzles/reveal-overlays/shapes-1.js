@@ -34,10 +34,10 @@ export const OVERLAYS_SHAPES_1 = {
     { type: 'line', x1: 90, y1: 82, x2: 130, y2: 82, style: 'detail-stroke' },
 
     // Water reflection sparkles
-    { type: 'circle', cx: 85, cy: 56, r: 0.8, style: 'highlight' },
-    { type: 'circle', cx: 95, cy: 60, r: 0.9, style: 'highlight' },
-    { type: 'circle', cx: 88, cy: 66, r: 1.0, style: 'highlight' },
-    { type: 'circle', cx: 92, cy: 72, r: 0.8, style: 'highlight' },
+    { type: 'circle', cx: 85, cy: 56, r: 1.5, style: 'star' },
+    { type: 'circle', cx: 95, cy: 60, r: 1.6, style: 'star' },
+    { type: 'circle', cx: 88, cy: 66, r: 1.8, style: 'star' },
+    { type: 'circle', cx: 92, cy: 72, r: 1.5, style: 'star' },
 
     // Distant seabirds in flight
     { type: 'path', d: 'M 38 24 Q 42 20 46 24 Q 50 20 54 24', style: 'detail-stroke' },
@@ -70,17 +70,17 @@ export const OVERLAYS_SHAPES_1 = {
     { type: 'path', d: 'M 128 48 Q 110 60 104 52', style: 'detail-stroke' },
 
     // Setting prongs holding the stone at the 4 corners
-    { type: 'circle', cx: 74, cy: 34, r: 1.2, style: 'accent' },
-    { type: 'circle', cx: 106, cy: 34, r: 1.2, style: 'accent' },
-    { type: 'circle', cx: 106, cy: 62, r: 1.2, style: 'accent' },
-    { type: 'circle', cx: 74, cy: 62, r: 1.2, style: 'accent' },
+    { type: 'circle', cx: 74, cy: 34, r: 2.0, style: 'accent' },
+    { type: 'circle', cx: 106, cy: 34, r: 2.0, style: 'accent' },
+    { type: 'circle', cx: 106, cy: 62, r: 2.0, style: 'accent' },
+    { type: 'circle', cx: 74, cy: 62, r: 2.0, style: 'accent' },
 
     // Gem sparkles / light glints
-    { type: 'line', x1: 106, y1: 26, x2: 106, y2: 34, style: 'star' },
-    { type: 'line', x1: 102, y1: 30, x2: 110, y2: 30, style: 'star' },
-    { type: 'circle', cx: 106, cy: 30, r: 0.8, style: 'highlight' },
-    { type: 'line', x1: 74, y1: 66, x2: 74, y2: 72, style: 'star' },
-    { type: 'line', x1: 71, y1: 69, x2: 77, y2: 69, style: 'star' },
+    { type: 'line', x1: 106, y1: 25, x2: 106, y2: 34, style: 'star' },
+    { type: 'line', x1: 101, y1: 29.5, x2: 111, y2: 29.5, style: 'star' },
+    { type: 'circle', cx: 106, cy: 29.5, r: 1.5, style: 'star' },
+    { type: 'line', x1: 74, y1: 66, x2: 74, y2: 73, style: 'star' },
+    { type: 'line', x1: 70.5, y1: 69.5, x2: 77.5, y2: 69.5, style: 'star' },
   ],
 
   // Mystery Picture 3: Cozy Cabin with Hearth and Yard
@@ -94,9 +94,9 @@ export const OVERLAYS_SHAPES_1 = {
     { type: 'path', d: 'M 84 5 Q 88 1 85 0', style: 'detail-stroke' },
 
     // Attic round louvre in gable
-    { type: 'circle', cx: 90, cy: 28, r: 3.5, style: 'detail-stroke' },
-    { type: 'line', x1: 86.5, y1: 28, x2: 93.5, y2: 28, style: 'detail-stroke' },
-    { type: 'line', x1: 90, y1: 24.5, x2: 90, y2: 31.5, style: 'detail-stroke' },
+    { type: 'circle', cx: 90, cy: 28, r: 4.0, style: 'detail-stroke' },
+    { type: 'line', x1: 86.0, y1: 28, x2: 94.0, y2: 28, style: 'detail-stroke' },
+    { type: 'line', x1: 90, y1: 24.0, x2: 90, y2: 32.0, style: 'detail-stroke' },
 
     // Front door with doorknob
     { type: 'path', d: 'M 84 78 L 84 58 L 96 58 L 96 78', style: 'detail-stroke' },
@@ -145,11 +145,11 @@ export const OVERLAYS_SHAPES_1 = {
     { type: 'line', x1: 81, y1: 23, x2: 99, y2: 23, style: 'detail-stroke' },
     { type: 'circle', cx: 90, cy: 18, r: 1.0, style: 'highlight' },
 
-    // Circular cockpit porthole / window
-    { type: 'circle', cx: 90, cy: 32, r: 5.0, style: 'detail-fill' },
-    { type: 'circle', cx: 90, cy: 32, r: 5.0, style: 'detail-stroke' },
-    { type: 'circle', cx: 90, cy: 32, r: 3.2, style: 'accent' },
-    { type: 'circle', cx: 88.5, cy: 30.5, r: 1.0, style: 'highlight' },
+    // Cockpit porthole / window
+    { type: 'circle', cx: 90, cy: 32, r: 6.0, style: 'detail-fill' },
+    { type: 'circle', cx: 90, cy: 32, r: 6.0, style: 'detail-stroke' },
+    { type: 'circle', cx: 90, cy: 32, r: 3.8, style: 'accent' },
+    { type: 'circle', cx: 88.0, cy: 30.0, r: 1.2, style: 'highlight' },
 
     // Fuselage panel seam lines
     { type: 'line', x1: 73, y1: 44, x2: 107, y2: 44, style: 'detail-stroke' },

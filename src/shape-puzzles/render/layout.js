@@ -613,7 +613,7 @@ function getBaseCss() {
 
 export function renderStudentPageHtml(sheet, regions, options = {}) {
   const convention = options.truthTableValues || sheet.truthTableValues || 'TF';
-  const setId = options.setId || sheet.setId || (sheet.id && sheet.id.startsWith('shapes-2') ? 'shapes-2' : 'shapes-1');
+  const setId = options.setId || sheet.setId || 'shapes-1';
   const wordsExpr = formatExpressionWords(sheet.expression);
   const figureSvg = renderFigureSvg(sheet, regions, { isKey: false, convention });
   const tableHtml = renderTruthTableHtml(sheet, regions, { isKey: false, convention });
@@ -670,7 +670,7 @@ export function renderStudentPageHtml(sheet, regions, options = {}) {
 
 export function renderKeyPageHtml(sheet, regions, options = {}) {
   const convention = options.truthTableValues || sheet.truthTableValues || 'TF';
-  const setId = options.setId || sheet.setId || (sheet.id && sheet.id.startsWith('shapes-2') ? 'shapes-2' : 'shapes-1');
+  const setId = options.setId || sheet.setId || 'shapes-1';
   const wordsExpr = formatExpressionWords(sheet.expression);
   const symbolExpr = formatExpressionSymbols(sheet.expression);
   const figureSvg = renderFigureSvg(sheet, regions, { isKey: true, convention });

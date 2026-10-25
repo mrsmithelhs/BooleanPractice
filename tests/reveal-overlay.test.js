@@ -3,7 +3,11 @@ import { SET_SHAPES_1 } from '../src/shape-puzzles/sets/shapes-1.js';
 import { SET_SHAPES_2 } from '../src/shape-puzzles/sets/shapes-2.js';
 import { OVERLAYS_SHAPES_1 } from '../src/shape-puzzles/reveal-overlays/shapes-1.js';
 import { OVERLAYS_SHAPES_2 } from '../src/shape-puzzles/reveal-overlays/shapes-2.js';
-import { getSheetOverlay } from '../src/shape-puzzles/reveal-overlays/index.js';
+import {
+  OVERLAY_STYLE_DEFINITIONS,
+  contrastRatio,
+  getSheetOverlay,
+} from '../src/shape-puzzles/reveal-overlays/index.js';
 
 const ALLOWED_PRIMITIVES = new Set(['path', 'line', 'polyline', 'circle', 'ellipse', 'polygon']);
 const ALLOWED_STYLES = new Set(['detail-stroke', 'detail-fill', 'accent', 'highlight', 'star']);
@@ -93,7 +97,7 @@ describe('reveal overlays', () => {
 
   it('covers all shapes-2 sheets and candidates with valid overlays', () => {
     const allCandidates = Object.values(SET_SHAPES_2.slots).flat();
-    expect(allCandidates.length).toBe(16);
+    expect(allCandidates.length).toBe(10);
 
     for (const cand of allCandidates) {
       const overlay = OVERLAYS_SHAPES_2[cand.id];
@@ -122,5 +126,49 @@ describe('reveal overlays', () => {
 
     const nonExistent = getSheetOverlay('non-existent-sheet');
     expect(nonExistent).toEqual([]);
+  });
+
+  it('validates overlay style tokens for contrast (>= 3:1) and bold stroke width (R5)', () => {
+    const SOLVED_FILL = '#059669';
+    const BACKGROUND = '#ffffff';
+    const GREYSCALE_SOLVED = '#666666';
+
+    const BASELINE_STROKE_WIDTHS = {
+      'detail-stroke': 0.45,
+      'detail-fill': 0.35,
+      'accent': 0.40,
+      'highlight': 0.30,
+      'star': 0.35,
+    };
+
+    for (const [token, def] of Object.entries(OVERLAY_STYLE_DEFINITIONS)) {
+      // 1. Stroke width must be at least 1.5x baseline
+      const baseline = BASELINE_STROKE_WIDTHS[token];
+      expect(
+        def.strokeWidth,
+        `Token ${token} stroke width ${def.strokeWidth} must be >= 1.5x baseline ${baseline}`
+      ).toBeGreaterThanOrEqual(baseline * 1.5 - 0.001);
+
+      // 2. Stroke color contrast against solved green fill (>= 3:1)
+      const contrastGreen = contrastRatio(def.stroke, SOLVED_FILL);
+      expect(
+        contrastGreen,
+        `Token ${token} stroke ${def.stroke} contrast against solved fill ${SOLVED_FILL} must be >= 3:1 (got ${contrastGreen.toFixed(2)})`
+      ).toBeGreaterThanOrEqual(3.0);
+
+      // 3. Stroke color contrast against white background (>= 3:1)
+      const contrastBg = contrastRatio(def.stroke, BACKGROUND);
+      expect(
+        contrastBg,
+        `Token ${token} stroke ${def.stroke} contrast against background ${BACKGROUND} must be >= 3:1 (got ${contrastBg.toFixed(2)})`
+      ).toBeGreaterThanOrEqual(3.0);
+
+      // 4. Stroke color contrast against greyscale solved fill (>= 3:1)
+      const contrastGrey = contrastRatio(def.stroke, GREYSCALE_SOLVED);
+      expect(
+        contrastGrey,
+        `Token ${token} stroke ${def.stroke} contrast against greyscale solved fill ${GREYSCALE_SOLVED} must be >= 3:1 (got ${contrastGrey.toFixed(2)})`
+      ).toBeGreaterThanOrEqual(3.0);
+    }
   });
 });

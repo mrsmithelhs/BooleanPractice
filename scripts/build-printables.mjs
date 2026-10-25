@@ -22,7 +22,7 @@ import { geometryToPathData } from '../src/shape-puzzles/geometry.js';
 import { SET_SHAPES_1 } from '../src/shape-puzzles/sets/shapes-1.js';
 import { SET_SHAPES_2 } from '../src/shape-puzzles/sets/shapes-2.js';
 import { computeSheetGiveaway } from '../src/shape-puzzles/giveaway.js';
-import { getSheetOverlay } from '../src/shape-puzzles/reveal-overlays/index.js';
+import { getSheetOverlay, OVERLAY_STYLE_DEFINITIONS } from '../src/shape-puzzles/reveal-overlays/index.js';
 import { validateSheet } from '../src/shape-puzzles/validator.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -125,6 +125,97 @@ function renderDistractorSvg(sheet, regions, distractor) {
   `;
 }
 
+function renderPlainKeySvg(sheet, regions) {
+  const vbWidth = sheet.viewBox?.width ?? 180;
+  const vbHeight = sheet.viewBox?.height ?? 95;
+  const trueRowsSet = new Set(sheet.intendedTrueRows || []);
+
+  const shaded = regions
+    .filter((r) => trueRowsSet.has(r.id))
+    .map((r) => `<path d="${r.pathD}" fill="#a8a8a8" fill-opacity="0.9" stroke="none" />`)
+    .join('\n');
+
+  const shapePaths = (sheet.variables || [])
+    .map((v) => {
+      const shapeGeom = sheet.shapes[v];
+      const baseStyle = SHAPE_STYLES[v] || { strokeWidth: '0.7', dashArray: 'none', stroke: '#111' };
+      const override = sheet.shapeStyles?.[v] || {};
+      const style = { ...baseStyle, ...override };
+      const pathD = geometryToPathData(shapeGeom);
+      return `<path d="${pathD}" fill="none" stroke="${style.stroke}" stroke-width="${style.strokeWidth}" stroke-dasharray="${style.dashArray}" />`;
+    })
+    .join('\n');
+
+  const frameD = sheet.framePolygon
+    ? geometryToPathData(sheet.framePolygon)
+    : `M 1 1 L ${vbWidth - 1} 1 L ${vbWidth - 1} ${vbHeight - 1} L 1 ${vbHeight - 1} Z`;
+  const framePath = `<path d="${frameD}" fill="none" stroke="#222" stroke-width="0.45" />`;
+
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${vbWidth} ${vbHeight}" width="${vbWidth}mm" height="${vbHeight}mm" class="plain-key-svg" style="display:block;background:#fff;">
+      <rect x="0" y="0" width="${vbWidth}" height="${vbHeight}" fill="#fff" />
+      ${shaded}
+      ${framePath}
+      ${shapePaths}
+    </svg>
+  `;
+}
+
+function renderDecoyHatchSvg(sheet, regions) {
+  const vbWidth = sheet.viewBox?.width ?? 180;
+  const vbHeight = sheet.viewBox?.height ?? 95;
+  const trueRowsSet = new Set(sheet.intendedTrueRows || []);
+  const decoyRowsSet = new Set(sheet.decoyRows || []);
+
+  // TRUE regions in grey
+  const shaded = regions
+    .filter((r) => trueRowsSet.has(r.id))
+    .map((r) => `<path d="${r.pathD}" fill="#a8a8a8" fill-opacity="0.9" stroke="none" />`)
+    .join('\n');
+
+  // Decoy regions hatched in red
+  const decoys = regions
+    .filter((r) => decoyRowsSet.has(r.id))
+    .map(
+      (r) => `
+      <path d="${r.pathD}" fill="#fee2e2" fill-opacity="0.75" stroke="none" />
+      <path d="${r.pathD}" fill="url(#decoy-hatch-${sheet.id})" stroke="#dc2626" stroke-width="0.7" stroke-dasharray="2,1" />
+    `
+    )
+    .join('\n');
+
+  const shapePaths = (sheet.variables || [])
+    .map((v) => {
+      const shapeGeom = sheet.shapes[v];
+      const baseStyle = SHAPE_STYLES[v] || { strokeWidth: '0.7', dashArray: 'none', stroke: '#111' };
+      const override = sheet.shapeStyles?.[v] || {};
+      const style = { ...baseStyle, ...override };
+      const pathD = geometryToPathData(shapeGeom);
+      return `<path d="${pathD}" fill="none" stroke="${style.stroke}" stroke-width="${style.strokeWidth}" stroke-dasharray="${style.dashArray}" />`;
+    })
+    .join('\n');
+
+  const frameD = sheet.framePolygon
+    ? geometryToPathData(sheet.framePolygon)
+    : `M 1 1 L ${vbWidth - 1} 1 L ${vbWidth - 1} ${vbHeight - 1} L 1 ${vbHeight - 1} Z`;
+  const framePath = `<path d="${frameD}" fill="none" stroke="#222" stroke-width="0.45" />`;
+
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${vbWidth} ${vbHeight}" width="${vbWidth}mm" height="${vbHeight}mm" class="decoy-hatch-svg" style="display:block;background:#fff;">
+      <defs>
+        <pattern id="decoy-hatch-${sheet.id}" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+          <line x1="0" y1="0" x2="0" y2="6" stroke="#dc2626" stroke-width="1.6" />
+        </pattern>
+      </defs>
+      <rect x="0" y="0" width="${vbWidth}" height="${vbHeight}" fill="#fff" />
+      ${shaded}
+      ${decoys}
+      ${framePath}
+      ${shapePaths}
+    </svg>
+  `;
+}
+
 function renderSolvedOverlaySvg(sheet, regions, overlayPrimitives) {
   const vbWidth = sheet.viewBox?.width ?? 180;
   const vbHeight = sheet.viewBox?.height ?? 95;
@@ -156,31 +247,14 @@ function renderSolvedOverlaySvg(sheet, regions, overlayPrimitives) {
 
   const overlaySvgElements = (overlayPrimitives || [])
     .map((prim) => {
-      let stroke = '#0f172a';
-      let fill = 'none';
-      let strokeWidth = '0.45';
-
-      if (prim.style === 'detail-stroke') {
-        stroke = '#0f172a';
-        fill = 'none';
-        strokeWidth = '0.45';
-      } else if (prim.style === 'detail-fill') {
-        fill = 'rgba(255, 255, 255, 0.9)';
-        stroke = '#0f172a';
-        strokeWidth = '0.35';
-      } else if (prim.style === 'accent') {
-        fill = '#f59e0b';
-        stroke = '#d97706';
-        strokeWidth = '0.4';
-      } else if (prim.style === 'highlight') {
-        fill = '#ffffff';
-        stroke = '#ffffff';
-        strokeWidth = '0.3';
-      } else if (prim.style === 'star') {
-        fill = '#fbbf24';
-        stroke = '#d97706';
-        strokeWidth = '0.35';
-      }
+      const def = OVERLAY_STYLE_DEFINITIONS[prim.style] || {
+        stroke: '#0f172a',
+        strokeWidth: 0.75,
+        fill: 'none',
+      };
+      const stroke = def.stroke;
+      const fill = def.fill;
+      const strokeWidth = def.strokeWidth;
 
       switch (prim.type) {
         case 'line':
@@ -190,11 +264,11 @@ function renderSolvedOverlaySvg(sheet, regions, overlayPrimitives) {
         case 'ellipse':
           return `<ellipse cx="${prim.cx}" cy="${prim.cy}" rx="${prim.rx}" ry="${prim.ry}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" />`;
         case 'polyline':
-          return `<polyline points="${prim.points}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" />`;
+          return `<polyline points="${prim.points}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" stroke-linejoin="round" />`;
         case 'polygon':
-          return `<polygon points="${prim.points}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" />`;
+          return `<polygon points="${prim.points}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" stroke-linejoin="round" />`;
         case 'path':
-          return `<path d="${prim.d}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" stroke-linecap="round" />`;
+          return `<path d="${prim.d}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" />`;
         default:
           return '';
       }
@@ -215,12 +289,12 @@ function renderSolvedOverlaySvg(sheet, regions, overlayPrimitives) {
 function getGiveawayJudgment(sheet, giveaway) {
   if (!giveaway) return 'N/A';
   if (giveaway.flagged) {
-    return `Flagged (max IoU = ${giveaway.maxIou}) because the expression is TRUE for ${sheet.intendedTrueRows.length} minterms (${(giveaway.allShapes.iou * 100).toFixed(0)}% overlap with shapes union). The three shape boundaries themselves remain abstract rects.`;
+    return `Flagged (max IoU = ${giveaway.maxIou}) because the expression is TRUE for ${sheet.intendedTrueRows.length} minterms (${(giveaway.allShapes.iou * 100).toFixed(0)}% overlap with shapes union). The shape boundaries themselves remain abstract geometry.`;
   }
-  if (sheet.slot === 4 || sheet.slot === 5 || sheet.slot === 6) {
-    return `Clean silhouette camouflage (max IoU = ${giveaway.maxIou} < 0.75). Camouflaged with decoy lobe that resembles part of the figure but is removed by expression.`;
+  if (sheet.decoyRows && sheet.decoyRows.length > 0) {
+    return `Clean silhouette camouflage (max IoU = ${giveaway.maxIou} < 0.75). Outlines alone do not trace the picture. Camouflaged with decoy lobe(s) [${sheet.decoyRows.map((r) => r + 1).join(', ')}] removed by boolean expression.`;
   }
-  return `Clean camouflage (max IoU = ${giveaway.maxIou} < 0.75). Outlines alone do not reveal the target picture silhouette.`;
+  return `Clean silhouette camouflage (max IoU = ${giveaway.maxIou} < 0.75). No single outline traces the picture; silhouette emerges only upon boolean combination.`;
 }
 
 function generateReviewHtml({ setDef, validatedSheets, distractorsBySheet, giveawaysBySheet, manifest }) {
@@ -273,50 +347,87 @@ function generateReviewHtml({ setDef, validatedSheets, distractorsBySheet, givea
 
           <div class="preview-quad">
             <div class="preview-item">
-              <h3>Student Page</h3>
-              <a href="student/${sheet.id}.pdf" target="_blank">
-                <img src="previews/${sheet.id}-student.png" alt="${sheet.id} Student Page">
+              <h3>1. Outlines-Only Leakage</h3>
+              <a href="previews/${sheet.id}-leakage.png" target="_blank">
+                <img src="previews/${sheet.id}-leakage.png" alt="${sheet.id} Outlines Leakage">
               </a>
-              <div class="preview-caption"><a href="student/${sheet.id}.pdf" target="_blank">Download Student PDF</a></div>
+              <div class="preview-caption">Outlines only (student print size)</div>
             </div>
 
             <div class="preview-item">
-              <h3>Answer Key</h3>
-              <a href="keys/${sheet.id}.pdf" target="_blank">
-                <img src="previews/${sheet.id}-key.png" alt="${sheet.id} Answer Key">
+              <h3>2. Plain Key Picture</h3>
+              <a href="previews/${sheet.id}-plain-key.png" target="_blank">
+                <img src="previews/${sheet.id}-plain-key.png" alt="${sheet.id} Plain Key">
               </a>
-              <div class="preview-caption"><a href="keys/${sheet.id}.pdf" target="_blank">Download Key PDF</a></div>
+              <div class="preview-caption">TRUE regions in grey; recognizable without overlay</div>
             </div>
 
             <div class="preview-item">
-              <h3>Outlines-Only Leakage View</h3>
-              <img src="previews/${sheet.id}-leakage.png" alt="${sheet.id} Outlines Leakage">
-              <div class="preview-caption">
-                Outlines-only leakage view (student print size)
-              </div>
+              <h3>3. Solved + Overlay Preview</h3>
+              <a href="previews/${sheet.id}-overlay.png" target="_blank">
+                <img src="previews/${sheet.id}-overlay.png" alt="${sheet.id} Solved with Overlay">
+              </a>
+              <div class="preview-caption">Solved green regions with bold detail overlay</div>
             </div>
 
-            <div class="preview-item">
-              <h3>Solved + Overlay Preview</h3>
-              <img src="previews/${sheet.id}-overlay.png" alt="${sheet.id} Solved with Overlay">
-              <div class="preview-caption">
-                Solved regions with constellation reveal overlay
+            ${
+              sheet.decoyRows && sheet.decoyRows.length > 0
+                ? `
+              <div class="preview-item">
+                <h3>4. Decoy Hatched View</h3>
+                <a href="previews/${sheet.id}-decoy.png" target="_blank">
+                  <img src="previews/${sheet.id}-decoy.png" alt="${sheet.id} Decoy Hatched View">
+                </a>
+                <div class="preview-caption">Decoy row(s) [${sheet.decoyRows.map((r) => r + 1).join(', ')}] hatched in red</div>
               </div>
-            </div>
+            `
+                : `
+              <div class="preview-item">
+                <h3>4. Answer Key Page</h3>
+                <a href="keys/${sheet.id}.pdf" target="_blank">
+                  <img src="previews/${sheet.id}-key.png" alt="${sheet.id} Answer Key">
+                </a>
+                <div class="preview-caption"><a href="keys/${sheet.id}.pdf" target="_blank">Download Key PDF</a></div>
+              </div>
+            `
+            }
+          </div>
+
+          <div class="sheet-pdf-bar" style="margin-bottom:16px;font-size:13px;display:flex;gap:16px;background:#f1f5f9;padding:8px 14px;border-radius:6px;">
+            <span><b>Downloads:</b></span>
+            <span><a href="student/${sheet.id}.pdf" target="_blank">📄 Student Worksheet (PDF)</a></span>
+            <span><a href="keys/${sheet.id}.pdf" target="_blank">🔑 Answer Key (PDF)</a></span>
           </div>
 
           <div class="preview-quad metrics-row">
             <div class="preview-item giveaway-panel">
               <h3>Outline Giveaway Metric</h3>
-              ${giveaway ? `
+              ${
+                giveaway
+                  ? `
                 <p><b>Max IoU:</b> <b>${giveaway.maxIou}</b> &nbsp; <span class="${giveaway.flagged ? 'flag-pill' : 'badge-valid'}">${giveaway.flagged ? 'FLAGGED (IoU ≥ 0.75)' : 'PASS (< 0.75)'}</span></p>
-                <p><b>By Shape:</b> ${Object.entries(giveaway.byShape).map(([v, s]) => `${v}: <b>${s.iou}</b>${s.flagged ? ' ⚠️' : ''}`).join(', ')}</p>
+                <p><b>By Shape:</b> ${Object.entries(giveaway.byShape)
+                  .map(([v, s]) => `${v}: <b>${s.iou}</b>${s.flagged ? ' ⚠️' : ''}`)
+                  .join(', ')}</p>
                 <p><b>All Shapes Union:</b> <b>${giveaway.allShapes.iou}</b>${giveaway.allShapes.flagged ? ' ⚠️' : ''}</p>
                 ${giveaway.flags.length ? `<p style="color:#b45309;font-size:12px;margin:4px 0;"><b>Flags:</b> ${giveaway.flags.join('; ')}</p>` : ''}
                 <div style="font-size:12px;color:#334155;margin-top:8px;background:#f8fafc;padding:6px;border-radius:4px;border:1px solid #e2e8f0;">
                   <b>Leakage Screen Judgment:</b> ${getGiveawayJudgment(sheet, giveaway)}
                 </div>
-              ` : '<p>No giveaway data available.</p>'}
+                ${
+                  sheet.decoyRows && sheet.decoyRows.length > 0
+                    ? `
+                  <div style="font-size:12px;color:#991b1b;margin-top:8px;background:#fef2f2;padding:6px;border-radius:4px;border:1px solid #fecaca;">
+                    <b>Decoy Analysis:</b> Row(s) <b>[${sheet.decoyRows.map((r) => r + 1).join(', ')}]</b> (0-based: [${sheet.decoyRows.join(', ')}])<br>
+                    <b>Lure:</b> ${sheet.decoyDescription || 'Geometric decoy feature'}<br>
+                    <b>Removed by:</b> <code>${sheet.decoyRemovedBy || 'Expression negation'}</code>
+                  </div>
+                `
+                    : ''
+                }
+              `
+                  : '<p>No giveaway data available.</p>'
+              }
             </div>
 
             <div class="preview-item metrics-panel">
@@ -627,6 +738,40 @@ async function main() {
       sha256: computeSha256(overlayPngBuffer),
     });
 
+    // 4d. Render Plain Key Preview (TRUE regions in grey, no overlay) (R1)
+    const plainKeySvg = renderPlainKeySvg(sheet, regions);
+    const plainKeyHtml = `<!doctype html><html><body style="margin:0;padding:8px;background:#fff;display:inline-block;">${plainKeySvg}</body></html>`;
+    await previewPage.setContent(plainKeyHtml, { waitUntil: 'load' });
+    const plainKeyEl = await previewPage.locator('.plain-key-svg');
+    const plainKeyPngBuffer = await plainKeyEl.screenshot();
+    const plainKeyFileName = `${sheet.id}-plain-key.png`;
+    const plainKeyPngPath = path.join(previewsDir, plainKeyFileName);
+    fs.writeFileSync(plainKeyPngPath, plainKeyPngBuffer);
+    manifestFiles.push({
+      path: `previews/${plainKeyFileName}`,
+      kind: 'plain-key-preview',
+      sheetId: sheet.id,
+      sha256: computeSha256(plainKeyPngBuffer),
+    });
+
+    // 4e. Render Decoy Preview (Hatched decoy rows) if sheet has decoys (R2)
+    if (sheet.decoyRows && sheet.decoyRows.length > 0) {
+      const decoySvg = renderDecoyHatchSvg(sheet, regions);
+      const decoyHtml = `<!doctype html><html><body style="margin:0;padding:8px;background:#fff;display:inline-block;">${decoySvg}</body></html>`;
+      await previewPage.setContent(decoyHtml, { waitUntil: 'load' });
+      const decoyEl = await previewPage.locator('.decoy-hatch-svg');
+      const decoyPngBuffer = await decoyEl.screenshot();
+      const decoyFileName = `${sheet.id}-decoy.png`;
+      const decoyPngPath = path.join(previewsDir, decoyFileName);
+      fs.writeFileSync(decoyPngPath, decoyPngBuffer);
+      manifestFiles.push({
+        path: `previews/${decoyFileName}`,
+        kind: 'decoy-preview',
+        sheetId: sheet.id,
+        sha256: computeSha256(decoyPngBuffer),
+      });
+    }
+
     await previewPage.close();
   }
 
@@ -703,6 +848,9 @@ async function main() {
         expressionWords: formatExpressionWords(sheet.expression),
         expressionSymbols: formatExpressionSymbols(sheet.expression),
         trueRows: sheet.intendedTrueRows,
+        decoyRows: sheet.decoyRows || [],
+        decoyDescription: sheet.decoyDescription || null,
+        decoyRemovedBy: sheet.decoyRemovedBy || null,
         instructions: sheet.instructions,
         showRegionRowNumbers: sheet.showRegionRowNumbers,
         frozen: sheet.frozen,

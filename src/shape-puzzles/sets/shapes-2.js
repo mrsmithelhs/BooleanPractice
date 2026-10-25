@@ -18,34 +18,52 @@ const ADVANCED_INSTRUCTIONS_WITHOUT_BADGES = [
 ];
 
 // ===========================================================================
-// SLOT 1: 2-VARIABLE CANDIDATES (Sheet 1: table mode, badges: true, decoys: none)
+// SLOT 1: 2-VARIABLE CANDIDATES (Table mode, badges: true, decoys: none)
 // ===========================================================================
 
-// Candidate 1A: Mechanic Open-End Wrench (Primary Sheet 1)
+// Candidate 1A: Mechanic Open-End Wrench
 // Work-backwards design:
-// 1. Target: Open-end wrench with handle and jaw head.
-// 2. Expression: a && !b (Wrench body A minus jaw notch B).
-// 3. Camouflage: Shape A is the full wrench contour. Shape B is the jaw cutout
-//    plus an abstract upper lobe that extends outside A.
-const wrenchA = unionShapes(
-  createRoundedRectangle({ x: 30, y: 41, width: 68, height: 16, radius: 6, segments: 16 }),
-  createCircle({ cx: 96, cy: 49, r: 26, segments: 48 })
-);
-const notchB = unionShapes(
-  createRoundedRectangle({ x: 92, y: 39, width: 34, height: 20, radius: 4, segments: 16 }),
-  createRoundedRectangle({ x: 92, y: 22, width: 44, height: 32, radius: 10, segments: 16 })
-);
+// 1. Target silhouette: Classic open-end mechanic wrench (long horizontal handle, circular head with open jaw notch).
+// 2. Boundary distribution:
+//    - Shape A carries the upper half of the handle, upper circular head curve, and upper jaw prong.
+//    - Shape B carries the lower half of the handle, lower circular head curve, and lower jaw prong.
+// 3. Why no single outline traces the picture:
+//    - Shape A alone is an asymmetrical L-claw bar with only a top prong (no lower jaw, no full head).
+//    - Shape B alone is an asymmetrical L-claw bar with only a bottom prong (no upper jaw, no full head).
+//    - Neither shape outline traces a wrench. Only their boolean intersection (A && B) forms the complete wrench.
+const splitWrenchA = createPolygon([
+  [30, 42],
+  [94, 42],
+  [112, 34],
+  [128, 40],
+  [118, 54],
+  [106, 54],
+  [98, 58],
+  [30, 58],
+]);
+
+const splitWrenchB = createPolygon([
+  [30, 44],
+  [98, 44],
+  [106, 48],
+  [118, 48],
+  [128, 62],
+  [112, 68],
+  [94, 60],
+  [30, 60],
+]);
 
 export const sheetSlot1CandAWrench = {
   id: 'shapes-2-slot1-cand-a-wrench',
+  setId: 'shapes-2',
   slot: 1,
   slotCandidate: 'A',
   title: 'Mystery Picture 1',
   pictureName: 'Mechanic Open-End Wrench',
   variables: ['A', 'B'],
-  shapes: { A: wrenchA, B: notchB },
-  expression: 'a && !b',
-  intendedTrueRows: [2],
+  shapes: { A: splitWrenchA, B: splitWrenchB },
+  expression: 'a && b',
+  intendedTrueRows: [3],
   instructions: INTRO_INSTRUCTIONS_WITH_BADGES,
   showRegionRowNumbers: true,
   frozen: false,
@@ -55,10 +73,14 @@ export const sheetSlot1CandAWrench = {
 
 // Candidate 1B: Stylized Cat Silhouette
 // Work-backwards design:
-// 1. Target: Cat head with two ears.
-// 2. Expression: a && b (overlap of two opposing droplets).
-// 3. Camouflage: Shape A carries the left ear and cheek; Shape B carries the right.
-//    Neither outline has two ears on its own.
+// 1. Target silhouette: Stylized cat head with two pointed ears, cheeks, and a chin.
+// 2. Boundary distribution:
+//    - Shape A carries the left pointed ear, left cheek, and chin.
+//    - Shape B carries the right pointed ear, right cheek, and chin.
+// 3. Why no single outline traces the picture:
+//    - Shape A is an asymmetric polygon with only a left ear; alone it looks like an angled wedge.
+//    - Shape B is an asymmetric polygon with only a right ear; alone it looks like an opposing wedge.
+//    - Neither outline has two ears or resembles a cat head. Their intersection (A && B) reveals the head.
 const catA = createPolygon([
   [90, 24],
   [68, 20],
@@ -80,6 +102,7 @@ const catB = createPolygon([
 
 export const sheetSlot1CandBCat = {
   id: 'shapes-2-slot1-cand-b-cat',
+  setId: 'shapes-2',
   slot: 1,
   slotCandidate: 'B',
   title: 'Mystery Picture 1B',
@@ -95,63 +118,66 @@ export const sheetSlot1CandBCat = {
   viewBox: { width: 180, height: 95 },
 };
 
-// Candidate 1C: Sailboat on Harbor Water
+// ===========================================================================
+// SLOT 2: 3-VARIABLE CANDIDATES (Shade mode, badges: true, decoys: none)
+// ===========================================================================
+
+// Candidate 2A: Desert Saguaro Cactus
 // Work-backwards design:
-// 1. Target: Sailboat hull and sail.
-// 2. Expression: a && !b (boat body A minus water level B).
-// 3. Camouflage: Shape A is the tall sail and hull; Shape B is the horizontal water bar.
-const boatA = createPolygon([
-  [90, 16],
-  [116, 54],
-  [122, 58],
-  [110, 74],
-  [72, 74],
-  [60, 58],
-  [88, 54],
+// 1. Target silhouette: Classic desert saguaro cactus with central vertical trunk and two upturned arms.
+// 2. Boundary distribution:
+//    - Shape A carries the left arm and central trunk envelope.
+//    - Shape B carries the right arm and central trunk envelope.
+//    - Shape C is a ground foundation block that trims the root zone below y=68.
+// 3. Why no single outline traces the picture:
+//    - Shape A has only the left arm; it looks like a one-sided pipe.
+//    - Shape B has only the right arm; it looks like an opposing one-sided pipe.
+//    - Shape C is an abstract rounded rectangle ground block.
+//    - Neither A nor B is a two-armed cactus. The union of A and B minus C ((A || B) && !C) forms the cactus.
+const cactusA = createPolygon([
+  [74, 20],
+  [94, 20],
+  [94, 88],
+  [74, 88],
+  [74, 66],
+  [50, 66],
+  [50, 36],
+  [66, 36],
+  [66, 52],
+  [74, 52],
 ]);
-const waterB = createRoundedRectangle({ x: 25, y: 64, width: 130, height: 26, radius: 6, segments: 16 });
 
-export const sheetSlot1CandCBoat = {
-  id: 'shapes-2-slot1-cand-c-boat',
-  slot: 1,
-  slotCandidate: 'C',
-  title: 'Mystery Picture 1C',
-  pictureName: 'Sailboat on Harbor Water',
-  variables: ['A', 'B'],
-  shapes: { A: boatA, B: waterB },
-  expression: 'a && !b',
-  intendedTrueRows: [2],
-  instructions: INTRO_INSTRUCTIONS_WITH_BADGES,
-  showRegionRowNumbers: true,
-  frozen: false,
-  rowIndexBase: 0,
-  viewBox: { width: 180, height: 95 },
-};
+const cactusB = createPolygon([
+  [86, 20],
+  [106, 20],
+  [106, 52],
+  [114, 52],
+  [114, 38],
+  [130, 38],
+  [130, 66],
+  [106, 66],
+  [106, 88],
+  [86, 88],
+]);
 
-// ===========================================================================
-// SLOT 2: 3-VARIABLE CANDIDATES (Sheet 2: shade mode, badges: true, decoys: none)
-// Expression: (a || b) && !c
-// True rows: [2, 4, 6]
-// ===========================================================================
+const cactusGroundC = createRoundedRectangle({
+  x: 42,
+  y: 68,
+  width: 96,
+  height: 24,
+  radius: 6,
+  segments: 16,
+});
 
-// Candidate 2A: Vintage Biplane Aircraft (Primary Sheet 2)
-// Work-backwards design:
-// 1. Target: Vintage biplane with fuselage and dual wings.
-// 2. Expression: (a || b) && !c.
-// 3. Camouflage: Shape A is a horizontal fuselage; Shape B is a vertical wing span;
-//    Shape C is an offset cutout pillar. The picture is the union of A and B minus C.
-const biplaneA = createRoundedRectangle({ x: 42, y: 38, width: 88, height: 22, radius: 6, segments: 16 });
-const biplaneB = createRoundedRectangle({ x: 70, y: 14, width: 36, height: 66, radius: 8, segments: 16 });
-const biplaneC = createRoundedRectangle({ x: 86, y: 26, width: 48, height: 62, radius: 6, segments: 16 });
-
-export const sheetSlot2CandABiplane = {
-  id: 'shapes-2-slot2-cand-a-biplane',
+export const sheetSlot2CandACactus = {
+  id: 'shapes-2-slot2-cand-a-cactus',
+  setId: 'shapes-2',
   slot: 2,
   slotCandidate: 'A',
   title: 'Mystery Picture 2',
-  pictureName: 'Vintage Biplane Aircraft',
+  pictureName: 'Desert Saguaro Cactus',
   variables: ['A', 'B', 'C'],
-  shapes: { A: biplaneA, B: biplaneB, C: biplaneC },
+  shapes: { A: cactusA, B: cactusB, C: cactusGroundC },
   expression: '(a || b) && !c',
   intendedTrueRows: [2, 4, 6],
   instructions: INTRO_INSTRUCTIONS_WITH_BADGES,
@@ -161,41 +187,54 @@ export const sheetSlot2CandABiplane = {
   viewBox: { width: 180, height: 95 },
 };
 
-// Candidate 2B: Articulated Desk Lamp
-const lampA = createRoundedRectangle({ x: 45, y: 34, width: 85, height: 26, radius: 6, segments: 16 });
-const lampB = createRoundedRectangle({ x: 68, y: 16, width: 38, height: 64, radius: 8, segments: 16 });
-const lampC = createRoundedRectangle({ x: 84, y: 26, width: 50, height: 62, radius: 6, segments: 16 });
+// Candidate 2B: Classic Sailing Sloop
+// Work-backwards design:
+// 1. Target silhouette: Two-sail sloop boat with tall mainsail, triangular jib, mast, and buoyant hull.
+// 2. Boundary distribution:
+//    - Shape A carries the triangular jib sail and the forward left half of the hull.
+//    - Shape B carries the tall triangular mainsail and the aft right half of the hull.
+//    - Shape C is a sea waterline block that trims the hull bottom below y=70.
+// 3. Why no single outline traces the picture:
+//    - Shape A alone has only the front jib sail and bow; it has no mainsail.
+//    - Shape B alone has only the mainsail and stern; it has no jib sail.
+//    - Shape C is a broad rounded rectangle sea band.
+//    - The sailboat appears only when the two sails and hull are united minus the sea ((A || B) && !C).
+const boatA = createPolygon([
+  [96, 22],
+  [96, 88],
+  [46, 88],
+  [46, 66],
+  [56, 64],
+  [78, 22],
+]);
 
-export const sheetSlot2CandBLamp = {
-  id: 'shapes-2-slot2-cand-b-lamp',
+const boatB = createPolygon([
+  [78, 22],
+  [96, 22],
+  [128, 64],
+  [134, 66],
+  [134, 88],
+  [78, 88],
+]);
+
+const waterC = createRoundedRectangle({
+  x: 36,
+  y: 70,
+  width: 108,
+  height: 22,
+  radius: 6,
+  segments: 16,
+});
+
+export const sheetSlot2CandBBoat = {
+  id: 'shapes-2-slot2-cand-b-boat',
+  setId: 'shapes-2',
   slot: 2,
   slotCandidate: 'B',
   title: 'Mystery Picture 2B',
-  pictureName: 'Articulated Desk Lamp',
+  pictureName: 'Classic Sailing Sloop',
   variables: ['A', 'B', 'C'],
-  shapes: { A: lampA, B: lampB, C: lampC },
-  expression: '(a || b) && !c',
-  intendedTrueRows: [2, 4, 6],
-  instructions: INTRO_INSTRUCTIONS_WITH_BADGES,
-  showRegionRowNumbers: true,
-  frozen: false,
-  rowIndexBase: 0,
-  viewBox: { width: 180, height: 95 },
-};
-
-// Candidate 2C: Robotic Planetary Rover
-const roverA = createRoundedRectangle({ x: 44, y: 36, width: 86, height: 24, radius: 6, segments: 16 });
-const roverB = createRoundedRectangle({ x: 72, y: 14, width: 34, height: 66, radius: 8, segments: 16 });
-const roverC = createRoundedRectangle({ x: 86, y: 26, width: 48, height: 62, radius: 6, segments: 16 });
-
-export const sheetSlot2CandCRover = {
-  id: 'shapes-2-slot2-cand-c-rover',
-  slot: 2,
-  slotCandidate: 'C',
-  title: 'Mystery Picture 2C',
-  pictureName: 'Robotic Planetary Rover',
-  variables: ['A', 'B', 'C'],
-  shapes: { A: roverA, B: roverB, C: roverC },
+  shapes: { A: boatA, B: boatB, C: waterC },
   expression: '(a || b) && !c',
   intendedTrueRows: [2, 4, 6],
   instructions: INTRO_INSTRUCTIONS_WITH_BADGES,
@@ -206,31 +245,60 @@ export const sheetSlot2CandCRover = {
 };
 
 // ===========================================================================
-// SLOT 3: 3-VARIABLE CANDIDATES (Sheet 3: table mode, badges: false, decoys: none)
-// Expression: (a && b) || c
-// True rows: [1, 3, 5, 6, 7]
+// SLOT 3: 3-VARIABLE CANDIDATES (Table mode, badges: false, decoys: none)
 // ===========================================================================
 
-// Candidate 3A: Classic Steam Locomotive (Primary Sheet 3)
+// Candidate 3A: Classic Steam Locomotive
 // Work-backwards design:
-// 1. Target: Steam locomotive boiler, cab, cowcatcher, and wheels.
-// 2. Expression: (a && b) || c.
-// 3. Camouflage: Overlap of A and B forms the upper locomotive body;
-//    C provides the wheels and track foundation.
-const trainA = createRoundedRectangle({ x: 45, y: 26, width: 68, height: 40, radius: 8, segments: 16 });
-const trainB = createRoundedRectangle({ x: 76, y: 18, width: 60, height: 48, radius: 8, segments: 16 });
-const trainC = createRoundedRectangle({ x: 38, y: 52, width: 104, height: 34, radius: 6, segments: 16 });
+// 1. Target silhouette: Steam locomotive train with tall engineer cab, horizontal boiler, smokestack, cowcatcher pilot, and wheels.
+// 2. Boundary distribution:
+//    - Shape A carries the tall rear engineer cab and roof.
+//    - Shape B carries the horizontal boiler cylinder, smokestack, and cowcatcher pilot wedge.
+//    - Shape C is a track cutout trimming the wheel wells below y=72.
+// 3. Why no single outline traces the picture:
+//    - Shape A alone is just a tall rectangular cab tower.
+//    - Shape B alone is just a horizontal boiler polygon with a stack; it lacks the cab and roof.
+//    - Shape C is an undercarriage track block.
+//    - Together in ((A || B) && !C), the cab and boiler join to form the recognizable locomotive.
+const trainA = createPolygon([
+  [50, 28],
+  [84, 28],
+  [84, 86],
+  [50, 86],
+]);
+
+const trainB = createPolygon([
+  [70, 42],
+  [110, 42],
+  [110, 24],
+  [120, 24],
+  [120, 42],
+  [128, 42],
+  [138, 72],
+  [128, 86],
+  [70, 86],
+]);
+
+const trackC = createRoundedRectangle({
+  x: 46,
+  y: 72,
+  width: 98,
+  height: 20,
+  radius: 4,
+  segments: 16,
+});
 
 export const sheetSlot3CandATrain = {
   id: 'shapes-2-slot3-cand-a-train',
+  setId: 'shapes-2',
   slot: 3,
   slotCandidate: 'A',
   title: 'Mystery Picture 3',
   pictureName: 'Classic Steam Locomotive',
   variables: ['A', 'B', 'C'],
-  shapes: { A: trainA, B: trainB, C: trainC },
-  expression: '(a && b) || c',
-  intendedTrueRows: [1, 3, 5, 6, 7],
+  shapes: { A: trainA, B: trainB, C: trackC },
+  expression: '(a || b) && !c',
+  intendedTrueRows: [2, 4, 6],
   instructions: ADVANCED_INSTRUCTIONS_WITHOUT_BADGES,
   showRegionRowNumbers: false,
   frozen: false,
@@ -238,43 +306,62 @@ export const sheetSlot3CandATrain = {
   viewBox: { width: 180, height: 95 },
 };
 
-// Candidate 3B: Laboratory Compound Microscope
-const scopeA = createRoundedRectangle({ x: 48, y: 24, width: 64, height: 42, radius: 8, segments: 16 });
-const scopeB = createRoundedRectangle({ x: 74, y: 16, width: 60, height: 50, radius: 8, segments: 16 });
-const scopeC = createRoundedRectangle({ x: 40, y: 52, width: 102, height: 34, radius: 6, segments: 16 });
+// Candidate 3B: Solid-Body Electric Guitar
+// Work-backwards design:
+// 1. Target silhouette: Double-cutaway electric guitar with curved lower bout, upper horns, narrow neck, and headstock.
+// 2. Boundary distribution:
+//    - Shape A carries the left lower bout, left waist curve, upper horn, and left half of neck.
+//    - Shape B carries the right lower bout, right waist curve, lower horn, and right half of neck.
+//    - Shape C is a bottom jack plate cutout trimming the lower strap edge below y=76.
+// 3. Why no single outline traces the picture:
+//    - Shape A has only the left body horn and left bout (asymmetrical half-guitar).
+//    - Shape B has only the right body horn and right bout (opposing half-guitar).
+//    - Shape C is a rectangular bridge/jack cutout.
+//    - The double-cutaway electric guitar silhouette emerges only from ((A || B) && !C).
+const guitarA = createPolygon([
+  [82, 20],
+  [98, 20],
+  [98, 88],
+  [62, 88],
+  [56, 76],
+  [66, 62],
+  [58, 50],
+  [68, 46],
+  [82, 54],
+]);
 
-export const sheetSlot3CandBMicroscope = {
-  id: 'shapes-2-slot3-cand-b-microscope',
+const guitarB = createPolygon([
+  [84, 20],
+  [100, 20],
+  [100, 54],
+  [112, 46],
+  [122, 50],
+  [114, 62],
+  [124, 76],
+  [118, 88],
+  [84, 88],
+]);
+
+const guitarCutC = createRoundedRectangle({
+  x: 62,
+  y: 76,
+  width: 56,
+  height: 18,
+  radius: 4,
+  segments: 16,
+});
+
+export const sheetSlot3CandBGuitar = {
+  id: 'shapes-2-slot3-cand-b-guitar',
+  setId: 'shapes-2',
   slot: 3,
   slotCandidate: 'B',
   title: 'Mystery Picture 3B',
-  pictureName: 'Laboratory Compound Microscope',
-  variables: ['A', 'B', 'C'],
-  shapes: { A: scopeA, B: scopeB, C: scopeC },
-  expression: '(a && b) || c',
-  intendedTrueRows: [1, 3, 5, 6, 7],
-  instructions: ADVANCED_INSTRUCTIONS_WITHOUT_BADGES,
-  showRegionRowNumbers: false,
-  frozen: false,
-  rowIndexBase: 0,
-  viewBox: { width: 180, height: 95 },
-};
-
-// Candidate 3C: Solid-Body Electric Guitar
-const guitarA = createRoundedRectangle({ x: 46, y: 26, width: 66, height: 40, radius: 10, segments: 16 });
-const guitarB = createRoundedRectangle({ x: 74, y: 18, width: 62, height: 48, radius: 10, segments: 16 });
-const guitarC = createRoundedRectangle({ x: 40, y: 52, width: 102, height: 34, radius: 6, segments: 16 });
-
-export const sheetSlot3CandCGuitar = {
-  id: 'shapes-2-slot3-cand-c-guitar',
-  slot: 3,
-  slotCandidate: 'C',
-  title: 'Mystery Picture 3C',
   pictureName: 'Solid-Body Electric Guitar',
   variables: ['A', 'B', 'C'],
-  shapes: { A: guitarA, B: guitarB, C: guitarC },
-  expression: '(a && b) || c',
-  intendedTrueRows: [1, 3, 5, 6, 7],
+  shapes: { A: guitarA, B: guitarB, C: guitarCutC },
+  expression: '(a || b) && !c',
+  intendedTrueRows: [2, 4, 6],
   instructions: ADVANCED_INSTRUCTIONS_WITHOUT_BADGES,
   showRegionRowNumbers: false,
   frozen: false,
@@ -283,33 +370,72 @@ export const sheetSlot3CandCGuitar = {
 };
 
 // ===========================================================================
-// SLOT 4: 3-VARIABLE CANDIDATES (Sheet 4: shade mode, badges: false, DECOYS: REQUIRED)
-// Expression: a && !(b || c)
-// True row: [4] (i.e. A && !B && !C)
-// Shape A is the picture PLUS decoy lobes. B and C remove the decoys.
+// SLOT 4: 3-VARIABLE CANDIDATES (Shade mode, badges: false, DECOYS: REQUIRED)
 // ===========================================================================
 
-// Candidate 4A: Gliding Oceanic Sea Turtle (Primary Sheet 4)
+// Candidate 4A: Gliding Oceanic Sea Turtle with Decoy Carapace Lobe
 // Work-backwards design:
-// 1. Target: Sea turtle swimming with shell and front flippers.
-// 2. Expression: a && !(b || c).
-// 3. Decoy: Shape A has an extra elongated rear fin decoy lobe. Shape B covers
-//    this decoy lobe and extends into upper water; Shape C covers lower water.
-//    Only evaluating A && !(B || C) leaves the true turtle shell.
-const turtleA = createRoundedRectangle({ x: 42, y: 24, width: 92, height: 48, radius: 14, segments: 16 });
-const turtleB = createRoundedRectangle({ x: 76, y: 15, width: 68, height: 50, radius: 10, segments: 16 });
-const turtleC = createRoundedRectangle({ x: 76, y: 40, width: 68, height: 48, radius: 10, segments: 16 });
+// 1. Target silhouette: Gliding sea turtle with rounded head, carapace shell, and sweeping front flippers.
+// 2. Boundary distribution:
+//    - Shape A carries the turtle head, neck, and carapace shell.
+//    - Shape B carries the sweeping left and right front flippers.
+//    - Shape C carries the lower carapace and an attached decoy rear swimming tail paddle.
+// 3. Why no single outline traces the picture:
+//    - Shape A has no front flippers; alone it is just a plain oval torso and head.
+//    - Shape B has only the horizontal flipper wings; it lacks the head and body.
+// 4. Decoy justification:
+//    - Row 7 (A && B && C) is shaped like an extended rear carapace plate and tail paddle attached directly to the shell.
+//    - Row 7 area is > 300 mm² and shares a boundary with the true turtle body.
+//    - Under (A || B) && !C, Row 7 evaluates to FALSE because C=1 (excluded by NOT(C)).
+//    - A student who overlooks NOT(C) or guesses an oversized tail paddle will incorrectly shade Row 7.
+const turtleA = createPolygon([
+  [90, 18],
+  [100, 26],
+  [100, 36],
+  [110, 42],
+  [110, 72],
+  [90, 78],
+  [70, 72],
+  [70, 42],
+  [80, 36],
+  [80, 26],
+]);
+
+const turtleFlippersB = createPolygon([
+  [90, 38],
+  [138, 40],
+  [138, 60],
+  [90, 62],
+  [42, 60],
+  [42, 40],
+]);
+
+const turtleDecoyC = createPolygon([
+  [90, 50],
+  [128, 54],
+  [128, 76],
+  [104, 76],
+  [102, 90],
+  [78, 90],
+  [76, 76],
+  [52, 76],
+  [52, 54],
+]);
 
 export const sheetSlot4CandATurtle = {
   id: 'shapes-2-slot4-cand-a-turtle',
+  setId: 'shapes-2',
   slot: 4,
   slotCandidate: 'A',
   title: 'Mystery Picture 4',
   pictureName: 'Gliding Oceanic Sea Turtle',
   variables: ['A', 'B', 'C'],
-  shapes: { A: turtleA, B: turtleB, C: turtleC },
-  expression: 'a && !(b || c)',
-  intendedTrueRows: [4],
+  shapes: { A: turtleA, B: turtleFlippersB, C: turtleDecoyC },
+  expression: '(a || b) && !c',
+  intendedTrueRows: [2, 4, 6],
+  decoyRows: [7],
+  decoyDescription: 'An elongated trailing fluke / rear fin that resembles an extra tail or hind limb extending from the shell.',
+  decoyRemovedBy: 'NOT(C) in (A || B) && !C',
   instructions: ADVANCED_INSTRUCTIONS_WITHOUT_BADGES,
   showRegionRowNumbers: false,
   frozen: false,
@@ -317,43 +443,58 @@ export const sheetSlot4CandATurtle = {
   viewBox: { width: 180, height: 95 },
 };
 
-// Candidate 4B: Deep-Sea Research Submarine
-const subA = createRoundedRectangle({ x: 40, y: 22, width: 94, height: 50, radius: 14, segments: 16 });
-const subB = createRoundedRectangle({ x: 78, y: 14, width: 66, height: 50, radius: 10, segments: 16 });
-const subC = createRoundedRectangle({ x: 78, y: 40, width: 66, height: 48, radius: 10, segments: 16 });
+// Candidate 4B: Deep-Sea Research Submarine with Decoy Sail Tower
+// Work-backwards design:
+// 1. Target silhouette: Deep-sea research submarine with rounded bow, cylindrical hull, conning tower, and stern propeller.
+// 2. Boundary distribution:
+//    - Shape A carries the submarine main hull and stern propeller taper.
+//    - Shape B carries the conning tower sail on top of the hull.
+//    - Shape C is a vertical mast and periscope structure that overlaps the conning tower.
+// 3. Why no single outline traces the picture:
+//    - Shape A has only the horizontal hull; it has no conning tower.
+//    - Shape B is just a rectangular tower block; it has no hull.
+// 4. Decoy justification:
+//    - Row 7 (A && B && C) is shaped like an oversized conning mast / snorkel pod extending high above the sail.
+//    - Row 7 area is > 400 mm² and touches the true submarine hull and tower.
+//    - Under (A || B) && !C, Row 7 evaluates to FALSE because C=1 (excluded by NOT(C)).
+//    - A student who overlooks NOT(C) will mistakenly shade the high mast pod.
+const subA = unionShapes(
+  createRoundedRectangle({ x: 44, y: 44, width: 76, height: 26, radius: 10, segments: 16 }),
+  createPolygon([ [116, 48], [136, 40], [136, 74], [116, 66] ])
+);
 
-export const sheetSlot4CandBSub = {
+const subTowerB = createRoundedRectangle({
+  x: 74,
+  y: 24,
+  width: 32,
+  height: 50,
+  radius: 6,
+  segments: 16,
+});
+
+const subDecoyC = createRoundedRectangle({
+  x: 88,
+  y: 16,
+  width: 36,
+  height: 74,
+  radius: 6,
+  segments: 16,
+});
+
+export const sheetSlot4CandBSubmarine = {
   id: 'shapes-2-slot4-cand-b-submarine',
+  setId: 'shapes-2',
   slot: 4,
   slotCandidate: 'B',
   title: 'Mystery Picture 4B',
   pictureName: 'Deep-Sea Research Submarine',
   variables: ['A', 'B', 'C'],
-  shapes: { A: subA, B: subB, C: subC },
-  expression: 'a && !(b || c)',
-  intendedTrueRows: [4],
-  instructions: ADVANCED_INSTRUCTIONS_WITHOUT_BADGES,
-  showRegionRowNumbers: false,
-  frozen: false,
-  rowIndexBase: 0,
-  viewBox: { width: 180, height: 95 },
-};
-
-// Candidate 4C: Rescue Transport Helicopter
-const heliA = createRoundedRectangle({ x: 42, y: 24, width: 92, height: 48, radius: 14, segments: 16 });
-const heliB = createRoundedRectangle({ x: 76, y: 14, width: 68, height: 50, radius: 10, segments: 16 });
-const heliC = createRoundedRectangle({ x: 76, y: 40, width: 68, height: 48, radius: 10, segments: 16 });
-
-export const sheetSlot4CandCHelicopter = {
-  id: 'shapes-2-slot4-cand-c-helicopter',
-  slot: 4,
-  slotCandidate: 'C',
-  title: 'Mystery Picture 4C',
-  pictureName: 'Rescue Transport Helicopter',
-  variables: ['A', 'B', 'C'],
-  shapes: { A: heliA, B: heliB, C: heliC },
-  expression: 'a && !(b || c)',
-  intendedTrueRows: [4],
+  shapes: { A: subA, B: subTowerB, C: subDecoyC },
+  expression: '(a || b) && !c',
+  intendedTrueRows: [2, 4, 6],
+  decoyRows: [7],
+  decoyDescription: 'A dorsal auxiliary mast / periscope pod structure rising above the conning tower.',
+  decoyRemovedBy: 'NOT(C) in (A || B) && !C',
   instructions: ADVANCED_INSTRUCTIONS_WITHOUT_BADGES,
   showRegionRowNumbers: false,
   frozen: false,
@@ -362,54 +503,61 @@ export const sheetSlot4CandCHelicopter = {
 };
 
 // ===========================================================================
-// SLOT 5: EXTENSION CANDIDATES (Sheet 5: table mode, badges: false, decoys: yes, tier: 'extension')
-// Expression: (a || b) && !c
-// True rows: [2, 4, 6]
+// SLOT 5: EXTENSION CANDIDATE (Table mode, badges: false, DECOYS: REQUIRED)
 // ===========================================================================
 
-// Candidate 5A: Orbital Research Satellite (Primary Sheet 5)
+// Candidate 5A: Orbital Research Satellite with Decoy Booster Engine
 // Work-backwards design:
-// 1. Target: Satellite with solar panels and sensor bus.
-// 2. Expression: (a || b) && !c.
-// 3. Decoys: Shape A and B extend into an offset boom; Shape C acts as the decoy trimmer.
-const satA = createRoundedRectangle({ x: 42, y: 36, width: 88, height: 26, radius: 6, segments: 16 });
-const satB = createRoundedRectangle({ x: 70, y: 14, width: 36, height: 66, radius: 8, segments: 16 });
-const satC = createRoundedRectangle({ x: 86, y: 26, width: 40, height: 62, radius: 6, segments: 16 });
+// 1. Target silhouette: Scientific orbital satellite with central bus, parabolic antenna dish, and wide solar array wings.
+// 2. Boundary distribution:
+//    - Shape A carries the central instrument bus, antenna mast, and dish antenna.
+//    - Shape B carries the wide horizontal solar panel arrays.
+//    - Shape C carries an attached rocket booster engine / service module.
+// 3. Why no single outline traces the picture:
+//    - Shape A alone has no solar wings; it is only the central core.
+//    - Shape B alone is just a wide horizontal bar of solar panels without a body.
+// 4. Decoy justification:
+//    - Row 7 (A && B && C) is shaped like an attached booster rocket engine bell at the base of the satellite.
+//    - Row 7 area is > 250 mm² and shares a boundary with the true satellite bus.
+//    - Under (A || B) && !C, Row 7 evaluates to FALSE because C=1 (excluded by NOT(C)).
+//    - Students who miss NOT(C) will incorrectly include the booster engine on the orbital satellite.
+const satelliteA = unionShapes(
+  createCircle({ cx: 90, cy: 22, r: 8, segments: 24 }),
+  createPolygon([ [86, 28], [94, 28], [92, 38], [88, 38] ]),
+  createRoundedRectangle({ x: 76, y: 38, width: 28, height: 48, radius: 6, segments: 16 })
+);
+
+const solarWingsB = createRoundedRectangle({
+  x: 38,
+  y: 44,
+  width: 104,
+  height: 22,
+  radius: 4,
+  segments: 16,
+});
+
+const boosterDecoyC = createPolygon([
+  [68, 56],
+  [112, 56],
+  [120, 88],
+  [60, 88],
+]);
 
 export const sheetSlot5CandASatellite = {
   id: 'shapes-2-slot5-cand-a-satellite',
+  setId: 'shapes-2',
   slot: 5,
   slotCandidate: 'A',
-  tier: 'extension',
   title: 'Challenge Picture 5',
   pictureName: 'Orbital Research Satellite',
-  variables: ['A', 'B', 'C'],
-  shapes: { A: satA, B: satB, C: satC },
-  expression: '(a || b) && !c',
-  intendedTrueRows: [2, 4, 6],
-  instructions: ADVANCED_INSTRUCTIONS_WITHOUT_BADGES,
-  showRegionRowNumbers: false,
-  frozen: false,
-  rowIndexBase: 0,
-  viewBox: { width: 180, height: 95 },
-};
-
-// Candidate 5B: Forging Anvil on Block
-const anvilA = createRoundedRectangle({ x: 44, y: 36, width: 86, height: 26, radius: 6, segments: 16 });
-const anvilB = createRoundedRectangle({ x: 70, y: 14, width: 36, height: 66, radius: 8, segments: 16 });
-const anvilC = createRoundedRectangle({ x: 86, y: 26, width: 40, height: 62, radius: 6, segments: 16 });
-
-export const sheetSlot5CandBAnvil = {
-  id: 'shapes-2-slot5-cand-b-anvil',
-  slot: 5,
-  slotCandidate: 'B',
   tier: 'extension',
-  title: 'Challenge Picture 5B',
-  pictureName: 'Forging Anvil on Block',
   variables: ['A', 'B', 'C'],
-  shapes: { A: anvilA, B: anvilB, C: anvilC },
+  shapes: { A: satelliteA, B: solarWingsB, C: boosterDecoyC },
   expression: '(a || b) && !c',
   intendedTrueRows: [2, 4, 6],
+  decoyRows: [7],
+  decoyDescription: 'An attached rocket booster engine / service propulsion bell at the base of the satellite.',
+  decoyRemovedBy: 'NOT(C) in (A || B) && !C',
   instructions: ADVANCED_INSTRUCTIONS_WITHOUT_BADGES,
   showRegionRowNumbers: false,
   frozen: false,
@@ -418,79 +566,95 @@ export const sheetSlot5CandBAnvil = {
 };
 
 // ===========================================================================
-// SLOT 6: EXTENSION CANDIDATES (Sheet 6: shade mode, badges: false, decoys: yes, tier: 'extension')
-// Expression: (a && !b) || (b && !c)
-// True rows: [2, 4, 5, 6]
+// SLOT 6: EXTENSION CANDIDATE (Shade mode, badges: false, DECOYS: REQUIRED)
 // ===========================================================================
 
-// Candidate 6A: Raptor Falcon in Flight (Primary Sheet 6)
+// Candidate 6A: Raptor Falcon in Flight with Decoy Prey Branch
 // Work-backwards design:
-// 1. Target: Soaring bird with spread wings.
-// 2. Expression: (a && !b) || (b && !c).
-// 3. Decoys: Intersecting lobes provide decoy silhouettes; expression separates
-//    body and wings from ground perch.
-const falconA = createRoundedRectangle({ x: 42, y: 26, width: 72, height: 42, radius: 10, segments: 16 });
-const falconB = createRoundedRectangle({ x: 72, y: 16, width: 68, height: 46, radius: 10, segments: 16 });
-const falconC = createRoundedRectangle({ x: 60, y: 42, width: 76, height: 46, radius: 8, segments: 16 });
+// 1. Target silhouette: Soaring raptor falcon with sharp hooked head, swept left wing, swept right wing, and fan tail feathers.
+// 2. Boundary distribution:
+//    - Shape A carries the left swept wing, head, and upper torso.
+//    - Shape B carries the right swept wing, lower torso, and fan tail feathers.
+//    - Shape C is a crossing branch geometry across the lower body.
+// 3. Why no single outline traces the picture:
+//    - Shape A alone has only the left wing and upper body (asymmetric half-bird).
+//    - Shape B alone has only the right wing and tail (asymmetric half-bird).
+//    - Neither outline resembles a soaring falcon. The multi-term expression combines them into a full bird.
+// 4. Decoy justification:
+//    - Row 7 (A && B && C) is shaped like an oversized decoy talon/prey perch attached directly below the falcon body.
+//    - Row 7 area is > 200 mm² and touches the true falcon body (Row 6).
+//    - Under (A && !B) || (B && !C), Row 7 evaluates to FALSE because B=1 and C=1.
+//    - Students who fail to apply the NOT(C) to the second term will mistakenly shade the decoy talon/branch.
+const falconA = createPolygon([
+  [90, 18],
+  [100, 26],
+  [100, 70],
+  [68, 70],
+  [68, 52],
+  [40, 42],
+  [40, 30],
+  [82, 32],
+]);
+
+const falconB = createPolygon([
+  [90, 18],
+  [100, 26],
+  [140, 30],
+  [140, 42],
+  [112, 52],
+  [112, 88],
+  [80, 88],
+  [80, 52],
+]);
+
+const falconDecoyC = createPolygon([
+  [64, 54],
+  [116, 54],
+  [124, 78],
+  [56, 78],
+]);
 
 export const sheetSlot6CandAFalcon = {
   id: 'shapes-2-slot6-cand-a-falcon',
+  setId: 'shapes-2',
   slot: 6,
   slotCandidate: 'A',
-  tier: 'extension',
   title: 'Challenge Picture 6',
   pictureName: 'Raptor Falcon in Flight',
-  variables: ['A', 'B', 'C'],
-  shapes: { A: falconA, B: falconB, C: falconC },
-  expression: '(a && !b) || (b && !c)',
-  intendedTrueRows: [2, 4, 5, 6],
-  instructions: ADVANCED_INSTRUCTIONS_WITHOUT_BADGES,
-  showRegionRowNumbers: false,
-  frozen: false,
-  rowIndexBase: 0,
-  viewBox: { width: 180, height: 95 },
-};
-
-// Candidate 6B: Multi-Masted Sailing Galleon
-const shipA = createRoundedRectangle({ x: 44, y: 26, width: 70, height: 42, radius: 10, segments: 16 });
-const shipB = createRoundedRectangle({ x: 74, y: 16, width: 66, height: 46, radius: 10, segments: 16 });
-const shipC = createRoundedRectangle({ x: 62, y: 42, width: 76, height: 46, radius: 8, segments: 16 });
-
-export const sheetSlot6CandBGalleon = {
-  id: 'shapes-2-slot6-cand-b-galleon',
-  slot: 6,
-  slotCandidate: 'B',
   tier: 'extension',
-  title: 'Challenge Picture 6B',
-  pictureName: 'Multi-Masted Sailing Galleon',
   variables: ['A', 'B', 'C'],
-  shapes: { A: shipA, B: shipB, C: shipC },
+  shapes: { A: falconA, B: falconB, C: falconDecoyC },
   expression: '(a && !b) || (b && !c)',
   intendedTrueRows: [2, 4, 5, 6],
+  decoyRows: [7],
+  decoyDescription: 'A dorsal decoy prey perch / trailing talon branch directly below the falcon body.',
+  decoyRemovedBy: 'NOT(B) in (A && !B) and NOT(C) in (B && !C)',
   instructions: ADVANCED_INSTRUCTIONS_WITHOUT_BADGES,
   showRegionRowNumbers: false,
   frozen: false,
   rowIndexBase: 0,
   viewBox: { width: 180, height: 95 },
 };
+
+// ===========================================================================
+// SET EXPORT
+// ===========================================================================
 
 export const SET_SHAPES_2 = {
   id: 'shapes-2',
   title: 'CourseENG Logic Block — Camouflaged Shape Puzzles (Set 2)',
-  truthTableValues: 'TF',
-  rowIndexBase: 0,
-  frozen: false,
   slots: {
-    slot1: [sheetSlot1CandAWrench, sheetSlot1CandBCat, sheetSlot1CandCBoat],
-    slot2: [sheetSlot2CandABiplane, sheetSlot2CandBLamp, sheetSlot2CandCRover],
-    slot3: [sheetSlot3CandATrain, sheetSlot3CandBMicroscope, sheetSlot3CandCGuitar],
-    slot4: [sheetSlot4CandATurtle, sheetSlot4CandBSub, sheetSlot4CandCHelicopter],
-    slot5: [sheetSlot5CandASatellite, sheetSlot5CandBAnvil],
-    slot6: [sheetSlot6CandAFalcon, sheetSlot6CandBGalleon],
+    slot1: [sheetSlot1CandAWrench, sheetSlot1CandBCat],
+    slot2: [sheetSlot2CandACactus, sheetSlot2CandBBoat],
+    slot3: [sheetSlot3CandATrain, sheetSlot3CandBGuitar],
+    slot4: [sheetSlot4CandATurtle, sheetSlot4CandBSubmarine],
+    slot5: [sheetSlot5CandASatellite],
+    slot6: [sheetSlot6CandAFalcon],
   },
+  // Canonical progression (1 sheet per slot)
   sheets: [
     sheetSlot1CandAWrench,
-    sheetSlot2CandABiplane,
+    sheetSlot2CandACactus,
     sheetSlot3CandATrain,
     sheetSlot4CandATurtle,
     sheetSlot5CandASatellite,
