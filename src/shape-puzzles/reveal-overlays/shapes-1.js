@@ -22,8 +22,8 @@ export const OVERLAYS_SHAPES_1 = {
     { type: 'line', x1: 70, y1: 25, x2: 63, y2: 21, style: 'star' },
     { type: 'line', x1: 110, y1: 25, x2: 117, y2: 21, style: 'star' },
 
-    // Sun rim highlight arc
-    { type: 'path', d: 'M 72 32 A 24 24 0 0 1 108 32', style: 'highlight' },
+    // Sun rim highlight arc (stroke only, no opaque fill over shaded disc)
+    { type: 'path', d: 'M 72 32 A 24 24 0 0 1 108 32', style: 'detail-stroke' },
 
     // Water surface ripple lines below the horizon
     { type: 'line', x1: 45, y1: 56, x2: 75, y2: 56, style: 'detail-stroke' },
@@ -98,45 +98,45 @@ export const OVERLAYS_SHAPES_1 = {
     { type: 'line', x1: 86.0, y1: 28, x2: 94.0, y2: 28, style: 'detail-stroke' },
     { type: 'line', x1: 90, y1: 24.0, x2: 90, y2: 32.0, style: 'detail-stroke' },
 
-    // Front door with doorknob
-    { type: 'path', d: 'M 84 78 L 84 58 L 96 58 L 96 78', style: 'detail-stroke' },
-    { type: 'circle', cx: 94, cy: 69, r: 0.8, style: 'accent' },
+    // Front door with doorknob (stays clear of row 8 badge at (80, 68))
+    { type: 'path', d: 'M 85 78 L 85 58 L 95 58 L 95 78', style: 'detail-stroke' },
+    { type: 'circle', cx: 93, cy: 69, r: 0.8, style: 'accent' },
 
     // Window panes on left wall
     {
       type: 'polygon',
-      points: '66,48 76,48 76,58 66,58',
+      points: '68,49 76,49 76,57 68,57',
       style: 'detail-fill',
     },
-    { type: 'line', x1: 66, y1: 53, x2: 76, y2: 53, style: 'detail-stroke' },
-    { type: 'line', x1: 71, y1: 48, x2: 71, y2: 58, style: 'detail-stroke' },
+    { type: 'line', x1: 68, y1: 53, x2: 76, y2: 53, style: 'detail-stroke' },
+    { type: 'line', x1: 72, y1: 49, x2: 72, y2: 57, style: 'detail-stroke' },
 
     // Window panes on right wall
     {
       type: 'polygon',
-      points: '104,48 114,48 114,58 104,58',
+      points: '104,51 112,51 112,59 104,59',
       style: 'detail-fill',
     },
-    { type: 'line', x1: 104, y1: 53, x2: 114, y2: 53, style: 'detail-stroke' },
-    { type: 'line', x1: 109, y1: 48, x2: 109, y2: 58, style: 'detail-stroke' },
+    { type: 'line', x1: 104, y1: 55, x2: 112, y2: 55, style: 'detail-stroke' },
+    { type: 'line', x1: 108, y1: 51, x2: 108, y2: 59, style: 'detail-stroke' },
 
-    // Roof shingle lines
-    { type: 'line', x1: 62, y1: 38, x2: 118, y2: 38, style: 'detail-stroke' },
-    { type: 'line', x1: 70, y1: 32, x2: 110, y2: 32, style: 'detail-stroke' },
+    // Roof shingle lines (placed to stay clear of row 7 badge at (80, 37) and row 5 badge at (65.6, 39.1))
+    { type: 'line', x1: 72, y1: 25, x2: 84, y2: 25, style: 'detail-stroke' },
+    { type: 'line', x1: 94, y1: 32, x2: 112, y2: 32, style: 'detail-stroke' },
 
-    // Picket fence in yard
-    { type: 'line', x1: 42, y1: 70, x2: 58, y2: 70, style: 'detail-stroke' },
-    { type: 'line', x1: 46, y1: 66, x2: 46, y2: 75, style: 'detail-stroke' },
-    { type: 'line', x1: 50, y1: 66, x2: 50, y2: 75, style: 'detail-stroke' },
-    { type: 'line', x1: 54, y1: 66, x2: 54, y2: 75, style: 'detail-stroke' },
+    // Picket fence in yard (placed to stay clear of row 2 badge at (50, 70))
+    { type: 'line', x1: 28, y1: 70, x2: 42, y2: 70, style: 'detail-stroke' },
+    { type: 'line', x1: 32, y1: 66, x2: 32, y2: 75, style: 'detail-stroke' },
+    { type: 'line', x1: 36, y1: 66, x2: 36, y2: 75, style: 'detail-stroke' },
+    { type: 'line', x1: 40, y1: 66, x2: 40, y2: 75, style: 'detail-stroke' },
     { type: 'line', x1: 122, y1: 70, x2: 138, y2: 70, style: 'detail-stroke' },
     { type: 'line', x1: 126, y1: 66, x2: 126, y2: 75, style: 'detail-stroke' },
     { type: 'line', x1: 130, y1: 66, x2: 130, y2: 75, style: 'detail-stroke' },
     { type: 'line', x1: 134, y1: 66, x2: 134, y2: 75, style: 'detail-stroke' },
 
     // Stepping stones
-    { type: 'ellipse', cx: 90, cy: 82, rx: 3, ry: 1.2, style: 'detail-stroke' },
-    { type: 'ellipse', cx: 90, cy: 87, rx: 3.5, ry: 1.4, style: 'detail-stroke' },
+    { type: 'ellipse', cx: 90, cy: 81, rx: 3, ry: 1.2, style: 'detail-stroke' },
+    { type: 'ellipse', cx: 90, cy: 86, rx: 3.5, ry: 1.4, style: 'detail-stroke' },
   ],
 
   // Mystery Picture 4: Rocket Ship in Flight

@@ -56,6 +56,8 @@ export function computeSheetGiveaway(sheet, options = {}) {
   }
 
   const byShape = {};
+  const pairwiseUnions = {};
+  const pairwiseIntersections = {};
   const flags = [];
   let maxIou = 0;
 
@@ -96,7 +98,85 @@ export function computeSheetGiveaway(sheet, options = {}) {
     };
   }
 
-  // 2. IoU with union of all shapes
+  // 2. Pairwise unions and pairwise intersections (F2)
+  const vars = sheet.variables || [];
+  for (let j = 0; j < vars.length; j += 1) {
+    for (let k = j + 1; k < vars.length; k += 1) {
+      const v1 = vars[j];
+      const v2 = vars[k];
+
+      // Pairwise Union: v1 || v2
+      let unionOfShapesArea = 0;
+      let uIntersectPicArea = 0;
+      let uUnionPicArea = 0;
+
+      for (let i = 0; i < regions.length; i += 1) {
+        const inUnion = Boolean(regions[i].assignment?.[v1] || regions[i].assignment?.[v2]);
+        const inPicture = trueSet.has(i);
+        const a = regionAreas[i];
+
+        if (inUnion) unionOfShapesArea += a;
+        if (inUnion && inPicture) uIntersectPicArea += a;
+        if (inUnion || inPicture) uUnionPicArea += a;
+      }
+
+      const unionIou = uUnionPicArea > 0 ? uIntersectPicArea / uUnionPicArea : 0;
+      const roundedUnionIou = Number(unionIou.toFixed(3));
+      const unionKey = `${v1} | ${v2}`;
+      const unionFlagged = roundedUnionIou >= GIVEAWAY_FLAG_THRESHOLD;
+      if (unionFlagged) {
+        flags.push(`high overlap with union of ${unionKey} (IoU = ${roundedUnionIou})`);
+      }
+      if (roundedUnionIou > maxIou) {
+        maxIou = roundedUnionIou;
+      }
+      pairwiseUnions[unionKey] = {
+        iou: roundedUnionIou,
+        flagged: unionFlagged,
+        shapeAreaMm2: Number(unionOfShapesArea.toFixed(1)),
+        intersectionAreaMm2: Number(uIntersectPicArea.toFixed(1)),
+        unionAreaMm2: Number(uUnionPicArea.toFixed(1)),
+      };
+
+      // Pairwise Intersection: v1 && v2
+      let interOfShapesArea = 0;
+      let iIntersectPicArea = 0;
+      let iUnionPicArea = 0;
+
+      for (let i = 0; i < regions.length; i += 1) {
+        const inInter = Boolean(regions[i].assignment?.[v1] && regions[i].assignment?.[v2]);
+        const inPicture = trueSet.has(i);
+        const a = regionAreas[i];
+
+        if (inInter) interOfShapesArea += a;
+        if (inInter && inPicture) iIntersectPicArea += a;
+        if (inInter || inPicture) iUnionPicArea += a;
+      }
+
+      const interIou = iUnionPicArea > 0 ? iIntersectPicArea / iUnionPicArea : 0;
+      const roundedInterIou = Number(interIou.toFixed(3));
+      const interKey = `${v1} & ${v2}`;
+      // For 2-variable sheets where picture is defined as A && B, the intersection is
+      // the problem objective rather than a shortcut outline giveaway.
+      // For 3+ variables, a pairwise intersection >= 0.75 gives away the picture.
+      const shouldFlagInter = vars.length >= 3 && roundedInterIou >= GIVEAWAY_FLAG_THRESHOLD;
+      if (shouldFlagInter) {
+        flags.push(`high overlap with intersection of ${interKey} (IoU = ${roundedInterIou})`);
+      }
+      if (vars.length >= 3 && roundedInterIou > maxIou) {
+        maxIou = roundedInterIou;
+      }
+      pairwiseIntersections[interKey] = {
+        iou: roundedInterIou,
+        flagged: shouldFlagInter,
+        shapeAreaMm2: Number(interOfShapesArea.toFixed(1)),
+        intersectionAreaMm2: Number(iIntersectPicArea.toFixed(1)),
+        unionAreaMm2: Number(iUnionPicArea.toFixed(1)),
+      };
+    }
+  }
+
+  // 3. IoU with union of all shapes
   let allShapesArea = 0;
   let allIntersectionArea = 0;
   let allUnionArea = 0;
@@ -126,6 +206,8 @@ export function computeSheetGiveaway(sheet, options = {}) {
 
   return {
     byShape,
+    pairwiseUnions,
+    pairwiseIntersections,
     allShapes: {
       iou: roundedAllIou,
       flagged: allFlagged,

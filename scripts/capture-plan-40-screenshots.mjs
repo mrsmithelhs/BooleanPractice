@@ -50,6 +50,7 @@ async function capturePlan40Screenshots() {
   await page.locator('[data-testid="output-cell-3"]').click(); // F
   await page.locator('[data-testid="btn-check-table"]').click();
   await page.waitForSelector('[data-testid="reveal-overlay-layer"]');
+  await page.waitForTimeout(1600); // F4: wait for 1.2s overlay fade-in animation to complete
   await page.screenshot({ path: resolve(outDir, '01-shapes-1-sheet1-sun-solved-overlay.png') });
 
   // 2. Shapes-1 Sheet 2 Solved with Overlay (Gem faceted setting) - Student Solve (Shade mode)
@@ -60,16 +61,17 @@ async function capturePlan40Screenshots() {
   await page.locator('[data-testid="region-3"]').click();
   await page.locator('[data-testid="btn-check-shading"]').click();
   await page.waitForSelector('[data-testid="reveal-overlay-layer"]');
+  await page.waitForTimeout(1600); // F4: wait for 1.2s overlay fade-in animation to complete
   await page.screenshot({ path: resolve(outDir, '02-shapes-1-sheet2-gem-solved-overlay.png') });
 
-  // 3. Shapes-2 Sheet 1 Unsolved (Wrench: Table mode, outlines only, no overlay in DOM)
-  console.log('Capturing 03-shapes-2-sheet1-wrench-unsolved.png...');
+  // 3. Shapes-2 Sheet 1 Unsolved (Cat: Table mode, outlines only, no overlay in DOM)
+  console.log('Capturing 03-shapes-2-sheet1-cat-unsolved.png...');
   await page.goto(`${baseUrl}/puzzle.html?set=shapes-2&sheet=1`);
   await page.waitForSelector('[data-testid="shape-puzzle-page"]');
-  await page.screenshot({ path: resolve(outDir, '03-shapes-2-sheet1-wrench-unsolved.png') });
+  await page.screenshot({ path: resolve(outDir, '03-shapes-2-sheet1-cat-unsolved.png') });
 
-  // 4. Shapes-2 Sheet 1 Solved with Overlay (Wrench: head cut-out and handle line) - Student Solve
-  console.log('Capturing 04-shapes-2-sheet1-wrench-solved-overlay.png (student solve)...');
+  // 4. Shapes-2 Sheet 1 Solved with Overlay (Cat: face whiskers, ears, eyes) - Student Solve
+  console.log('Capturing 04-shapes-2-sheet1-cat-solved-overlay.png (student solve)...');
   await page.locator('[data-testid="output-cell-0"]').click();
   await page.locator('[data-testid="output-cell-0"]').click(); // F
   await page.locator('[data-testid="output-cell-1"]').click();
@@ -79,23 +81,23 @@ async function capturePlan40Screenshots() {
   await page.locator('[data-testid="output-cell-3"]').click(); // T
   await page.locator('[data-testid="btn-check-table"]').click();
   await page.waitForSelector('[data-testid="reveal-overlay-layer"]');
-  await page.screenshot({ path: resolve(outDir, '04-shapes-2-sheet1-wrench-solved-overlay.png') });
+  await page.waitForTimeout(1600); // F4: wait for 1.2s overlay fade-in animation to complete
+  await page.screenshot({ path: resolve(outDir, '04-shapes-2-sheet1-cat-solved-overlay.png') });
 
-  // 5. Shapes-2 Sheet 4 Student View (Sea Turtle: Shade mode with decoy fin)
-  console.log('Capturing 05-shapes-2-sheet4-turtle-student.png...');
+  // 5. Shapes-2 Sheet 4 Student View (Submarine: Shade mode with dorsal decoy mast)
+  console.log('Capturing 05-shapes-2-sheet4-submarine-student.png...');
   await page.goto(`${baseUrl}/puzzle.html?set=shapes-2&sheet=4`);
   await page.waitForSelector('[data-testid="shape-puzzle-canvas"]');
-  await page.screenshot({ path: resolve(outDir, '05-shapes-2-sheet4-turtle-student.png') });
+  await page.screenshot({ path: resolve(outDir, '05-shapes-2-sheet4-submarine-student.png') });
 
-  // 6. Shapes-2 Sheet 4 Solved with Overlay (Sea Turtle shell scutes) - Student Solve (Shade mode)
-  console.log('Capturing 06-shapes-2-sheet4-turtle-solved-overlay.png (student solve)...');
-  // Expression: (a || b) && !c. True regions are 2, 4, 6
-  await page.locator('[data-testid="region-2"]').dispatchEvent('click');
+  // 6. Shapes-2 Sheet 4 Solved with Overlay (Submarine hull, sail periscope, portholes) - Student Solve (Shade mode)
+  console.log('Capturing 06-shapes-2-sheet4-submarine-solved-overlay.png (student solve)...');
+  // Expression: a && !(b || c). True region is 4 (decoy mast is row 6, unshaded)
   await page.locator('[data-testid="region-4"]').dispatchEvent('click');
-  await page.locator('[data-testid="region-6"]').dispatchEvent('click');
   await page.locator('[data-testid="btn-check-shading"]').click();
   await page.waitForSelector('[data-testid="reveal-overlay-layer"]');
-  await page.screenshot({ path: resolve(outDir, '06-shapes-2-sheet4-turtle-solved-overlay.png') });
+  await page.waitForTimeout(1600); // F4: wait for 1.2s overlay fade-in animation to complete
+  await page.screenshot({ path: resolve(outDir, '06-shapes-2-sheet4-submarine-solved-overlay.png') });
 
   // 7. Shapes-2 Sheet 5 Challenge Chip (Satellite, Extension Tier)
   console.log('Capturing 07-shapes-2-sheet5-challenge-chip.png...');
@@ -119,6 +121,7 @@ async function capturePlan40Screenshots() {
   }
   await page.locator('[data-testid="btn-check-table"]').click();
   await page.waitForSelector('[data-testid="reveal-overlay-layer"]');
+  await page.waitForTimeout(1600); // F4: wait for 1.2s overlay fade-in animation to complete
   await page.evaluate(() => {
     document.body.style.filter = 'grayscale(100%)';
   });

@@ -36,15 +36,16 @@ export const OVERLAYS_SHAPES_2 = {
 
   // Slot 2A: Desert Saguaro Cactus
   'shapes-2-slot2-cand-a-cactus': [
-    { type: 'circle', cx: 90, cy: 20, r: 3, style: 'accent' },
-    { type: 'circle', cx: 90, cy: 20, r: 1.5, style: 'star' },
-    { type: 'line', x1: 90, y1: 26, x2: 90, y2: 66, style: 'detail-stroke' },
-    { type: 'line', x1: 58, y1: 40, x2: 58, y2: 56, style: 'detail-stroke' },
-    { type: 'line', x1: 122, y1: 42, x2: 122, y2: 58, style: 'detail-stroke' },
-    { type: 'line', x1: 87, y1: 34, x2: 93, y2: 34, style: 'accent' },
-    { type: 'line', x1: 87, y1: 48, x2: 93, y2: 48, style: 'accent' },
-    { type: 'line', x1: 55, y1: 46, x2: 61, y2: 46, style: 'accent' },
-    { type: 'line', x1: 119, y1: 48, x2: 125, y2: 48, style: 'accent' },
+    { type: 'circle', cx: 90, cy: 20, r: 2.5, style: 'accent' },
+    { type: 'circle', cx: 90, cy: 20, r: 1.2, style: 'star' },
+    { type: 'line', x1: 85, y1: 26, x2: 85, y2: 64, style: 'detail-stroke' },
+    { type: 'line', x1: 95, y1: 26, x2: 95, y2: 64, style: 'detail-stroke' },
+    { type: 'line', x1: 62, y1: 36, x2: 62, y2: 48, style: 'detail-stroke' },
+    { type: 'line', x1: 118, y1: 40, x2: 118, y2: 52, style: 'detail-stroke' },
+    { type: 'line', x1: 83, y1: 32, x2: 87, y2: 32, style: 'accent' },
+    { type: 'line', x1: 93, y1: 32, x2: 97, y2: 32, style: 'accent' },
+    { type: 'line', x1: 83, y1: 56, x2: 87, y2: 56, style: 'accent' },
+    { type: 'line', x1: 93, y1: 56, x2: 97, y2: 56, style: 'accent' },
   ],
 
   // Slot 2B: Classic Sailing Sloop
@@ -59,16 +60,17 @@ export const OVERLAYS_SHAPES_2 = {
 
   // Slot 3A: Classic Steam Locomotive
   'shapes-2-slot3-cand-a-train': [
-    { type: 'polygon', points: '58,36 74,36 74,48 58,48', style: 'highlight' },
-    { type: 'line', x1: 66, y1: 36, x2: 66, y2: 48, style: 'accent' },
-    { type: 'ellipse', cx: 115, cy: 24, rx: 6, ry: 2, style: 'accent' },
-    { type: 'circle', cx: 112, cy: 16, r: 4, style: 'highlight' },
-    { type: 'circle', cx: 104, cy: 10, r: 5.5, style: 'highlight' },
-    { type: 'circle', cx: 94, cy: 6, r: 4.5, style: 'detail-stroke' },
-    { type: 'line', x1: 88, y1: 42, x2: 88, y2: 70, style: 'accent' },
-    { type: 'line', x1: 102, y1: 42, x2: 102, y2: 70, style: 'accent' },
-    { type: 'line', x1: 124, y1: 72, x2: 134, y2: 72, style: 'detail-stroke' },
-    { type: 'line', x1: 122, y1: 60, x2: 130, y2: 70, style: 'detail-stroke' },
+    { type: 'polygon', points: '44,32 58,32 58,46 44,46', style: 'detail-stroke' },
+    { type: 'line', x1: 51, y1: 32, x2: 51, y2: 46, style: 'accent' },
+    { type: 'line', x1: 44, y1: 39, x2: 58, y2: 39, style: 'accent' },
+    { type: 'ellipse', cx: 126, cy: 20, rx: 6, ry: 2, style: 'accent' },
+    { type: 'circle', cx: 122, cy: 12, r: 3.5, style: 'detail-stroke' },
+    { type: 'circle', cx: 112, cy: 8, r: 4.5, style: 'detail-stroke' },
+    { type: 'circle', cx: 100, cy: 6, r: 4.0, style: 'detail-stroke' },
+    { type: 'line', x1: 94, y1: 36, x2: 94, y2: 74, style: 'accent' },
+    { type: 'line', x1: 112, y1: 36, x2: 112, y2: 74, style: 'accent' },
+    { type: 'line', x1: 148, y1: 60, x2: 154, y2: 74, style: 'detail-stroke' },
+    { type: 'line', x1: 152, y1: 66, x2: 156, y2: 74, style: 'detail-stroke' },
   ],
 
   // Slot 3B: Solid-Body Electric Guitar
@@ -95,14 +97,15 @@ export const OVERLAYS_SHAPES_2 = {
 
   // Slot 4B: Deep-Sea Research Submarine
   'shapes-2-slot4-cand-b-submarine': [
-    { type: 'line', x1: 90, y1: 24, x2: 90, y2: 14, style: 'accent' },
-    { type: 'line', x1: 90, y1: 14, x2: 96, y2: 14, style: 'accent' },
-    { type: 'circle', cx: 58, cy: 56, r: 3, style: 'highlight' },
-    { type: 'circle', cx: 68, cy: 56, r: 3, style: 'highlight' },
-    { type: 'circle', cx: 78, cy: 56, r: 3, style: 'highlight' },
-    { type: 'line', x1: 48, y1: 62, x2: 124, y2: 62, style: 'detail-stroke' },
-    { type: 'line', x1: 136, y1: 48, x2: 142, y2: 42, style: 'accent' },
-    { type: 'line', x1: 136, y1: 66, x2: 142, y2: 72, style: 'accent' },
+    { type: 'line', x1: 63, y1: 22, x2: 63, y2: 14, style: 'accent' },
+    { type: 'line', x1: 63, y1: 14, x2: 68, y2: 14, style: 'accent' },
+    { type: 'circle', cx: 44, cy: 48, r: 2.2, style: 'accent' },
+    { type: 'circle', cx: 54, cy: 48, r: 2.2, style: 'accent' },
+    { type: 'circle', cx: 64, cy: 48, r: 2.2, style: 'accent' },
+    { type: 'circle', cx: 44.6, cy: 47.4, r: 0.7, style: 'highlight' },
+    { type: 'circle', cx: 54.6, cy: 47.4, r: 0.7, style: 'highlight' },
+    { type: 'circle', cx: 64.6, cy: 47.4, r: 0.7, style: 'highlight' },
+    { type: 'line', x1: 34, y1: 53, x2: 78, y2: 53, style: 'detail-stroke' },
   ],
 
   // Slot 5A: Orbital Research Satellite

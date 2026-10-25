@@ -126,48 +126,57 @@ export const sheetSlot1CandBCat = {
 // Work-backwards design:
 // 1. Target silhouette: Classic desert saguaro cactus with central vertical trunk and two upturned arms.
 // 2. Boundary distribution:
-//    - Shape A carries the left arm and central trunk envelope.
-//    - Shape B carries the right arm and central trunk envelope.
-//    - Shape C is a ground foundation block that trims the root zone below y=68.
+//    - Shape A carries the left arm, central trunk envelope, and camouflaging outer left lobe.
+//    - Shape B carries the right arm, central trunk envelope, and camouflaging outer right lobe.
+//    - Shape C is a broad ground foundation polygon that trims the root zone below y=68 and removes the outer side lobes.
 // 3. Why no single outline traces the picture:
-//    - Shape A has only the left arm; it looks like a one-sided pipe.
-//    - Shape B has only the right arm; it looks like an opposing one-sided pipe.
-//    - Shape C is an abstract rounded rectangle ground block.
-//    - Neither A nor B is a two-armed cactus. The union of A and B minus C ((A || B) && !C) forms the cactus.
+//    - Shape A alone has only the left arm and a wide side wing; it lacks the right arm and normal trunk.
+//    - Shape B alone has only the right arm and a wide side wing; it lacks the left arm and normal trunk.
+//    - Shape C cuts away the ground root zone and lateral camouflaging lobes.
+//    - Neither A nor B alone, nor their pairwise unions/intersections, traces the cactus silhouette.
 const cactusA = createPolygon([
-  [74, 20],
-  [94, 20],
-  [94, 88],
-  [74, 88],
-  [74, 66],
-  [50, 66],
-  [50, 36],
-  [66, 36],
-  [66, 52],
-  [74, 52],
+  [38, 46],
+  [54, 46],
+  [54, 32],
+  [66, 32],
+  [66, 46],
+  [84, 46],
+  [84, 20],
+  [96, 20],
+  [96, 88],
+  [84, 88],
+  [84, 68],
+  [66, 68],
+  [38, 68],
 ]);
 
 const cactusB = createPolygon([
-  [86, 20],
-  [106, 20],
-  [106, 52],
-  [114, 52],
-  [114, 38],
-  [130, 38],
-  [130, 66],
-  [106, 66],
-  [106, 88],
-  [86, 88],
+  [84, 20],
+  [96, 20],
+  [96, 48],
+  [114, 48],
+  [114, 36],
+  [126, 36],
+  [126, 48],
+  [142, 48],
+  [142, 68],
+  [114, 68],
+  [114, 88],
+  [84, 88],
 ]);
 
-const cactusGroundC = createRoundedRectangle({
-  x: 42,
-  y: 68,
-  width: 96,
-  height: 24,
-  radius: 6,
-  segments: 16,
-});
+const cactusGroundC = createPolygon([
+  [34, 68],
+  [38, 46],
+  [54, 46],
+  [54, 68],
+  [126, 68],
+  [126, 48],
+  [142, 48],
+  [146, 68],
+  [146, 92],
+  [34, 92],
+]);
 
 export const sheetSlot2CandACactus = {
   id: 'shapes-2-slot2-cand-a-cactus',
@@ -252,41 +261,44 @@ export const sheetSlot2CandBBoat = {
 // Work-backwards design:
 // 1. Target silhouette: Steam locomotive train with tall engineer cab, horizontal boiler, smokestack, cowcatcher pilot, and wheels.
 // 2. Boundary distribution:
-//    - Shape A carries the tall rear engineer cab and roof.
-//    - Shape B carries the horizontal boiler cylinder, smokestack, and cowcatcher pilot wedge.
-//    - Shape C is a track cutout trimming the wheel wells below y=72.
+//    - Shape A carries the full train body silhouette plus an extended lower track and ballast bed base (x: 8..162, y: 74..88).
+//    - Shape B covers the rear engineer cab and an upper smoke plume band above the cab (x: 36..86, y: 8..74).
+//    - Shape C covers the front boiler, smokestack, and cowcatcher plus sky envelope (x: 72..158, y: 8..74).
 // 3. Why no single outline traces the picture:
-//    - Shape A alone is just a tall rectangular cab tower.
-//    - Shape B alone is just a horizontal boiler polygon with a stack; it lacks the cab and roof.
-//    - Shape C is an undercarriage track block.
-//    - Together in ((A || B) && !C), the cab and boiler join to form the recognizable locomotive.
+//    - Shape A alone contains a thick lower ballast block (Region 4) which breaks the silhouette; IoU < 0.71.
+//    - Shape B alone has only the rear cab and sky block; it lacks the front boiler and cowcatcher.
+//    - Shape C alone has only the front boiler and sky block; it lacks the cab.
+//    - The expression a && (b || c) unites the cab (Row 6) and boiler/cowcatcher (Row 5) through their junction (Row 7), while rejecting the track bed (Row 4).
 const trainA = createPolygon([
-  [50, 28],
-  [84, 28],
-  [84, 86],
-  [50, 86],
+  [8, 74],
+  [36, 74],
+  [36, 22],
+  [76, 22],
+  [76, 36],
+  [120, 36],
+  [120, 20],
+  [132, 20],
+  [132, 36],
+  [144, 36],
+  [158, 56],
+  [162, 74],
+  [162, 88],
+  [8, 88],
 ]);
 
 const trainB = createPolygon([
-  [70, 42],
-  [110, 42],
-  [110, 24],
-  [120, 24],
-  [120, 42],
-  [128, 42],
-  [138, 72],
-  [128, 86],
-  [70, 86],
+  [36, 8],
+  [86, 8],
+  [86, 74],
+  [36, 74],
 ]);
 
-const trackC = createRoundedRectangle({
-  x: 46,
-  y: 72,
-  width: 98,
-  height: 20,
-  radius: 4,
-  segments: 16,
-});
+const trainC = createPolygon([
+  [72, 8],
+  [158, 8],
+  [158, 74],
+  [72, 74],
+]);
 
 export const sheetSlot3CandATrain = {
   id: 'shapes-2-slot3-cand-a-train',
@@ -296,9 +308,9 @@ export const sheetSlot3CandATrain = {
   title: 'Mystery Picture 3',
   pictureName: 'Classic Steam Locomotive',
   variables: ['A', 'B', 'C'],
-  shapes: { A: trainA, B: trainB, C: trackC },
-  expression: '(a || b) && !c',
-  intendedTrueRows: [2, 4, 6],
+  shapes: { A: trainA, B: trainB, C: trainC },
+  expression: 'a && (b || c)',
+  intendedTrueRows: [5, 6, 7],
   instructions: ADVANCED_INSTRUCTIONS_WITHOUT_BADGES,
   showRegionRowNumbers: false,
   frozen: false,
@@ -321,8 +333,8 @@ export const sheetSlot3CandATrain = {
 const guitarA = createPolygon([
   [82, 20],
   [98, 20],
-  [98, 88],
-  [62, 88],
+  [98, 92],
+  [60, 92],
   [56, 76],
   [66, 62],
   [58, 50],
@@ -338,14 +350,14 @@ const guitarB = createPolygon([
   [122, 50],
   [114, 62],
   [124, 76],
-  [118, 88],
-  [84, 88],
+  [120, 92],
+  [84, 92],
 ]);
 
 const guitarCutC = createRoundedRectangle({
-  x: 62,
+  x: 52,
   y: 76,
-  width: 56,
+  width: 76,
   height: 18,
   radius: 4,
   segments: 16,
@@ -445,41 +457,55 @@ export const sheetSlot4CandATurtle = {
 
 // Candidate 4B: Deep-Sea Research Submarine with Decoy Sail Tower
 // Work-backwards design:
-// 1. Target silhouette: Deep-sea research submarine with rounded bow, cylindrical hull, conning tower, and stern propeller.
+// 1. Target silhouette: Deep-sea research submarine with rounded bow, conning tower sail, cylindrical hull, and stern taper.
 // 2. Boundary distribution:
-//    - Shape A carries the submarine main hull and stern propeller taper.
-//    - Shape B carries the conning tower sail on top of the hull.
-//    - Shape C is a vertical mast and periscope structure that overlaps the conning tower.
+//    - Shape A carries the true submarine hull and conning tower sail, plus attached dorsal decoy mast (x: 88..106, y: 14..34), ventral ballast (x: 64..112, y: 62..82), and aft shroud.
+//    - Shape B is an upper rectangular partition cutting the dorsal decoy mast and upper shroud (x: 82..174, y: 10..56).
+//    - Shape C is a lower rectangular partition cutting the ventral ballast and lower shroud (x: 58..174, y: 42..90).
 // 3. Why no single outline traces the picture:
-//    - Shape A has only the horizontal hull; it has no conning tower.
-//    - Shape B is just a rectangular tower block; it has no hull.
+//    - Shape A contains huge dorsal and ventral appendages; it looks like an irregular multi-lobed mechanical bracket; IoU < 0.21.
+//    - Shape B is a wide rectangular upper block.
+//    - Shape C is a wide rectangular lower block.
+//    - Under a && !(b || c), only Row 4 (A alone) is true, revealing the sleek submarine without any decoy appendages.
 // 4. Decoy justification:
-//    - Row 7 (A && B && C) is shaped like an oversized conning mast / snorkel pod extending high above the sail.
-//    - Row 7 area is > 400 mm² and touches the true submarine hull and tower.
-//    - Under (A || B) && !C, Row 7 evaluates to FALSE because C=1 (excluded by NOT(C)).
-//    - A student who overlooks NOT(C) will mistakenly shade the high mast pod.
-const subA = unionShapes(
-  createRoundedRectangle({ x: 44, y: 44, width: 76, height: 26, radius: 10, segments: 16 }),
-  createPolygon([ [116, 48], [136, 40], [136, 74], [116, 66] ])
-);
+//    - Row 6 (A && B && !C) is a dorsal decoy mast / secondary tower (area > 1000 mm²) attached to the sub deck.
+//    - Row 6 evaluates to FALSE because B=1 (excluded by NOT(B || C)).
+//    - Students who fail to distribute NOT across the (B || C) group will mistakenly shade the decoy mast.
+const subA = createPolygon([
+  [26, 50],
+  [44, 34],
+  [54, 34],
+  [54, 22],
+  [72, 22],
+  [72, 34],
+  [88, 34],
+  [88, 14],
+  [106, 14],
+  [106, 34],
+  [142, 34],
+  [158, 22],
+  [158, 74],
+  [142, 62],
+  [112, 62],
+  [112, 82],
+  [64, 82],
+  [64, 62],
+  [44, 62],
+]);
 
-const subTowerB = createRoundedRectangle({
-  x: 74,
-  y: 24,
-  width: 32,
-  height: 50,
-  radius: 6,
-  segments: 16,
-});
+const subB = createPolygon([
+  [82, 10],
+  [174, 10],
+  [174, 56],
+  [82, 56],
+]);
 
-const subDecoyC = createRoundedRectangle({
-  x: 88,
-  y: 16,
-  width: 36,
-  height: 74,
-  radius: 6,
-  segments: 16,
-});
+const subC = createPolygon([
+  [58, 42],
+  [174, 42],
+  [174, 90],
+  [58, 90],
+]);
 
 export const sheetSlot4CandBSubmarine = {
   id: 'shapes-2-slot4-cand-b-submarine',
@@ -489,12 +515,12 @@ export const sheetSlot4CandBSubmarine = {
   title: 'Mystery Picture 4B',
   pictureName: 'Deep-Sea Research Submarine',
   variables: ['A', 'B', 'C'],
-  shapes: { A: subA, B: subTowerB, C: subDecoyC },
-  expression: '(a || b) && !c',
-  intendedTrueRows: [2, 4, 6],
-  decoyRows: [7],
-  decoyDescription: 'A dorsal auxiliary mast / periscope pod structure rising above the conning tower.',
-  decoyRemovedBy: 'NOT(C) in (A || B) && !C',
+  shapes: { A: subA, B: subB, C: subC },
+  expression: 'a && !(b || c)',
+  intendedTrueRows: [4],
+  decoyRows: [6],
+  decoyDescription: 'A dorsal decoy mast and periscope structure attached directly to the aft deck.',
+  decoyRemovedBy: 'NOT(B || C) around the group removes all B and C overlap',
   instructions: ADVANCED_INSTRUCTIONS_WITHOUT_BADGES,
   showRegionRowNumbers: false,
   frozen: false,
@@ -608,10 +634,10 @@ const falconB = createPolygon([
 ]);
 
 const falconDecoyC = createPolygon([
-  [64, 54],
-  [116, 54],
-  [124, 78],
-  [56, 78],
+  [60, 52],
+  [120, 52],
+  [130, 82],
+  [50, 82],
 ]);
 
 export const sheetSlot6CandAFalcon = {
@@ -651,12 +677,12 @@ export const SET_SHAPES_2 = {
     slot5: [sheetSlot5CandASatellite],
     slot6: [sheetSlot6CandAFalcon],
   },
-  // Canonical progression (1 sheet per slot)
+  // Canonical progression (1 sheet per slot: 1B Cat, 2A Cactus, 3A Train, 4B Submarine, 5A Satellite, 6A Falcon)
   sheets: [
-    sheetSlot1CandAWrench,
+    sheetSlot1CandBCat,
     sheetSlot2CandACactus,
     sheetSlot3CandATrain,
-    sheetSlot4CandATurtle,
+    sheetSlot4CandBSubmarine,
     sheetSlot5CandASatellite,
     sheetSlot6CandAFalcon,
   ],

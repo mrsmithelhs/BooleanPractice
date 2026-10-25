@@ -82,6 +82,7 @@ describe('giveaway metric', () => {
     const sunMetric = computeSheetGiveaway(sheetSlot1CandCSun);
     expect(sunMetric.byShape.A).toBeDefined();
     expect(sunMetric.byShape.B).toBeDefined();
+    expect(sunMetric.pairwiseUnions['A | B']).toBeDefined();
     expect(sunMetric.allShapes).toBeDefined();
     // Sun is A (circle) minus horizon (B), so A carries the sun rim
     expect(typeof sunMetric.byShape.A.iou).toBe('number');
@@ -90,17 +91,65 @@ describe('giveaway metric', () => {
     const gemMetric = computeSheetGiveaway(sheetSlot1CandBGem);
     expect(gemMetric.byShape.A).toBeDefined();
     expect(gemMetric.byShape.B).toBeDefined();
+    expect(gemMetric.pairwiseUnions['A | B']).toBeDefined();
 
     // Mystery Picture 3 (Cabin: A && !B || C)
     const cabinMetric = computeSheetGiveaway(sheetSlot2CandBHouse);
     expect(cabinMetric.byShape.A).toBeDefined();
     expect(cabinMetric.byShape.B).toBeDefined();
     expect(cabinMetric.byShape.C).toBeDefined();
+    expect(cabinMetric.pairwiseUnions['A | B']).toBeDefined();
+    expect(cabinMetric.pairwiseIntersections['A & B']).toBeDefined();
 
     // Mystery Picture 4 (Rocket: (A || B) && !C)
     const rocketMetric = computeSheetGiveaway(sheetSlot2CandARocket);
     expect(rocketMetric.byShape.A).toBeDefined();
     expect(rocketMetric.byShape.B).toBeDefined();
     expect(rocketMetric.byShape.C).toBeDefined();
+    expect(rocketMetric.pairwiseUnions['A | B']).toBeDefined();
+    expect(rocketMetric.pairwiseIntersections['A & B']).toBeDefined();
+  });
+
+  it('flags pairwise union giveaway when A || B traces the picture (F2)', () => {
+    // 3-variable sheet where picture is essentially A || B, with tiny C
+    const shapeA = createRectangle({ x: 30, y: 30, width: 60, height: 40 });
+    const shapeB = createRectangle({ x: 80, y: 30, width: 60, height: 40 });
+    // C is tiny slice in corner
+    const shapeC = createRectangle({ x: 130, y: 30, width: 10, height: 10 });
+
+    const fixture = {
+      id: 'fixture-pairwise-union',
+      variables: ['A', 'B', 'C'],
+      shapes: { A: shapeA, B: shapeB, C: shapeC },
+      expression: '(a || b) && !c',
+      viewBox: { width: 180, height: 95 },
+    };
+
+    const metric = computeSheetGiveaway(fixture);
+    expect(metric.pairwiseUnions['A | B'].flagged).toBe(true);
+    expect(metric.flagged).toBe(true);
+    expect(metric.flags.some((f) => f.includes('union of A | B'))).toBe(true);
+  });
+
+  it('flags pairwise intersection giveaway when A && B traces picture in 3-var sheet (F2)', () => {
+    // 3-variable sheet where picture is A && B, with tiny C
+    const shapeA = createRectangle({ x: 30, y: 30, width: 80, height: 40 });
+    const shapeB = createRectangle({ x: 50, y: 30, width: 80, height: 40 });
+    // Intersection of A and B is width 60, height 40 (area 2400)
+    // C is tiny
+    const shapeC = createRectangle({ x: 120, y: 30, width: 10, height: 10 });
+
+    const fixture = {
+      id: 'fixture-pairwise-inter',
+      variables: ['A', 'B', 'C'],
+      shapes: { A: shapeA, B: shapeB, C: shapeC },
+      expression: 'a && b && !c',
+      viewBox: { width: 180, height: 95 },
+    };
+
+    const metric = computeSheetGiveaway(fixture);
+    expect(metric.pairwiseIntersections['A & B'].flagged).toBe(true);
+    expect(metric.flagged).toBe(true);
+    expect(metric.flags.some((f) => f.includes('intersection of A & B'))).toBe(true);
   });
 });
