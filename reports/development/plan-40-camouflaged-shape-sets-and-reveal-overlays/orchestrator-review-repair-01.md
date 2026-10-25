@@ -62,4 +62,7 @@ The orchestrator's 4-up contact sheets (outlines only | plain key | overlay | de
 ## Owner decisions
 
 - **Extension label:** "Challenge" is approved (owner, 2026-10-25).
-- **Picks:** pending. Recommended: 1B cat, 2A cactus, 3A train, 4B submarine, 5A satellite, 6A falcon. Each is subject to F1–F2 rework in the finalize step.
+- **Picks (owner, 2026-10-25):** 1B cat, 2A cactus, 3A train, 4B submarine, 5A satellite, 6A falcon, in that sheet order.
+  - Finalize per plan-40 work plan step 7, with F1–F5 applied to these six.
+  - Remove the unpicked candidates from `sheets`. They may stay in `slots` as history.
+  - Then stop at **GATE-40B**.
