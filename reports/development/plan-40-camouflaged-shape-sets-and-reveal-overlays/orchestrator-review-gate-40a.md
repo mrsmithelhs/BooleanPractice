@@ -68,10 +68,15 @@ Checked by opening every leakage and overlay preview, and by hashing every candi
 
 **R4. Pass `setId` explicitly.** `layout.js` now guesses the footer set from an id prefix (`startsWith('shapes-2')`). Have `build-printables.mjs` pass `setId` in `options`, and remove the guess, so shapes-3 doesn't print "shapes-1".
 
-**R5. Overlays drawn for the new pictures.**
+**R5. Overlays drawn for the new pictures, and bolder everywhere (owner, 2026-10-24).**
 - Mostly on or touching the shaded picture.
-- Clearly visible at 1366×768 and in greyscale, depending on how the owner answers Q1.
-- Keep the shapes-1 overlays, adjusted only per Q1.
+- **Bolder and clearly visible**, on shapes-1 and shapes-2 alike:
+  - stroke width at least 1.5 times the current overlay strokes;
+  - no pale or near-background strokes;
+  - detail colors reach at least 3:1 contrast against whatever they sit on (the shaded fill, or the unshaded background);
+  - details read clearly at 1366×768 and in the greyscale emulation.
+- Add a unit test that checks every style token's contrast against both the solved fill and the background color.
+- Restyle the four shapes-1 overlays to match.
 
 **R6. Screenshots.**
 - Capture overlays after a **student** solve, not only in the teacher view. Screenshots 01 and 02 are teacher-key views; the report described them as solved in table and shade mode.
@@ -85,5 +90,5 @@ Stop at GATE-40A again with the same deliverables.
 
 ## Questions for the owner now (while Repair 01 runs)
 
-1. **Overlay style.** On shapes-1, the overlays are subtle: thin, pale rays and lines. Keep them subtle, or make them bolder and more visible? You can look live in the teacher view: `puzzle.html?sheet=1&teacher=1` (sun) and `?sheet=2&teacher=1` (gem).
+1. ~~Overlay style~~: answered. Make them bolder (now in R5).
 2. **Extension label.** Is "Challenge" right for sheets 5–6?
