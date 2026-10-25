@@ -1,6 +1,7 @@
 import {
   createCircle,
   createPolygon,
+  createRectangle,
   createRoundedRectangle,
   unionShapes,
 } from '../shapes.js';
@@ -478,34 +479,31 @@ const subA = createPolygon([
   [54, 22],
   [72, 22],
   [72, 34],
-  [88, 34],
-  [88, 14],
-  [106, 14],
-  [106, 34],
-  [142, 34],
+  [92, 34],
+  [92, 16],
+  [112, 16],
+  [112, 34],
+  [144, 34],
   [158, 22],
-  [158, 74],
-  [142, 62],
-  [112, 62],
-  [112, 82],
-  [64, 82],
-  [64, 62],
+  [158, 82],
+  [50, 82],
+  [50, 62],
   [44, 62],
 ]);
 
-const subB = createPolygon([
-  [82, 10],
-  [174, 10],
-  [174, 56],
-  [82, 56],
-]);
+const subB = createRectangle({
+  x: 84,
+  y: 10,
+  width: 90,
+  height: 82,
+});
 
-const subC = createPolygon([
-  [58, 42],
-  [174, 42],
-  [174, 90],
-  [58, 90],
-]);
+const subC = createRectangle({
+  x: 44,
+  y: 62,
+  width: 130,
+  height: 30,
+});
 
 export const sheetSlot4CandBSubmarine = {
   id: 'shapes-2-slot4-cand-b-submarine',

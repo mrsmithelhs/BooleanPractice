@@ -99,13 +99,13 @@ export const OVERLAYS_SHAPES_2 = {
   'shapes-2-slot4-cand-b-submarine': [
     { type: 'line', x1: 63, y1: 22, x2: 63, y2: 14, style: 'accent' },
     { type: 'line', x1: 63, y1: 14, x2: 68, y2: 14, style: 'accent' },
-    { type: 'circle', cx: 44, cy: 48, r: 2.2, style: 'accent' },
-    { type: 'circle', cx: 54, cy: 48, r: 2.2, style: 'accent' },
-    { type: 'circle', cx: 64, cy: 48, r: 2.2, style: 'accent' },
-    { type: 'circle', cx: 44.6, cy: 47.4, r: 0.7, style: 'highlight' },
-    { type: 'circle', cx: 54.6, cy: 47.4, r: 0.7, style: 'highlight' },
-    { type: 'circle', cx: 64.6, cy: 47.4, r: 0.7, style: 'highlight' },
-    { type: 'line', x1: 34, y1: 53, x2: 78, y2: 53, style: 'detail-stroke' },
+    { type: 'circle', cx: 46, cy: 48, r: 2.2, style: 'accent' },
+    { type: 'circle', cx: 58, cy: 48, r: 2.2, style: 'accent' },
+    { type: 'circle', cx: 70, cy: 48, r: 2.2, style: 'accent' },
+    { type: 'circle', cx: 46.6, cy: 47.4, r: 0.7, style: 'highlight' },
+    { type: 'circle', cx: 58.6, cy: 47.4, r: 0.7, style: 'highlight' },
+    { type: 'circle', cx: 70.6, cy: 47.4, r: 0.7, style: 'highlight' },
+    { type: 'line', x1: 34, y1: 54, x2: 78, y2: 54, style: 'detail-stroke' },
   ],
 
   // Slot 5A: Orbital Research Satellite
