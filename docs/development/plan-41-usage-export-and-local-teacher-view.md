@@ -53,7 +53,10 @@ Contracts:
   - no student files, names, or row-level data are ever committed. Real files go in `local/usage/`, which is git-ignored;
   - test fixtures are synthetic, with made-up names;
   - reports describe results without names.
-- **The teacher view never records:** with `?teacher=1`, the page records no events and shows no export button.
+- **The teacher view records only that it was opened** (amended 2026-10-25, owner):
+  - with `?teacher=1`, the page records exactly one event, `teacher_view_opened {set, sheet}`, per sheet viewed per session;
+  - it records no checks or solves, and shows no export button;
+  - the event goes into the same per-browser log, so a student who opens the answer key and later exports from that browser carries the event in their file.
 - **Storage can fail** (private mode, quota, blocked storage). Wrap every read and write. The puzzle must work exactly as before when storage is unavailable; the export button then explains that progress can't be saved in this browser.
 - **Wording:** flags say "review", never "cheating" or "copied". The admin page states the honest limit in one line.
 
@@ -92,6 +95,7 @@ Contracts:
    - `shading_checked {set, sheet, correct, attempt, missedCount, extraCount}`;
    - `sheet_solved {set, sheet, mode, attempts, activeMs}`;
    - `breakdown_opened`;
+   - `teacher_view_opened {set, sheet}`, the only event the teacher view records;
    - `export_requested`.
    
    Don't record individual cell or region clicks (too noisy, BBA's trap). Count them on the next check event instead: `cellEdits` and `regionToggles`.
@@ -114,6 +118,7 @@ Contracts:
      - **byte-identical or same integrity hash** across files;
      - **class code mismatch** against the code the owner enters;
      - **integrity mismatch or broken chain**;
+     - **teacher view opened**: the file contains any `teacher_view_opened` event. Show which sheets and when, and the student's solves after it;
      - **implausible speed**: a sheet solved on the first check in under 10 s of active time. Make the threshold a named constant;
      - **info only, not a flag:** the same name across several install ids, which is normal when a student uses two computers.
 6. **Local-only admin view:**
@@ -135,7 +140,7 @@ Contracts:
      - the filename slug.
    - **E2E** (the Playwright config already runs the dev server):
      - solving a sheet records `outputs_checked` and `sheet_solved`;
-     - `?teacher=1` records nothing and has no export button;
+     - `?teacher=1` records only `teacher_view_opened`, with no check or solve events and no export button. A later student-mode export from the same browser contains it, and the admin view flags it;
      - the export downloads a file whose integrity verifies with the format module;
      - `admin.html` loads two fixture files and shows both students and the expected flag;
      - with storage blocked, the puzzle still works and the button explains why it can't save.
@@ -164,7 +169,7 @@ Contracts:
 
 - [ ] The full suites pass, with counts reported. The existing puzzle and AP tests are unchanged.
 - [ ] `admin.html` is absent from `dist/` and `gas-dist/` (asserted by a test, not by eye).
-- [ ] The teacher view records nothing and has no export button.
+- [ ] The teacher view records only `teacher_view_opened`, has no export button, and the admin view flags it.
 - [ ] The puzzle works with storage blocked.
 - [ ] Every analyzer flag has a positive fixture, and the clean pair has none.
 - [ ] No real student data, and no names other than synthetic ones, in git.

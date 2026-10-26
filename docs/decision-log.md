@@ -160,6 +160,8 @@ Still open: the "picture revealed" framing is weak when the outlines already dra
   - the class code.
 - **Honest limit:** the site is static and public, so a determined student can edit a file and recompute every hash. The signals catch lazy copying (the same file renamed, one browser's file submitted under two names, files from outside the class) and careless edits. The teacher view words its flags as "review", never as proof, and "not flagged" does not mean the work is independent.
 
+- **Answer-key view:** `?teacher=1` stays available on Pages so the owner can project keys in class. It records a `teacher_view_opened` event, and nothing else, into the browser's log, and the teacher view flags any student file that contains one (owner, 2026-10-25).
+
 **Rationale:**
 - It keeps DECISION-002: no backend, no accounts, no student data on any server.
 - The owner already runs this workflow in BrowserBattlegorithms.
