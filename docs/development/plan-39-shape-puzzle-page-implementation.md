@@ -1,7 +1,8 @@
 ---
 id: plan-39
 title: "Shape Puzzle Page Implementation (P3)"
-status: in-progress
+status: complete
+resolution: "Puzzle page (puzzle.html) with alternating table/shade modes (Repair 02), no-reveal checks, teacher view, and shape-label highlight accepted (orchestrator reviews through 74c7879); owner signed off 2026-10-26. The owner's Pages deploy is still pending."
 depends_on: [plan-38]
 gate: "GATE-39A: page implemented, build isolation re-verified, full suites green, local preview screenshots; owner review before any deploy (GATE-39B is the owner's own Pages deploy and sign-off)"
 summary: >-
