@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "app": "boolean-practice",
+  "appVersion": "0.1.0",
+  "exportedAt": "2026-10-25T15:00:00.000Z",
+  "student": {
+    "name": "Kendall Moss",
+    "classCode": "PERIOD-1"
+  },
+  "installId": "88888888-0000-0000-0000-000000000008",
+  "sessions": [],
+  "events": [
+    {
+      "seq": 1,
+      "t": 1729860000000,
+      "sessionId": "sess-1",
+      "type": "session_started",
+      "data": {
+        "urlParams": {
+          "set": "shapes-1",
+          "sheet": "1"
+        }
+      },
+      "prevHash": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "seq": 2,
+      "t": 1729860002000,
+      "sessionId": "sess-1",
+      "type": "sheet_opened",
+      "data": {
+        "set": "shapes-1",
+        "sheet": 1,
+        "mode": "table"
+      },
+      "prevHash": "d9c0b68541f47b7b0fd3132a39c43442dd907ee7121364edb61909ef4e1b7034"
+    },
+    {
+      "seq": 3,
+      "t": 1729860025000,
+      "sessionId": "sess-1",
+      "type": "outputs_checked",
+      "data": {
+        "set": "shapes-1",
+        "sheet": 1,
+        "correct": false,
+        "attempt": 1,
+        "blankCount": 0,
+        "wrongCount": 1
+      },
+      "prevHash": "86d8744e2ad7d906f861fd24504b44e702f4b7e8dad2a8feefc94588fa3017f4"
+    },
+    {
+      "seq": 4,
+      "t": 1729860045000,
+      "sessionId": "sess-1",
+      "type": "outputs_checked",
+      "data": {
+        "set": "shapes-1",
+        "sheet": 1,
+        "correct": true,
+        "attempt": 2,
+        "blankCount": 0,
+        "wrongCount": 0
+      },
+      "prevHash": "8643e42db760454ae9d6666b5ac424d4d2b614638dfa1e722902039ff3ca7f95"
+    },
+    {
+      "seq": 5,
+      "t": 1729860046000,
+      "sessionId": "sess-1",
+      "type": "sheet_solved",
+      "data": {
+        "set": "shapes-1",
+        "sheet": 1,
+        "mode": "table",
+        "attempts": 2,
+        "activeMs": 44000
+      },
+      "prevHash": "82f44ba25a0071585069fa4d34ef6804e481cb4935b6071abe8dfc886ea3491e"
+    }
+  ],
+  "summary": {
+    "eventsTruncated": false,
+    "firstRetainedSeq": 1,
+    "totalEvents": 5,
+    "sheets": {
+      "shapes-1:1": {
+        "solved": true,
+        "outputChecks": 2,
+        "activeMs": 44000
+      }
+    }
+  },
+  "integrity": {
+    "algorithm": "SHA-256",
+    "sha256": "da94a3d37097fd889f1bf8861b1ef1cf3e06144850203652a0f17d8c76d8c7e0"
+  }
+}

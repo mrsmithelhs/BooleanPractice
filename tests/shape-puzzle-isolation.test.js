@@ -86,4 +86,58 @@ describe('Shape Puzzle Page Build Isolation (GATE-39A)', () => {
       expect(code).not.toContain('ui/App.vue');
     }
   });
+
+  it('proves dev-only admin.html is completely absent from dist/ and gas-dist/ (Plan 41)', async () => {
+    // Rebuild static build to ensure fresh output
+    await build({
+      configFile: resolve(repoRoot, 'vite.config.js'),
+    });
+
+    const manifest = await getOrBuildManifest();
+
+    // 1. admin.html must not be in the Vite manifest
+    expect(manifest['admin.html']).toBeUndefined();
+    for (const key of Object.keys(manifest)) {
+      expect(key).not.toContain('admin.html');
+      expect(key).not.toContain('admin-main');
+    }
+
+    // 2. dist/ must not contain admin.html or any admin chunks
+    expect(existsSync(resolve(repoRoot, 'dist/admin.html'))).toBe(false);
+
+    // 3. gas-dist/ must not contain admin.html
+    expect(existsSync(resolve(repoRoot, 'gas-dist/admin.html'))).toBe(false);
+    expect(existsSync(resolve(repoRoot, 'gas-dist/Admin.html'))).toBe(false);
+
+    // 4. Puzzle entry chunks must not include usage-admin components or admin copy
+    const puzzleEntry = manifest['puzzle.html'];
+    expect(puzzleEntry).toBeDefined();
+
+    const visitedChunks = new Set();
+    const queue = [...(puzzleEntry.imports || [])];
+    while (queue.length > 0) {
+      const chunkKey = queue.shift();
+      if (visitedChunks.has(chunkKey)) continue;
+      visitedChunks.add(chunkKey);
+      const chunkDef = manifest[chunkKey];
+      if (chunkDef?.imports) queue.push(...chunkDef.imports);
+    }
+
+    const puzzleFiles = [puzzleEntry.file];
+    for (const chunkKey of visitedChunks) {
+      const chunkDef = manifest[chunkKey];
+      if (chunkDef?.file) puzzleFiles.push(chunkDef.file);
+    }
+
+    for (const relFile of puzzleFiles) {
+      const fullPath = resolve(repoRoot, 'dist', relFile);
+      expect(existsSync(fullPath)).toBe(true);
+      const code = readFileSync(fullPath, 'utf8');
+
+      expect(code).not.toContain('AdminApp');
+      expect(code).not.toContain('usage-admin');
+      expect(code).not.toContain('Student Usage Review');
+      expect(code).not.toContain('Honest limit');
+    }
+  });
 });

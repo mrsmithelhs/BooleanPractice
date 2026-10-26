@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "app": "boolean-practice",
+  "appVersion": "0.1.0",
+  "exportedAt": "2024-10-25T12:41:05.000Z",
+  "student": {
+    "name": "Casey Morgan",
+    "classCode": "PERIOD-1"
+  },
+  "installId": "99990001-0000-0000-0000-000000000001",
+  "sessions": [
+    {
+      "sessionId": "sess-casey",
+      "startedAt": "2024-10-25T12:40:05.000Z",
+      "lastActivityAt": "2024-10-25T12:41:01.000Z",
+      "urlParams": {}
+    }
+  ],
+  "events": [
+    {
+      "seq": 1,
+      "t": 1729860005000,
+      "sessionId": "sess-1",
+      "type": "session_started",
+      "data": {
+        "urlParams": {
+          "set": "shapes-1",
+          "sheet": "1"
+        }
+      },
+      "prevHash": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "seq": 2,
+      "t": 1729860008000,
+      "sessionId": "sess-1",
+      "type": "sheet_opened",
+      "data": {
+        "set": "shapes-1",
+        "sheet": 1,
+        "mode": "table"
+      },
+      "prevHash": "93cb9eef0cd53e8cddd32442e04b3bf3557eebd1cffc4f36b21950075af2f096"
+    },
+    {
+      "seq": 3,
+      "t": 1729860020000,
+      "sessionId": "sess-1",
+      "type": "outputs_checked",
+      "data": {
+        "set": "shapes-1",
+        "sheet": 1,
+        "correct": false,
+        "attempt": 1,
+        "blankCount": 2,
+        "wrongCount": 5
+      },
+      "prevHash": "cd9721a506436860e484ec8560db12d94dfe57247d308ba474aefe5949c6aa15"
+    },
+    {
+      "seq": 4,
+      "t": 1729860040000,
+      "sessionId": "sess-1",
+      "type": "outputs_checked",
+      "data": {
+        "set": "shapes-1",
+        "sheet": 1,
+        "correct": false,
+        "attempt": 2,
+        "blankCount": 0,
+        "wrongCount": 1
+      },
+      "prevHash": "3c1eea651437d879bc03258903a7567fb7652843c9b20b76b8f7209aff06243c"
+    },
+    {
+      "seq": 5,
+      "t": 1729860060000,
+      "sessionId": "sess-1",
+      "type": "outputs_checked",
+      "data": {
+        "set": "shapes-1",
+        "sheet": 1,
+        "correct": true,
+        "attempt": 3,
+        "blankCount": 0,
+        "wrongCount": 0
+      },
+      "prevHash": "5681a6089f3364875c68f3db071f80429a534b0939bdf0509f25f37ce5e96ec6"
+    },
+    {
+      "seq": 6,
+      "t": 1729860061000,
+      "sessionId": "sess-1",
+      "type": "sheet_solved",
+      "data": {
+        "set": "shapes-1",
+        "sheet": 1,
+        "mode": "table",
+        "attempts": 3,
+        "activeMs": 53000
+      },
+      "prevHash": "fdee0c2745231b34323064e0986ba3ffde3fd598bda1948af987c711647dffd7"
+    }
+  ],
+  "summary": {
+    "eventsTruncated": false,
+    "firstRetainedSeq": 1,
+    "totalEvents": 6,
+    "sheets": {
+      "shapes-1:1": {
+        "solved": true,
+        "solvedAt": "2024-10-25T12:41:01.000Z",
+        "mode": "table",
+        "outputChecks": 3,
+        "shadingChecks": 0,
+        "activeMs": 53000
+      }
+    }
+  },
+  "integrity": {
+    "algorithm": "SHA-256",
+    "sha256": "e6c3372b8c4daa09f0ce9f0097154db55f67848696aa2bc9ebde1c8ad1453bc0"
+  }
+}

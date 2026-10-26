@@ -53,6 +53,26 @@
           </span>
         </div>
 
+        <div class="top-header-actions">
+          <button
+            v-if="!isTeacher"
+            type="button"
+            class="btn-download-progress"
+            data-testid="download-progress-btn"
+            @click="openExportDialog"
+          >
+            Download my progress
+          </button>
+          <a
+            v-if="isDev"
+            href="/admin.html"
+            class="dev-admin-link"
+            data-testid="dev-admin-link"
+          >
+            Admin View
+          </a>
+        </div>
+
         <!-- Sheet Selector Controls -->
         <nav
           class="sheet-nav-group"
@@ -216,10 +236,21 @@
             @row-hover="setHoverRow"
             @row-focus="setFocusRow"
             @variable-hover="handleShapeHighlight"
+            @breakdown-opened="handleBreakdownOpened"
           />
         </div>
       </main>
     </div>
+
+    <!-- Student Export Dialog -->
+    <StudentExportDialog
+      :is-open="isExportDialogOpen"
+      :is-storage-available="isStorageAvailable"
+      :default-name="studentInfo.name"
+      :default-class-code="studentInfo.classCode"
+      @close="isExportDialogOpen = false"
+      @download="handleExportDownload"
+    />
   </div>
 </template>
 
@@ -227,6 +258,7 @@
 import { computed, onMounted, ref } from 'vue';
 import ShapePuzzleCanvas from './ShapePuzzleCanvas.vue';
 import ShapePuzzleTable from './ShapePuzzleTable.vue';
+import StudentExportDialog from './StudentExportDialog.vue';
 import { AVAILABLE_SETS, buildPuzzleUrl, parsePuzzleUrl } from './url.js';
 import { getSheetMode } from './modes.js';
 import {
@@ -235,6 +267,9 @@ import {
 } from './feedback.js';
 import { generateTruthTable } from '@shared/truth-table/index.js';
 import { formatExpressionSymbols, formatExpressionWords } from '@shared/notation/index.js';
+import { UsageRecorder } from '@shared/usage/recorder.js';
+
+const isDev = import.meta.env.DEV;
 
 // URL and State
 const urlError = ref(null);
@@ -244,6 +279,15 @@ const isTeacher = ref(false);
 const isGreyscale = ref(false);
 const currentModeOverride = ref(null);
 const modeWarning = ref(null);
+const urlClassCode = ref('');
+
+// Usage Tracking & Export
+let recorder = null;
+let cellEditsCount = 0;
+let regionTogglesCount = 0;
+const isExportDialogOpen = ref(false);
+const isStorageAvailable = ref(true);
+const studentInfo = ref({ name: '', classCode: '' });
 
 const activeSet = computed(() => AVAILABLE_SETS[currentSetId.value] || null);
 const totalSheets = computed(() => activeSet.value?.sheets?.length || 4);
@@ -296,6 +340,41 @@ const formattedExpression = computed(() => {
   return formatExpressionWords(currentSheet.value.expression);
 });
 
+function initRecorder(parsed) {
+  const urlParams = {
+    set: parsed.setId,
+    sheet: parsed.sheetNumber,
+    mode: parsed.mode,
+  };
+  if (parsed.classCode) {
+    urlParams.class = parsed.classCode;
+  }
+  recorder = new UsageRecorder({
+    isTeacher: parsed.isTeacher,
+    urlParams,
+  });
+  isStorageAvailable.value = recorder.isStorageAvailable();
+  const saved = recorder.getSavedStudentInfo();
+  studentInfo.value = {
+    name: saved.name || '',
+    classCode: parsed.classCode || saved.classCode || '',
+  };
+
+  if (!parsed.isTeacher) {
+    recorder.recordEvent('session_started', { urlParams: recorder.urlParams });
+    recorder.recordEvent('sheet_opened', {
+      set: parsed.setId,
+      sheet: parsed.sheetNumber,
+      mode: parsed.mode,
+    });
+  } else {
+    recorder.recordEvent('teacher_view_opened', {
+      set: parsed.setId,
+      sheet: parsed.sheetNumber,
+    });
+  }
+}
+
 function loadFromUrl() {
   const parsed = parsePuzzleUrl(window.location.search);
   if (!parsed.isValid) {
@@ -309,6 +388,25 @@ function loadFromUrl() {
   isTeacher.value = parsed.isTeacher;
   currentModeOverride.value = parsed.modeOverride;
   modeWarning.value = parsed.modeWarning;
+  urlClassCode.value = parsed.classCode || '';
+
+  if (!recorder) {
+    initRecorder(parsed);
+  } else {
+    recorder.isTeacher = parsed.isTeacher;
+    if (parsed.isTeacher) {
+      recorder.recordEvent('teacher_view_opened', {
+        set: parsed.setId,
+        sheet: parsed.sheetNumber,
+      });
+    } else {
+      recorder.recordEvent('sheet_opened', {
+        set: parsed.setId,
+        sheet: parsed.sheetNumber,
+        mode: parsed.mode,
+      });
+    }
+  }
 
   initSheetState();
 }
@@ -371,9 +469,23 @@ function goToSheet(sheetNum) {
     sheetNumber: sheetNum,
     isTeacher: isTeacher.value,
     mode: currentModeOverride.value,
+    classCode: studentInfo.value.classCode || undefined,
   });
   window.history.pushState(null, '', newUrl);
   initSheetState();
+
+  if (isTeacher.value) {
+    recorder?.recordEvent('teacher_view_opened', {
+      set: currentSetId.value,
+      sheet: sheetNum,
+    });
+  } else {
+    recorder?.recordEvent('sheet_opened', {
+      set: currentSetId.value,
+      sheet: sheetNum,
+      mode: currentMode.value,
+    });
+  }
 }
 
 function resetToDefault() {
@@ -388,6 +500,9 @@ function resetToDefault() {
 
 function toggleNotation() {
   notationMode.value = notationMode.value === 'words' ? 'symbols' : 'words';
+  recorder?.recordEvent('notation_toggled', {
+    notation: notationMode.value,
+  });
 }
 
 function setHoverRow(row) {
@@ -398,8 +513,16 @@ function setFocusRow(row) {
   activeFocusRow.value = row;
 }
 
+function handleBreakdownOpened() {
+  recorder?.recordEvent('breakdown_opened', {
+    set: currentSetId.value,
+    sheet: currentSheetNumber.value,
+  });
+}
+
 // Student Output Actions
 function handleUpdateOutput(idx, val) {
+  cellEditsCount++;
   const next = [...studentOutputs.value];
   next[idx] = val;
   studentOutputs.value = next;
@@ -409,6 +532,7 @@ function handleUpdateOutput(idx, val) {
 }
 
 function handleFillAllOutputs(val) {
+  cellEditsCount++;
   studentOutputs.value = Array(tableData.value.rows.length).fill(val);
   if (outputsChecked.value && !outputsCorrect.value) {
     outputsChecked.value = false;
@@ -416,6 +540,7 @@ function handleFillAllOutputs(val) {
 }
 
 function handleClearOutputs() {
+  cellEditsCount++;
   studentOutputs.value = Array(tableData.value.rows.length).fill(null);
   outputsChecked.value = false;
 }
@@ -433,6 +558,13 @@ function handleCheckOutputs() {
     }
   }
 
+  const edits = cellEditsCount;
+  cellEditsCount = 0;
+  const blankCount = studentOutputs.value.filter((v) => v === null).length;
+  const wrongCount = rows.filter(
+    (r, i) => studentOutputs.value[i] !== null && studentOutputs.value[i] !== r.result,
+  ).length;
+
   const ast = tableData.value.ast;
   const exprLabel =
     notationMode.value === 'symbols'
@@ -446,6 +578,16 @@ function handleCheckOutputs() {
       step: { label: exprLabel, node: ast },
       row,
       isBlank: true,
+    });
+    recorder?.recordEvent('outputs_checked', {
+      set: currentSetId.value,
+      sheet: currentSheetNumber.value,
+      correct: false,
+      attempt: outputAttemptCount.value,
+      blankCount,
+      wrongCount,
+      cellEdits: edits,
+      mode: currentMode.value,
     });
     outputAttemptCount.value++;
     outputsChecked.value = true;
@@ -461,6 +603,16 @@ function handleCheckOutputs() {
       step: { label: exprLabel, node: ast },
       row,
       isBlank: false,
+    });
+    recorder?.recordEvent('outputs_checked', {
+      set: currentSetId.value,
+      sheet: currentSheetNumber.value,
+      correct: false,
+      attempt: outputAttemptCount.value,
+      blankCount,
+      wrongCount,
+      cellEdits: edits,
+      mode: currentMode.value,
     });
     outputAttemptCount.value++;
     outputsChecked.value = true;
@@ -479,6 +631,27 @@ function handleCheckOutputs() {
   shadingCorrect.value = true;
   shadingChecked.value = true;
   feedbackMessage.value = `Picture Revealed: ${currentSheet.value.pictureName}! Great job!`;
+
+  recorder?.recordEvent('outputs_checked', {
+    set: currentSetId.value,
+    sheet: currentSheetNumber.value,
+    correct: true,
+    attempt: outputAttemptCount.value,
+    blankCount: 0,
+    wrongCount: 0,
+    cellEdits: edits,
+    mode: currentMode.value,
+  });
+
+  const activeMs =
+    recorder?.getSheetSummary(`${currentSetId.value}:${currentSheetNumber.value}`)?.activeMs || 0;
+  recorder?.recordEvent('sheet_solved', {
+    set: currentSetId.value,
+    sheet: currentSheetNumber.value,
+    mode: currentMode.value,
+    attempts: outputAttemptCount.value,
+    activeMs,
+  });
 }
 
 // Region Shading Actions
@@ -486,6 +659,7 @@ function handleToggleRegion(id) {
   if (currentMode.value === 'table') return;
   if (isSolved.value && !isTeacher.value) return;
 
+  regionTogglesCount++;
   const next = new Set(shadedRegionIds.value);
   if (next.has(id)) {
     next.delete(id);
@@ -502,6 +676,7 @@ function handleToggleRegion(id) {
 function handleClearShading() {
   if (currentMode.value === 'table') return;
   if (isSolved.value && !isTeacher.value) return;
+  regionTogglesCount++;
   shadedRegionIds.value = new Set();
   shadingChecked.value = false;
 }
@@ -512,6 +687,8 @@ function handleCheckShading() {
 
   const missed = [...intended].filter((r) => !student.has(r));
   const extra = [...student].filter((r) => !intended.has(r));
+  const toggles = regionTogglesCount;
+  regionTogglesCount = 0;
 
   if (missed.length === 0 && extra.length === 0) {
     shadingCorrect.value = true;
@@ -523,6 +700,27 @@ function handleCheckShading() {
     outputsCorrect.value = true;
     outputsChecked.value = true;
     feedbackMessage.value = `Picture Revealed: ${currentSheet.value.pictureName}! Great job!`;
+
+    recorder?.recordEvent('shading_checked', {
+      set: currentSetId.value,
+      sheet: currentSheetNumber.value,
+      correct: true,
+      attempt: shadingAttemptCount.value,
+      missedCount: 0,
+      extraCount: 0,
+      regionToggles: toggles,
+      mode: currentMode.value,
+    });
+
+    const activeMs =
+      recorder?.getSheetSummary(`${currentSetId.value}:${currentSheetNumber.value}`)?.activeMs || 0;
+    recorder?.recordEvent('sheet_solved', {
+      set: currentSetId.value,
+      sheet: currentSheetNumber.value,
+      mode: currentMode.value,
+      attempts: shadingAttemptCount.value,
+      activeMs,
+    });
   } else {
     shadingCorrect.value = false;
     shadingChecked.value = true;
@@ -533,8 +731,50 @@ function handleCheckShading() {
       missedRegionIds: missed,
       extraRegionIds: extra,
     });
+    recorder?.recordEvent('shading_checked', {
+      set: currentSetId.value,
+      sheet: currentSheetNumber.value,
+      correct: false,
+      attempt: shadingAttemptCount.value,
+      missedCount: missed.length,
+      extraCount: extra.length,
+      regionToggles: toggles,
+      mode: currentMode.value,
+    });
     shadingAttemptCount.value++;
   }
+}
+
+function openExportDialog() {
+  if (recorder) {
+    isStorageAvailable.value = recorder.isStorageAvailable();
+    const saved = recorder.getSavedStudentInfo();
+    studentInfo.value = {
+      name: saved.name || '',
+      classCode: studentInfo.value.classCode || saved.classCode || '',
+    };
+  }
+  isExportDialogOpen.value = true;
+}
+
+async function handleExportDownload({ name, classCode }) {
+  if (!recorder) return;
+  recorder.saveStudentInfo({ name, classCode });
+  studentInfo.value = { name, classCode };
+  await recorder.recordEvent('export_requested', {});
+
+  const { payload, filename } = await recorder.buildExport({ name, classCode });
+  const jsonBlob = new Blob([JSON.stringify(payload, null, 2)], {
+    type: 'application/json',
+  });
+  const url = URL.createObjectURL(jsonBlob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }
 
 onMounted(() => {
@@ -594,6 +834,43 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.top-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-download-progress {
+  padding: 5px 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: #1e293b;
+  color: #38bdf8;
+  border: 1px solid #0284c7;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-download-progress:hover {
+  background: #0369a1;
+  color: #ffffff;
+}
+
+.dev-admin-link {
+  padding: 5px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fbbf24;
+  border: 1px dashed #d97706;
+  border-radius: 6px;
+  text-decoration: none;
+}
+
+.dev-admin-link:hover {
+  background: rgba(217, 119, 6, 0.2);
 }
 
 .main-puzzle-title {

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "app": "boolean-practice",
+  "appVersion": "0.1.0",
+  "exportedAt": "2026-10-26T03:23:14.749Z",
+  "student": {
+    "name": "Mason Brooks",
+    "classCode": "PERIOD-1"
+  },
+  "installId": "bbbbbbbb-0000-0000-0000-00000000000b",
+  "sessions": [],
+  "events": [
+    {
+      "seq": 1,
+      "t": 1729860100000,
+      "sessionId": "sess-1",
+      "type": "session_started",
+      "data": {},
+      "prevHash": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "seq": 2,
+      "t": 1729860102000,
+      "sessionId": "sess-1",
+      "type": "outputs_checked",
+      "data": {
+        "set": "shapes-1",
+        "sheet": 1,
+        "correct": false,
+        "attempt": 1
+      },
+      "prevHash": "d649c71cbdd74f38f2e2003c0e0c6bc047d75886c9963a4cffb42a528ea6f271"
+    },
+    {
+      "seq": 3,
+      "t": 1729860115000,
+      "sessionId": "sess-1",
+      "type": "outputs_checked",
+      "data": {
+        "set": "shapes-1",
+        "sheet": 1,
+        "correct": true,
+        "attempt": 2
+      },
+      "prevHash": "a348e54f363c020b0e199ae9cf0ee2f2da56cc6641ce8f8ed8cf49252fbdeb19"
+    },
+    {
+      "seq": 4,
+      "t": 1729860116000,
+      "sessionId": "sess-1",
+      "type": "sheet_solved",
+      "data": {
+        "set": "shapes-1",
+        "sheet": 1,
+        "mode": "table",
+        "attempts": 2,
+        "activeMs": 14000
+      },
+      "prevHash": "f69930653f34515fbdccef8e7c75e5daf46f113ddb91fd6cd784ff79109b613f"
+    }
+  ],
+  "summary": {
+    "eventsTruncated": false,
+    "firstRetainedSeq": 1,
+    "totalEvents": 4,
+    "sheets": {
+      "shapes-1:1": {
+        "solved": true,
+        "outputChecks": 2,
+        "activeMs": 14000
+      }
+    }
+  },
+  "integrity": {
+    "algorithm": "SHA-256",
+    "sha256": "0a7e68d684dd40bb359686f5a54aa29e37695f982b3ccb456bcfe48b03407767"
+  }
+}

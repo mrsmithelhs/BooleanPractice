@@ -14,6 +14,7 @@ export function parsePuzzleUrl(searchString = '') {
   const teacherParam = params.get('teacher');
   const isTeacher = teacherParam === '1' || teacherParam === 'true';
   const modeParam = params.get('mode');
+  const classCode = params.get('class') || '';
 
   let modeOverride = null;
   let modeWarning = null;
@@ -38,6 +39,7 @@ export function parsePuzzleUrl(searchString = '') {
       mode: 'table',
       modeOverride,
       modeWarning,
+      classCode,
     };
   }
 
@@ -53,6 +55,7 @@ export function parsePuzzleUrl(searchString = '') {
       mode: 'table',
       modeOverride,
       modeWarning,
+      classCode,
     };
   }
 
@@ -70,6 +73,7 @@ export function parsePuzzleUrl(searchString = '') {
     mode,
     modeOverride,
     modeWarning,
+    classCode,
   };
 }
 
@@ -78,6 +82,7 @@ export function buildPuzzleUrl({
   sheetNumber = 1,
   isTeacher = false,
   mode = null,
+  classCode = null,
 }) {
   const params = new URLSearchParams();
   params.set('set', setId);
@@ -87,6 +92,9 @@ export function buildPuzzleUrl({
   }
   if (mode === 'table' || mode === 'shade') {
     params.set('mode', mode);
+  }
+  if (classCode) {
+    params.set('class', classCode);
   }
   return `?${params.toString()}`;
 }

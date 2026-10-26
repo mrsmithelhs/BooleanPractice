@@ -29,6 +29,7 @@ puzzle.html?set=shapes-1&sheet=3&teacher=1
 | `sheet` | integer | `1` | 1-based index of the sheet within the set (1 to 4 for `shapes-1`). Out-of-bounds values display a fallback notice. |
 | `mode` | string (`table` or `shade`) | Alternating | Optional mode override. Sheets 1 and 3 default to `table`, sheets 2 and 4 default to `shade`. Unknown values trigger a fallback warning banner and use the sheet's default mode. |
 | `teacher` | flag (`1` or `true`) | absent | Unlocks the teacher key view with prefilled outputs, shaded regions, mode badge, and revealed picture name. |
+| `class` | string | absent | Optional class code (e.g. `PERIOD-1`) pre-filling the student usage export dialog. |
 
 ---
 
@@ -60,6 +61,7 @@ Rather than requiring both representations on every sheet (which becomes a mecha
    - Verified by e2e tests comparing computed styles before and after failed checks.
 4. **No student answer key:** Zero "solve" or key buttons appear on the student UI. The picture name is completely absent from the DOM and title until the sheet is solved.
 5. **Teacher key view:** Available exclusively via `?teacher=1`. Displays both representations prefilled and solved, with bulk output editing controls and an amber badge indicating the student mode for that sheet.
+6. **Student Usage Export (Plan 41 / DECISION-009):** The header includes a "Download my progress" button allowing students to export their attempt history as a signed JSON file for teacher review (see [`docs/usage-files.md`](./usage-files.md)).
 
 ---
 

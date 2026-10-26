@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "app": "boolean-practice",
+  "appVersion": "0.1.0",
+  "exportedAt": "2026-10-26T03:23:14.746Z",
+  "student": {
+    "name": "Gray Harper",
+    "classCode": "PERIOD-1"
+  },
+  "installId": "66666666-0000-0000-0000-000000000006",
+  "sessions": [],
+  "events": [
+    {
+      "seq": 1,
+      "t": 1729860000000,
+      "sessionId": "sess-1",
+      "type": "session_started",
+      "data": {},
+      "prevHash": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "seq": 2,
+      "t": 1729860001000,
+      "sessionId": "sess-1",
+      "type": "sheet_opened",
+      "data": {
+        "set": "shapes-1",
+        "sheet": 1,
+        "mode": "table"
+      },
+      "prevHash": "00d028f3bbea49cf6bc36b6821c4a3d40a342c62e45b34f3439162c5c2dacc33"
+    },
+    {
+      "seq": 3,
+      "t": 1729860004000,
+      "sessionId": "sess-1",
+      "type": "outputs_checked",
+      "data": {
+        "set": "shapes-1",
+        "sheet": 1,
+        "correct": true,
+        "attempt": 1
+      },
+      "prevHash": "753d2fb0d0d5dd81474685c79f9ac5d4a089436bc89685d3fafaf023e9941d9d"
+    },
+    {
+      "seq": 4,
+      "t": 1729860004500,
+      "sessionId": "sess-1",
+      "type": "sheet_solved",
+      "data": {
+        "set": "shapes-1",
+        "sheet": 1,
+        "mode": "table",
+        "attempts": 1,
+        "activeMs": 3500
+      },
+      "prevHash": "61a49424e2a5384b0c5274d71b3e09860a92e795d8a1cea8794e235d34b8bfbb"
+    }
+  ],
+  "summary": {
+    "eventsTruncated": false,
+    "firstRetainedSeq": 1,
+    "totalEvents": 4,
+    "sheets": {
+      "shapes-1:1": {
+        "solved": true,
+        "solvedAt": "2024-10-25T12:40:04.500Z",
+        "mode": "table",
+        "outputChecks": 1,
+        "shadingChecks": 0,
+        "activeMs": 3500
+      }
+    }
+  },
+  "integrity": {
+    "algorithm": "SHA-256",
+    "sha256": "0f1217db0992a45e83feec9b629dc73c6ac6e66b2727352b1cdcc807694b5bc1"
+  }
+}

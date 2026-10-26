@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "app": "boolean-practice",
+  "appVersion": "0.1.0",
+  "exportedAt": "2026-10-26T03:23:14.737Z",
+  "student": {
+    "name": "Dana Taylor",
+    "classCode": "PERIOD-1"
+  },
+  "installId": "33333333-0000-0000-0000-000000000003",
+  "sessions": [],
+  "events": [
+    {
+      "seq": 1,
+      "t": 1729860010000,
+      "sessionId": "sess-1",
+      "type": "session_started",
+      "data": {},
+      "prevHash": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "seq": 2,
+      "t": 1729860015000,
+      "sessionId": "sess-1",
+      "type": "sheet_opened",
+      "data": {
+        "set": "shapes-1",
+        "sheet": 1
+      },
+      "prevHash": "9e5e9c9e7140b7945f8119c7250bf3a959fd807bfd6484443da7a26417c53b35"
+    },
+    {
+      "seq": 3,
+      "t": 1729860035000,
+      "sessionId": "sess-1",
+      "type": "outputs_checked",
+      "data": {
+        "set": "shapes-1",
+        "sheet": 1,
+        "correct": true,
+        "attempt": 1
+      },
+      "prevHash": "bad0000000000000000000000000000000000000000000000000000000000000"
+    }
+  ],
+  "summary": {
+    "eventsTruncated": false,
+    "firstRetainedSeq": 1,
+    "totalEvents": 3,
+    "sheets": {}
+  },
+  "integrity": {
+    "algorithm": "SHA-256",
+    "sha256": "7da70e16efa2f5ad6f3d9d3c2045740647c4bfeb70acded5ed0fff32973eb2ad"
+  }
+}

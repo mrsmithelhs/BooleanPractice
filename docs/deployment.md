@@ -29,7 +29,7 @@ It:
 
 1. Installs dependencies with `npm ci`.
 2. Runs `npm test`, `npm run lint`, `npm run build`, and browser smoke checks.
-3. Uploads the `dist/` directory as the Pages artifact (containing both `index.html` and the secondary shape logic puzzle page `puzzle.html`).
+3. Uploads the `dist/` directory as the Pages artifact (containing both `index.html` and the secondary shape logic puzzle page `puzzle.html`). Note that `admin.html` is dev-only, served exclusively by `npm run dev`, and is strictly excluded from `dist/`, Pages, and `gas-dist/` (DECISION-009).
 4. Deploys that artifact with the GitHub Pages actions.
 
 ## GAS Output

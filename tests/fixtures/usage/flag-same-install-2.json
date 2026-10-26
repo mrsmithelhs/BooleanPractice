@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "app": "boolean-practice",
+  "appVersion": "0.1.0",
+  "exportedAt": "2026-10-26T03:23:14.747Z",
+  "student": {
+    "name": "Indigo Quinn",
+    "classCode": "PERIOD-1"
+  },
+  "installId": "77777777-aaaa-bbbb-cccc-777777777777",
+  "sessions": [],
+  "events": [
+    {
+      "seq": 1,
+      "t": 1729860001000,
+      "sessionId": "sess-1",
+      "type": "session_started",
+      "data": {
+        "urlParams": {
+          "set": "shapes-1",
+          "sheet": "1"
+        }
+      },
+      "prevHash": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "seq": 2,
+      "t": 1729860003000,
+      "sessionId": "sess-1",
+      "type": "sheet_opened",
+      "data": {
+        "set": "shapes-1",
+        "sheet": 1,
+        "mode": "table"
+      },
+      "prevHash": "903c38639b120f878143244de0879ae79451a32f450f58e5bb506d6a45debcb4"
+    },
+    {
+      "seq": 3,
+      "t": 1729860035000,
+      "sessionId": "sess-1",
+      "type": "outputs_checked",
+      "data": {
+        "set": "shapes-1",
+        "sheet": 1,
+        "correct": true,
+        "attempt": 1,
+        "blankCount": 0,
+        "wrongCount": 0
+      },
+      "prevHash": "8ca97c79b87b37b1f285933738f203ecfa9327383167d131bf685eb4f8eb4fb9"
+    },
+    {
+      "seq": 4,
+      "t": 1729860036000,
+      "sessionId": "sess-1",
+      "type": "sheet_solved",
+      "data": {
+        "set": "shapes-1",
+        "sheet": 1,
+        "mode": "table",
+        "attempts": 1,
+        "activeMs": 33000
+      },
+      "prevHash": "8e1e541919e48f1ae32d9a5ef84b7404f65089b5bc74a7a9f30cfd2db1f1eafa"
+    }
+  ],
+  "summary": {
+    "eventsTruncated": false,
+    "firstRetainedSeq": 1,
+    "totalEvents": 4,
+    "sheets": {
+      "shapes-1:1": {
+        "solved": true,
+        "solvedAt": "2024-10-25T12:40:36.000Z",
+        "outputChecks": 1,
+        "activeMs": 33000
+      }
+    }
+  },
+  "integrity": {
+    "algorithm": "SHA-256",
+    "sha256": "ccc9038bbb36b0b3ffb6518572cc2bb25ec10f73195c54da20e494d6dd8a8908"
+  }
+}

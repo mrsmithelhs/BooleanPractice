@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "app": "boolean-practice",
+  "appVersion": "0.1.0",
+  "exportedAt": "2026-10-26T03:23:14.737Z",
+  "student": {
+    "name": "Elliott Reed",
+    "classCode": "PERIOD-9"
+  },
+  "installId": "44444444-0000-0000-0000-000000000004",
+  "sessions": [],
+  "events": [
+    {
+      "seq": 1,
+      "t": 1729860020000,
+      "sessionId": "sess-1",
+      "type": "session_started",
+      "data": {},
+      "prevHash": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "seq": 2,
+      "t": 1729860025000,
+      "sessionId": "sess-1",
+      "type": "sheet_opened",
+      "data": {
+        "set": "shapes-1",
+        "sheet": 1
+      },
+      "prevHash": "4e9ee0914e586e96fade8789f82acd7a5e3bb2aa6156aa7b5f41c1cc5866a5b2"
+    },
+    {
+      "seq": 3,
+      "t": 1729860055000,
+      "sessionId": "sess-1",
+      "type": "outputs_checked",
+      "data": {
+        "set": "shapes-1",
+        "sheet": 1,
+        "correct": true,
+        "attempt": 1
+      },
+      "prevHash": "df718ed81191f03d58877329c84dab659103af735852fa7b49967e6b45840ea7"
+    },
+    {
+      "seq": 4,
+      "t": 1729860056000,
+      "sessionId": "sess-1",
+      "type": "sheet_solved",
+      "data": {
+        "set": "shapes-1",
+        "sheet": 1,
+        "mode": "table",
+        "attempts": 1,
+        "activeMs": 31000
+      },
+      "prevHash": "6fa5e86469338e99e060334eb6c31d5cac4f7a87515c632d38cac4d58c3853e8"
+    }
+  ],
+  "summary": {
+    "eventsTruncated": false,
+    "firstRetainedSeq": 1,
+    "totalEvents": 4,
+    "sheets": {
+      "shapes-1:1": {
+        "solved": true,
+        "solvedAt": "2024-10-25T12:40:56.000Z",
+        "mode": "table",
+        "outputChecks": 1,
+        "shadingChecks": 0,
+        "activeMs": 31000
+      }
+    }
+  },
+  "integrity": {
+    "algorithm": "SHA-256",
+    "sha256": "eb54a3d701a14db6e9743892d3ae6b5402340dd1f4e4db4c009bb607a187ebfe"
+  }
+}

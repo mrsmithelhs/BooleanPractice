@@ -407,6 +407,7 @@ const emit = defineEmits([
   'row-hover',
   'row-focus',
   'variable-hover',
+  'breakdown-opened',
 ]);
 
 const variables = computed(() => props.sheet.variables || []);
@@ -419,6 +420,9 @@ const tableData = computed(() => {
 const isBreakDownOpen = ref(false);
 function onToggleBreakDown(event) {
   isBreakDownOpen.value = event.target.open;
+  if (event.target.open) {
+    emit('breakdown-opened');
+  }
 }
 
 function getRowVarValue(row, v) {
