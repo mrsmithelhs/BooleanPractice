@@ -1,7 +1,8 @@
 ---
 id: plan-40
 title: "Camouflaged Shape Sets and Constellation Reveal Overlays"
-status: ready
+status: complete
+resolution: "Final shapes-2 set (cat, cactus, train, submarine, satellite, falcon), giveaway metric, and reveal overlays accepted at GATE-40B (orchestrator review 706eee1); owner signed off 2026-10-26. The owner's Pages deploy is still pending."
 depends_on: [plan-39]
 gate: "GATE-40A: candidate pictures for shapes-2 (review page with leakage views and overlay previews) plus live shapes-1 reveal overlays; owner picks candidates and approves the overlay style before the set is finalized. GATE-40B: final shapes-2 set (printables + page) reviewed; owner deploys."
 summary: >-
