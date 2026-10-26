@@ -182,11 +182,13 @@
             :active-focus-row="activeFocusRow"
             :is-greyscale="isGreyscale"
             :mode="currentMode"
+            :highlighted-shape="activeShapeHighlight"
             @toggle-region="handleToggleRegion"
             @check-shading="handleCheckShading"
             @clear-shading="handleClearShading"
             @region-hover="setHoverRow"
             @region-focus="setFocusRow"
+            @shape-highlight="handleShapeHighlight"
           />
         </div>
 
@@ -203,6 +205,7 @@
             :shaded-region-ids="shadedRegionIds"
             :active-hover-row="activeHoverRow"
             :active-focus-row="activeFocusRow"
+            :active-shape-highlight="activeShapeHighlight"
             :notation-mode="notationMode"
             :is-teacher="isTeacher"
             :read-only="currentMode === 'shade' && isSolved"
@@ -212,6 +215,7 @@
             @check-outputs="handleCheckOutputs"
             @row-hover="setHoverRow"
             @row-focus="setFocusRow"
+            @variable-hover="handleShapeHighlight"
           />
         </div>
       </main>
@@ -269,6 +273,11 @@ const isFeedbackError = ref(false);
 
 const activeHoverRow = ref(null);
 const activeFocusRow = ref(null);
+const activeShapeHighlight = ref(null);
+
+function handleShapeHighlight(v) {
+  activeShapeHighlight.value = v;
+}
 
 const tableData = computed(() => {
   if (!currentSheet.value) return null;
@@ -307,6 +316,7 @@ function loadFromUrl() {
 function initSheetState() {
   if (!currentSheet.value || !tableData.value) return;
 
+  activeShapeHighlight.value = null;
   const rowCount = tableData.value.rows.length;
 
   if (isTeacher.value) {

@@ -92,6 +92,10 @@
                 :key="v"
                 scope="col"
                 class="th-var"
+                :class="{ 'is-highlighted': activeShapeHighlight === v }"
+                :data-testid="`th-var-${v.toLowerCase()}`"
+                @mouseenter="emit('variable-hover', v)"
+                @mouseleave="emit('variable-hover', null)"
               >
                 {{ v }}
               </th>
@@ -389,6 +393,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  activeShapeHighlight: {
+    type: String,
+    default: null,
+  },
 });
 
 const emit = defineEmits([
@@ -398,6 +406,7 @@ const emit = defineEmits([
   'check-outputs',
   'row-hover',
   'row-focus',
+  'variable-hover',
 ]);
 
 const variables = computed(() => props.sheet.variables || []);
@@ -630,6 +639,12 @@ function selectMobileRow(idx) {
 .td-var {
   font-weight: 600;
   color: #475569;
+}
+
+.th-var.is-highlighted {
+  background: #e0f2fe;
+  color: #0369a1;
+  box-shadow: inset 0 -2px 0 #0284c7;
 }
 
 .th-subexpr,

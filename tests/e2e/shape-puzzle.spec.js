@@ -571,4 +571,101 @@ test.describe('Shape Puzzle Page (Plan 39 / P3)', () => {
     await expect(page.locator('[data-testid="sheet-title"]')).toContainText('Challenge Picture 6');
     await expect(page.locator('[data-testid="challenge-chip"]')).toBeVisible();
   });
+
+  test('highlights shape borders on letter outline badge hover and pins on click in shade mode', async ({
+    page,
+  }) => {
+    // Mystery Picture 2 (Cactus, visual-first shade mode)
+    await page.goto('/puzzle.html?set=shapes-2&sheet=2');
+
+    // 1. Initially no highlight layer exists
+    const highlightLayer = page.locator('[data-testid="shape-highlight-layer"]');
+    await expect(highlightLayer).toHaveCount(0);
+
+    const labelA = page.locator('[data-testid="shape-label-a"]');
+    const labelB = page.locator('[data-testid="shape-label-b"]');
+    const labelC = page.locator('[data-testid="shape-label-c"]');
+    await expect(labelA).toBeVisible();
+    await expect(labelB).toBeVisible();
+    await expect(labelC).toBeVisible();
+
+    // 2. Hover over letter outline badge A
+    await labelA.hover();
+
+    // Highlight layer appears with Shape A's outline
+    await expect(highlightLayer).toHaveCount(1);
+    const outlineA = page.locator('[data-testid="highlighted-outline-a"]');
+    await expect(outlineA).toBeVisible();
+    await expect(outlineA).toHaveAttribute('stroke', '#2563eb');
+    await expect(outlineA).toHaveAttribute('stroke-dasharray', 'none');
+    await expect(page.locator('.shape-highlight-halo')).toBeVisible();
+
+    // Badge A has highlighted state; B and C are dimmed
+    await expect(labelA).toHaveClass(/is-highlighted/);
+    await expect(labelB).toHaveClass(/is-dimmed/);
+    await expect(labelC).toHaveClass(/is-dimmed/);
+
+    // 3. Move mouse away to header
+    await page.locator('.canvas-title').hover();
+    await expect(highlightLayer).toHaveCount(0);
+    await expect(labelA).not.toHaveClass(/is-highlighted/);
+    await expect(labelB).not.toHaveClass(/is-dimmed/);
+
+    // 4. Hover over letter outline badge B (dashed crimson)
+    await labelB.hover();
+    await expect(highlightLayer).toHaveCount(1);
+    const outlineB = page.locator('[data-testid="highlighted-outline-b"]');
+    await expect(outlineB).toBeVisible();
+    await expect(outlineB).toHaveAttribute('stroke', '#dc2626');
+    await expect(outlineB).toHaveAttribute('stroke-dasharray', '5 2.5');
+
+    // 5. Hover over letter outline badge C (dash-dot emerald)
+    await labelC.hover();
+    await expect(highlightLayer).toHaveCount(1);
+    const outlineC = page.locator('[data-testid="highlighted-outline-c"]');
+    await expect(outlineC).toBeVisible();
+    await expect(outlineC).toHaveAttribute('stroke', '#059669');
+    await expect(outlineC).toHaveAttribute('stroke-dasharray', '5 2 2 2');
+
+    // 6. Click badge A to pin highlight
+    await labelA.click();
+    await page.locator('.canvas-title').hover();
+    // Highlight remains pinned even after mouse leaves!
+    await expect(highlightLayer).toHaveCount(1);
+    await expect(page.locator('[data-testid="highlighted-outline-a"]')).toBeVisible();
+
+    // 7. Click badge A again to unpin
+    await labelA.click();
+    await expect(highlightLayer).toHaveCount(0);
+
+    // 8. Keyboard accessibility: Focus badge A and press Enter to toggle on
+    await labelA.focus();
+    await labelA.press('Enter');
+    await expect(highlightLayer).toHaveCount(1);
+    await expect(page.locator('[data-testid="highlighted-outline-a"]')).toBeVisible();
+
+    // Press Space on badge A to toggle off
+    await labelA.press('Space');
+    await expect(highlightLayer).toHaveCount(0);
+  });
+
+  test('highlights shape borders when hovering table column headers in table mode', async ({
+    page,
+  }) => {
+    // Mystery Picture 1 (Cat, table mode)
+    await page.goto('/puzzle.html?set=shapes-2&sheet=1');
+
+    const highlightLayer = page.locator('[data-testid="shape-highlight-layer"]');
+    await expect(highlightLayer).toHaveCount(0);
+
+    // Hover over column header A in truth table
+    const thA = page.locator('[data-testid="th-var-a"]');
+    await thA.hover();
+    await expect(highlightLayer).toHaveCount(1);
+    await expect(page.locator('[data-testid="highlighted-outline-a"]')).toBeVisible();
+
+    // Hover away
+    await page.locator('.canvas-title').hover();
+    await expect(highlightLayer).toHaveCount(0);
+  });
 });

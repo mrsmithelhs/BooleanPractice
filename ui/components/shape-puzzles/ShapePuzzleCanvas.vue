@@ -81,6 +81,7 @@
           fill="#ffffff"
           stroke="none"
           class="frame-background"
+          @click="onBackgroundClick"
         />
 
         <!-- Interactive Region Layers (Hit & Fill) -->
@@ -201,18 +202,54 @@
             :stroke-width="outline.strokeWidth"
             :stroke-dasharray="outline.dashArray"
             class="shape-boundary-path"
+            :class="{
+              'is-dimmed': activeHighlightShape && activeHighlightShape !== outline.variable,
+              'is-active': activeHighlightShape === outline.variable,
+            }"
+          />
+        </g>
+
+        <!-- Active Highlighted Shape Outline (Rendered on top with high-contrast halo) -->
+        <g
+          v-if="highlightedOutline"
+          class="shape-highlight-layer"
+          data-testid="shape-highlight-layer"
+          pointer-events="none"
+        >
+          <!-- Outer white halo to separate from intersecting lines and fills -->
+          <path
+            :d="highlightedOutline.pathD"
+            fill="none"
+            stroke="#ffffff"
+            stroke-width="3.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="shape-highlight-halo"
+          />
+          <!-- Prominent highlighted shape boundary stroke -->
+          <path
+            :d="highlightedOutline.pathD"
+            fill="none"
+            :stroke="highlightedOutline.stroke"
+            :stroke-width="highlightedOutline.highlightStrokeWidth"
+            :stroke-dasharray="highlightedOutline.dashArray"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="shape-highlight-path"
+            :data-testid="`highlighted-outline-${highlightedOutline.variable.toLowerCase()}`"
           />
         </g>
 
         <!-- Outside Shape Labels Layer (Boxes, Leaders, and Swatches) -->
-        <g
-          class="shape-labels-layer"
-          pointer-events="none"
-        >
+        <g class="shape-labels-layer">
           <g
             v-for="lbl in labelBoxes"
             :key="`lbl-${lbl.variable}`"
             class="shape-label-item"
+            :class="{
+              'is-highlighted': activeHighlightShape === lbl.variable,
+              'is-dimmed': activeHighlightShape && activeHighlightShape !== lbl.variable,
+            }"
           >
             <!-- Leader Line -->
             <line
@@ -220,52 +257,84 @@
               :y1="lbl.lineStart.y"
               :x2="lbl.anchor.x"
               :y2="lbl.anchor.y"
-              stroke="#64748b"
-              stroke-width="0.35"
-              stroke-dasharray="1.5 1.5"
+              :stroke="activeHighlightShape === lbl.variable ? lbl.color : '#64748b'"
+              :stroke-width="activeHighlightShape === lbl.variable ? 0.7 : 0.35"
+              :stroke-dasharray="activeHighlightShape === lbl.variable ? 'none' : '1.5 1.5'"
+              class="label-leader-line"
+              pointer-events="none"
             />
             <!-- Anchor Dot on Shape Edge -->
             <circle
               :cx="lbl.anchor.x"
               :cy="lbl.anchor.y"
-              r="0.9"
+              :r="activeHighlightShape === lbl.variable ? 1.5 : 0.9"
               :fill="lbl.color"
+              class="label-anchor-dot"
+              pointer-events="none"
             />
-            <!-- Outside Label Box -->
-            <rect
-              :x="lbl.box.x"
-              :y="lbl.box.y"
-              :width="lbl.box.width"
-              :height="lbl.box.height"
-              rx="2.5"
-              fill="#ffffff"
-              fill-opacity="0.96"
-              :stroke="lbl.color"
-              stroke-width="0.5"
-            />
-            <!-- Shape Variable Letter -->
-            <text
-              :x="lbl.textPos.x"
-              :y="lbl.textPos.y"
-              dominant-baseline="central"
-              text-anchor="middle"
-              font-family="system-ui, sans-serif"
-              font-size="5.2"
-              font-weight="bold"
-              :fill="lbl.color"
+
+            <!-- Interactive Badge Group (Box, Text, and Swatch) -->
+            <g
+              class="shape-label-badge"
+              :class="{
+                'is-highlighted': activeHighlightShape === lbl.variable,
+                'is-dimmed': activeHighlightShape && activeHighlightShape !== lbl.variable,
+              }"
+              role="button"
+              tabindex="0"
+              focusable="true"
+              :aria-label="`Highlight borders for Shape ${lbl.variable}`"
+              :aria-pressed="activeHighlightShape === lbl.variable"
+              :data-testid="`shape-label-${lbl.variable.toLowerCase()}`"
+              @mouseenter="onShapeLabelEnter(lbl.variable)"
+              @mouseleave="onShapeLabelLeave(lbl.variable)"
+              @focus="onShapeLabelEnter(lbl.variable)"
+              @blur="onShapeLabelLeave(lbl.variable)"
+              @focusin="onShapeLabelEnter(lbl.variable)"
+              @focusout="onShapeLabelLeave(lbl.variable)"
+              @click.stop="onShapeLabelClick(lbl.variable)"
+              @keydown.enter.prevent="onShapeLabelClick(lbl.variable)"
+              @keydown.space.prevent="onShapeLabelClick(lbl.variable)"
             >
-              {{ lbl.variable }}
-            </text>
-            <!-- Line Style Swatch Line -->
-            <line
-              :x1="lbl.swatch.x1"
-              :y1="lbl.swatch.y"
-              :x2="lbl.swatch.x2"
-              :y2="lbl.swatch.y"
-              :stroke="lbl.color"
-              :stroke-width="lbl.strokeWidth"
-              :stroke-dasharray="lbl.dashArray"
-            />
+              <!-- Outside Label Box -->
+              <rect
+                :x="lbl.box.x"
+                :y="lbl.box.y"
+                :width="lbl.box.width"
+                :height="lbl.box.height"
+                rx="2.5"
+                fill="#ffffff"
+                fill-opacity="0.96"
+                :stroke="lbl.color"
+                :stroke-width="activeHighlightShape === lbl.variable ? 1.2 : 0.5"
+                class="label-box-rect"
+              />
+              <!-- Shape Variable Letter -->
+              <text
+                :x="lbl.textPos.x"
+                :y="lbl.textPos.y"
+                dominant-baseline="central"
+                text-anchor="middle"
+                font-family="system-ui, sans-serif"
+                font-size="5.2"
+                font-weight="bold"
+                :fill="lbl.color"
+                class="label-letter-text"
+              >
+                {{ lbl.variable }}
+              </text>
+              <!-- Line Style Swatch Line -->
+              <line
+                :x1="lbl.swatch.x1"
+                :y1="lbl.swatch.y"
+                :x2="lbl.swatch.x2"
+                :y2="lbl.swatch.y"
+                :stroke="lbl.color"
+                :stroke-width="activeHighlightShape === lbl.variable ? 1.4 : lbl.strokeWidth"
+                :stroke-dasharray="lbl.dashArray"
+                class="label-swatch-line"
+              />
+            </g>
           </g>
         </g>
 
@@ -338,7 +407,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import {
   buildShapeRegions,
   findLabelBoxPosition,
@@ -396,6 +465,10 @@ const props = defineProps({
     default: 'shade',
     validator: (v) => ['table', 'shade'].includes(v),
   },
+  highlightedShape: {
+    type: String,
+    default: null,
+  },
 });
 
 const emit = defineEmits([
@@ -404,7 +477,15 @@ const emit = defineEmits([
   'clear-shading',
   'region-hover',
   'region-focus',
+  'shape-highlight',
 ]);
+
+const localHoveredShape = ref(null);
+const localPinnedShape = ref(null);
+
+const activeHighlightShape = computed(() => {
+  return localHoveredShape.value || localPinnedShape.value || props.highlightedShape || null;
+});
 
 const viewBox = computed(() => ({
   width: props.sheet.viewBox?.width ?? 180,
@@ -461,6 +542,16 @@ const shapeOutlines = computed(() => {
       dashArray: style.dashArray,
     };
   });
+});
+
+const highlightedOutline = computed(() => {
+  if (!activeHighlightShape.value) return null;
+  const base = shapeOutlines.value.find((o) => o.variable === activeHighlightShape.value);
+  if (!base) return null;
+  return {
+    ...base,
+    highlightStrokeWidth: '1.8',
+  };
 });
 
 const labelBoxes = computed(() => {
@@ -625,6 +716,45 @@ function onRegionClick(id) {
   if (props.isSolved && !props.isTeacher) return;
   emit('toggle-region', id);
 }
+
+function onShapeLabelEnter(v) {
+  localHoveredShape.value = v;
+  emit('shape-highlight', v);
+}
+
+function onShapeLabelLeave(v) {
+  if (localHoveredShape.value === v) {
+    localHoveredShape.value = null;
+  }
+  emit('shape-highlight', localPinnedShape.value || null);
+}
+
+function onShapeLabelClick(v) {
+  if (localPinnedShape.value === v) {
+    localPinnedShape.value = null;
+    localHoveredShape.value = null;
+  } else {
+    localPinnedShape.value = v;
+    localHoveredShape.value = null;
+  }
+  emit('shape-highlight', localPinnedShape.value || null);
+}
+
+function onBackgroundClick() {
+  if (localPinnedShape.value) {
+    localPinnedShape.value = null;
+    emit('shape-highlight', null);
+  }
+}
+
+watch(
+  () => props.sheet.id,
+  () => {
+    localHoveredShape.value = null;
+    localPinnedShape.value = null;
+    emit('shape-highlight', null);
+  },
+);
 </script>
 
 <style scoped>
@@ -802,6 +932,77 @@ function onRegionClick(id) {
 
 .region-group.is-focused .region-path {
   filter: url(#focus-glow);
+}
+
+/* Outside Shape Labels Layer */
+.shape-labels-layer {
+  pointer-events: all;
+}
+
+.shape-label-item {
+  transition: opacity 0.15s ease;
+}
+
+.shape-label-badge {
+  cursor: pointer;
+  outline: none;
+}
+
+.shape-label-badge:hover .label-box-rect,
+.shape-label-badge:focus .label-box-rect {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.18));
+}
+
+.shape-label-badge:focus-visible .label-box-rect {
+  stroke-width: 1.4px;
+}
+
+.shape-label-item.is-highlighted .label-box-rect {
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25));
+}
+
+.shape-label-item.is-dimmed {
+  opacity: 0.45;
+}
+
+.shape-boundary-path {
+  transition: opacity 0.15s ease;
+}
+
+.shape-boundary-path.is-dimmed {
+  opacity: 0.25;
+}
+
+.shape-boundary-path.is-active {
+  opacity: 0;
+}
+
+/* Shape Highlight Layer (rendered on top) */
+.shape-highlight-layer {
+  pointer-events: none;
+}
+
+.shape-highlight-halo {
+  opacity: 0.95;
+}
+
+.shape-highlight-path {
+  animation: outline-pulse 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes outline-pulse {
+  from {
+    stroke-width: 2.8;
+  }
+  to {
+    stroke-width: 1.8;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shape-highlight-path {
+    animation: none !important;
+  }
 }
 
 /* Accessibility Details */
