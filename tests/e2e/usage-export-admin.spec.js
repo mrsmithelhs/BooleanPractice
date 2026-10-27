@@ -1,7 +1,11 @@
 import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { verifyIntegrity } from '../../src/usage/format.js';
+import {
+  canonicalJsonStringify,
+  sha256Hex,
+  verifyIntegrity,
+} from '../../src/usage/format.js';
 
 test.describe('Student Usage Export & Local Teacher Admin (Plan 41)', () => {
   test.beforeEach(async ({ context }) => {
@@ -221,5 +225,119 @@ test.describe('Student Usage Export & Local Teacher Admin (Plan 41)', () => {
     await expect(page.locator('[data-testid="export-storage-warning"]')).toContainText(
       'Browser storage is unavailable or blocked',
     );
+  });
+
+  test('two open tabs interleave checks and solves without reloads; both exports contain every event with unique consecutive seq and intact chain', async ({
+    context,
+  }) => {
+    const tab1 = await context.newPage();
+    const tab2 = await context.newPage();
+
+    await tab1.goto('/puzzle.html?set=shapes-1&sheet=1');
+    await tab2.goto('/puzzle.html?set=shapes-1&sheet=2');
+
+    await expect(tab1.locator('[data-testid="shape-puzzle-page"]')).toBeVisible();
+    await expect(tab2.locator('[data-testid="shape-puzzle-page"]')).toBeVisible();
+
+    // 1. Tab 1 does a wrong check on Sheet 1 (table mode)
+    // Click cell 0 once -> 'T' (wrong since a&&!b is F for 0,0)
+    await tab1.locator('[data-testid="output-cell-0"]').click();
+    await tab1.locator('[data-testid="btn-check-table"]').click();
+
+    // 2. Tab 2 does a wrong check on Sheet 2 (shade mode)
+    // Shade region 1 (wrong for a && b)
+    const reg1 = tab2.locator('[data-testid="region-1"]');
+    await reg1.focus();
+    await tab2.keyboard.press('Space');
+    await tab2.locator('[data-testid="btn-check-shading"]').click();
+
+    // 3. Tab 1 solves Sheet 1
+    // Correct outputs for a && !b: F, F, T, F
+    // Cell 0 was 'T', click once more -> 'F'
+    await tab1.locator('[data-testid="output-cell-0"]').click();
+    // Cell 1: click twice -> 'F'
+    await tab1.locator('[data-testid="output-cell-1"]').click();
+    await tab1.locator('[data-testid="output-cell-1"]').click();
+    // Cell 2: click once -> 'T'
+    await tab1.locator('[data-testid="output-cell-2"]').click();
+    // Cell 3: click twice -> 'F'
+    await tab1.locator('[data-testid="output-cell-3"]').click();
+    await tab1.locator('[data-testid="output-cell-3"]').click();
+    await tab1.locator('[data-testid="btn-check-table"]').click();
+    await expect(tab1.locator('[data-testid="solved-picture-name"]')).toBeVisible();
+
+    // 4. Tab 2 solves Sheet 2
+    // Deselect region 1, shade region 3 (correct for a && b)
+    await reg1.focus();
+    await tab2.keyboard.press('Space');
+    const reg3 = tab2.locator('[data-testid="region-3"]');
+    await reg3.focus();
+    await tab2.keyboard.press('Space');
+    await tab2.locator('[data-testid="btn-check-shading"]').click();
+    await expect(tab2.locator('[data-testid="solved-picture-name"]')).toBeVisible();
+
+    // 5. Export from Tab 1
+    await tab1.locator('[data-testid="download-progress-btn"]').click();
+    await tab1.locator('[data-testid="student-name-input"]').fill('Tab One Student');
+    const dlPromise1 = tab1.waitForEvent('download');
+    await tab1.locator('[data-testid="confirm-download-btn"]').click();
+    const dl1 = await dlPromise1;
+    const content1 = JSON.parse(readFileSync(await dl1.path(), 'utf8'));
+
+    // 6. Export from Tab 2
+    await tab2.locator('[data-testid="download-progress-btn"]').click();
+    await tab2.locator('[data-testid="student-name-input"]').fill('Tab Two Student');
+    const dlPromise2 = tab2.waitForEvent('download');
+    await tab2.locator('[data-testid="confirm-download-btn"]').click();
+    const dl2 = await dlPromise2;
+    const content2 = JSON.parse(readFileSync(await dl2.path(), 'utf8'));
+
+    // Both exports contain every check and solve event from both tabs
+    expect(content1.events.some((e) => e.type === 'shading_checked')).toBe(true);
+    expect(content1.events.some((e) => e.type === 'outputs_checked')).toBe(true);
+    expect(content1.events.some((e) => e.type === 'sheet_solved' && e.data?.sheet === 1)).toBe(true);
+    expect(content1.events.some((e) => e.type === 'sheet_solved' && e.data?.sheet === 2)).toBe(true);
+
+    expect(content2.events.some((e) => e.type === 'shading_checked')).toBe(true);
+    expect(content2.events.some((e) => e.type === 'outputs_checked')).toBe(true);
+    expect(content2.events.some((e) => e.type === 'sheet_solved' && e.data?.sheet === 1)).toBe(true);
+    expect(content2.events.some((e) => e.type === 'sheet_solved' && e.data?.sheet === 2)).toBe(true);
+
+    // Tab 2 was exported after Tab 1, so it contains Tab 1's export_requested event plus its own
+    expect(content2.events.length).toBe(content1.events.length + 1);
+    for (let i = 0; i < content1.events.length; i++) {
+      expect(content2.events[i].seq).toBe(content1.events[i].seq);
+      expect(content2.events[i].type).toBe(content1.events[i].type);
+      expect(content2.events[i].prevHash).toBe(content1.events[i].prevHash);
+    }
+
+    // Unique consecutive seq starting at 1
+    const expectedSeqs1 = Array.from({ length: content1.events.length }, (_, i) => i + 1);
+    expect(content1.events.map((e) => e.seq)).toEqual(expectedSeqs1);
+    const expectedSeqs2 = Array.from({ length: content2.events.length }, (_, i) => i + 1);
+    expect(content2.events.map((e) => e.seq)).toEqual(expectedSeqs2);
+
+    // Hash chain is completely intact in both files
+    for (let i = 1; i < content1.events.length; i++) {
+      const prev = content1.events[i - 1];
+      const curr = content1.events[i];
+      const expectedPrevHash = await sha256Hex(canonicalJsonStringify(prev));
+      expect(curr.prevHash).toBe(expectedPrevHash);
+    }
+    for (let i = 1; i < content2.events.length; i++) {
+      const prev = content2.events[i - 1];
+      const curr = content2.events[i];
+      const expectedPrevHash = await sha256Hex(canonicalJsonStringify(prev));
+      expect(curr.prevHash).toBe(expectedPrevHash);
+    }
+
+    // Both files verify integrity
+    const v1 = await verifyIntegrity(content1);
+    const v2 = await verifyIntegrity(content2);
+    expect(v1.ok).toBe(true);
+    expect(v2.ok).toBe(true);
+
+    await tab1.close();
+    await tab2.close();
   });
 });

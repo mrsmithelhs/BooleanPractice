@@ -131,16 +131,16 @@ describe('Format Module (src/usage/format.js)', () => {
     );
   });
 
-  it('generates deterministic event fingerprints from attempt events', () => {
+  it('generates deterministic event fingerprints with rounded second gaps from attempt events', () => {
     const events = [
-      { type: 'session_started', data: {} },
-      { type: 'outputs_checked', data: { set: 'shapes-1', sheet: 1, correct: false, attempt: 1 } },
-      { type: 'outputs_checked', data: { set: 'shapes-1', sheet: 1, correct: true, attempt: 2 } },
-      { type: 'sheet_solved', data: { set: 'shapes-1', sheet: 1 } },
+      { t: 1000, type: 'session_started', data: {} },
+      { t: 3000, type: 'outputs_checked', data: { set: 'shapes-1', sheet: 1, correct: false, attempt: 1 } },
+      { t: 15000, type: 'outputs_checked', data: { set: 'shapes-1', sheet: 1, correct: true, attempt: 2 } },
+      { t: 17000, type: 'sheet_solved', data: { set: 'shapes-1', sheet: 1 } },
     ];
     const fp = getUsageEventFingerprint(events);
     expect(fp).toBe(
-      'outputs_checked:shapes-1:1:false:1;outputs_checked:shapes-1:1:true:2;sheet_solved:shapes-1:1::',
+      'outputs_checked:shapes-1:1:false:1;outputs_checked:shapes-1:1:true:2+12s;sheet_solved:shapes-1:1::+2s',
     );
   });
 });
@@ -277,5 +277,62 @@ describe('Recorder (src/usage/recorder.js)', () => {
     expect(exported.payload.student.name).toBe('Private User');
     const verify = await verifyIntegrity(exported.payload);
     expect(verify.ok).toBe(true);
+  });
+
+  it('supports two recorder instances sharing one storage (read-modify-write across tabs)', async () => {
+    const storage = new MockStorage();
+    let now = 1729850000000;
+    const clock = () => now;
+
+    const r1 = new UsageRecorder({ storage, clock });
+    const r2 = new UsageRecorder({ storage, clock });
+
+    // Interleave events between r1 and r2
+    now += 1000;
+    await r1.recordEvent('outputs_checked', { set: 'shapes-1', sheet: 1, correct: false, attempt: 1 });
+
+    now += 2000;
+    await r2.recordEvent('shading_checked', { set: 'shapes-1', sheet: 2, correct: false, attempt: 1 });
+
+    now += 3000;
+    await r1.recordEvent('outputs_checked', { set: 'shapes-1', sheet: 1, correct: true, attempt: 2 });
+
+    now += 1000;
+    await r1.recordEvent('sheet_solved', { set: 'shapes-1', sheet: 1, mode: 'table', attempts: 2 });
+
+    now += 4000;
+    await r2.recordEvent('shading_checked', { set: 'shapes-1', sheet: 2, correct: true, attempt: 2 });
+
+    now += 1000;
+    await r2.recordEvent('sheet_solved', { set: 'shapes-1', sheet: 2, mode: 'shade', attempts: 2 });
+
+    const export1 = await r1.buildExport({ name: 'Student Tab 1' });
+    const export2 = await r2.buildExport({ name: 'Student Tab 2' });
+
+    // Both exports must contain ALL 6 events from both instances
+    expect(export1.payload.events).toHaveLength(6);
+    expect(export2.payload.events).toHaveLength(6);
+
+    // seq values must be unique and strictly consecutive 1..6
+    expect(export1.payload.events.map((e) => e.seq)).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(export2.payload.events.map((e) => e.seq)).toEqual([1, 2, 3, 4, 5, 6]);
+
+    // Chain must be intact across interleaving writes
+    for (let i = 1; i < export1.payload.events.length; i++) {
+      const prev = export1.payload.events[i - 1];
+      const curr = export1.payload.events[i];
+      const expectedPrevHash = await sha256Hex(canonicalJsonStringify(prev));
+      expect(curr.prevHash).toBe(expectedPrevHash);
+    }
+
+    // Both sheets must be recorded as solved
+    expect(export1.payload.summary.sheets['shapes-1:1'].solved).toBe(true);
+    expect(export1.payload.summary.sheets['shapes-1:2'].solved).toBe(true);
+
+    // Both exports verify integrity
+    const v1 = await verifyIntegrity(export1.payload);
+    const v2 = await verifyIntegrity(export2.payload);
+    expect(v1.ok).toBe(true);
+    expect(v2.ok).toBe(true);
   });
 });

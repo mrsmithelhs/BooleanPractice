@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "app": "boolean-practice",
   "appVersion": "0.1.0",
-  "exportedAt": "2026-10-26T03:23:14.749Z",
+  "exportedAt": "2026-10-27T00:41:37.756Z",
   "student": {
     "name": "Mason Brooks",
     "classCode": "PERIOD-1"
@@ -20,7 +20,7 @@
     },
     {
       "seq": 2,
-      "t": 1729860102000,
+      "t": 1729860103000,
       "sessionId": "sess-1",
       "type": "outputs_checked",
       "data": {
@@ -33,7 +33,7 @@
     },
     {
       "seq": 3,
-      "t": 1729860115000,
+      "t": 1729860116000,
       "sessionId": "sess-1",
       "type": "outputs_checked",
       "data": {
@@ -42,11 +42,11 @@
         "correct": true,
         "attempt": 2
       },
-      "prevHash": "a348e54f363c020b0e199ae9cf0ee2f2da56cc6641ce8f8ed8cf49252fbdeb19"
+      "prevHash": "32c84c9081fd12830e30500379f13d564e81660448b1d152b8c38cd349812962"
     },
     {
       "seq": 4,
-      "t": 1729860116000,
+      "t": 1729860118000,
       "sessionId": "sess-1",
       "type": "sheet_solved",
       "data": {
@@ -54,25 +54,70 @@
         "sheet": 1,
         "mode": "table",
         "attempts": 2,
-        "activeMs": 14000
+        "activeMs": 15000
       },
-      "prevHash": "f69930653f34515fbdccef8e7c75e5daf46f113ddb91fd6cd784ff79109b613f"
+      "prevHash": "1f490c537ac1fea77aed039e0170962832a3f153a7d9ce5df3a094b9adb0b56c"
+    },
+    {
+      "seq": 5,
+      "t": 1729860136000,
+      "sessionId": "sess-1",
+      "type": "shading_checked",
+      "data": {
+        "set": "shapes-1",
+        "sheet": 2,
+        "correct": false,
+        "attempt": 1
+      },
+      "prevHash": "b81184b24eca94ced7df5618d3b55f71cee727507c67120c77c5d8abd36f3635"
+    },
+    {
+      "seq": 6,
+      "t": 1729860151000,
+      "sessionId": "sess-1",
+      "type": "shading_checked",
+      "data": {
+        "set": "shapes-1",
+        "sheet": 2,
+        "correct": true,
+        "attempt": 2
+      },
+      "prevHash": "44b1c2a98098685042532c80bd6dedbf3b6e0e22c0a3814a20c170825ce278a5"
+    },
+    {
+      "seq": 7,
+      "t": 1729860153000,
+      "sessionId": "sess-1",
+      "type": "sheet_solved",
+      "data": {
+        "set": "shapes-1",
+        "sheet": 2,
+        "mode": "shade",
+        "attempts": 2,
+        "activeMs": 35000
+      },
+      "prevHash": "80560b904e45b1672b03b40e6e39c65bb9647801fbba711721478abdc0119518"
     }
   ],
   "summary": {
     "eventsTruncated": false,
     "firstRetainedSeq": 1,
-    "totalEvents": 4,
+    "totalEvents": 7,
     "sheets": {
       "shapes-1:1": {
         "solved": true,
         "outputChecks": 2,
-        "activeMs": 14000
+        "activeMs": 15000
+      },
+      "shapes-1:2": {
+        "solved": true,
+        "shadingChecks": 2,
+        "activeMs": 35000
       }
     }
   },
   "integrity": {
     "algorithm": "SHA-256",
-    "sha256": "0a7e68d684dd40bb359686f5a54aa29e37695f982b3ccb456bcfe48b03407767"
+    "sha256": "d64c2bf53dfb202c067e1b4fe140f603bce5a1edfa832b212d9e45519f2e1fb2"
   }
 }

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { compareFiles, summarizeFile } from '../src/usage/analyzer.js';
+import { withIntegrity } from '../src/usage/format.js';
 
 function loadFixture(filename) {
   const fullPath = resolve('tests/fixtures/usage', filename);
@@ -106,7 +107,7 @@ describe('Analyzer (src/usage/analyzer.js)', () => {
     expect(comparison[1].flags.map((f) => f.type)).toContain('duplicate_hash');
   });
 
-  it('detects identical fingerprints across different students', async () => {
+  it('detects identical fingerprints across different students with matching timing', async () => {
     const file1 = loadFixture('flag-identical-fingerprints-1.json');
     const file2 = loadFixture('flag-identical-fingerprints-2.json');
 
@@ -116,6 +117,103 @@ describe('Analyzer (src/usage/analyzer.js)', () => {
     const comparison = compareFiles([s1, s2]);
     expect(comparison[0].flags.map((f) => f.type)).toContain('identical_fingerprints');
     expect(comparison[1].flags.map((f) => f.type)).toContain('identical_fingerprints');
+  });
+
+  it('two perfect runs with different timing are NOT flagged as identical attempts', async () => {
+    const t0 = 1729860000000;
+    // Student 1 solves 3 sheets perfectly with its own timing
+    const run1 = {
+      schemaVersion: 1,
+      app: 'boolean-practice',
+      exportedAt: new Date(t0 + 100000).toISOString(),
+      student: { name: 'Student One', classCode: 'CS-A' },
+      installId: '11111111-1111-1111-1111-111111111111',
+      events: [
+        { seq: 1, t: t0, type: 'outputs_checked', data: { set: 'shapes-1', sheet: 1, correct: true, attempt: 1 }, prevHash: '0' },
+        { seq: 2, t: t0 + 2000, type: 'sheet_solved', data: { set: 'shapes-1', sheet: 1, mode: 'table' }, prevHash: '1' },
+        { seq: 3, t: t0 + 35000, type: 'shading_checked', data: { set: 'shapes-1', sheet: 2, correct: true, attempt: 1 }, prevHash: '2' },
+        { seq: 4, t: t0 + 37000, type: 'sheet_solved', data: { set: 'shapes-1', sheet: 2, mode: 'shade' }, prevHash: '3' },
+        { seq: 5, t: t0 + 80000, type: 'outputs_checked', data: { set: 'shapes-1', sheet: 3, correct: true, attempt: 1 }, prevHash: '4' },
+        { seq: 6, t: t0 + 82000, type: 'sheet_solved', data: { set: 'shapes-1', sheet: 3, mode: 'table' }, prevHash: '5' },
+      ],
+      summary: { sheets: {} },
+    };
+
+    // Student 2 solves 3 sheets perfectly with significantly different timing
+    const run2 = {
+      schemaVersion: 1,
+      app: 'boolean-practice',
+      exportedAt: new Date(t0 + 200000).toISOString(),
+      student: { name: 'Student Two', classCode: 'CS-A' },
+      installId: '22222222-2222-2222-2222-222222222222',
+      events: [
+        { seq: 1, t: t0, type: 'outputs_checked', data: { set: 'shapes-1', sheet: 1, correct: true, attempt: 1 }, prevHash: '0' },
+        { seq: 2, t: t0 + 10000, type: 'sheet_solved', data: { set: 'shapes-1', sheet: 1, mode: 'table' }, prevHash: '1' },
+        { seq: 3, t: t0 + 20000, type: 'shading_checked', data: { set: 'shapes-1', sheet: 2, correct: true, attempt: 1 }, prevHash: '2' },
+        { seq: 4, t: t0 + 25000, type: 'sheet_solved', data: { set: 'shapes-1', sheet: 2, mode: 'shade' }, prevHash: '3' },
+        { seq: 5, t: t0 + 40000, type: 'outputs_checked', data: { set: 'shapes-1', sheet: 3, correct: true, attempt: 1 }, prevHash: '4' },
+        { seq: 6, t: t0 + 43000, type: 'sheet_solved', data: { set: 'shapes-1', sheet: 3, mode: 'table' }, prevHash: '5' },
+      ],
+      summary: { sheets: {} },
+    };
+
+    const s1 = await summarizeFile(run1);
+    const s2 = await summarizeFile(run2);
+
+    const comparison = compareFiles([s1, s2]);
+    expect(comparison[0].flags.some((f) => f.type === 'identical_fingerprints')).toBe(false);
+    expect(comparison[1].flags.some((f) => f.type === 'identical_fingerprints')).toBe(false);
+  });
+
+  it('a copied file with a changed name and recomputed hash IS flagged as identical attempts', async () => {
+    const original = loadFixture('flag-identical-fingerprints-1.json');
+    const copy = JSON.parse(JSON.stringify(original));
+    copy.student.name = 'Cheating Copy Student';
+    delete copy.integrity;
+    const sealedCopy = await withIntegrity(copy);
+
+    const s1 = await summarizeFile(original);
+    const s2 = await summarizeFile(sealedCopy);
+
+    const comparison = compareFiles([s1, s2]);
+    expect(comparison[0].flags.map((f) => f.type)).toContain('identical_fingerprints');
+    expect(comparison[1].flags.map((f) => f.type)).toContain('identical_fingerprints');
+  });
+
+  it('fewer than 6 signal events never triggers identical attempts flag', async () => {
+    const t0 = 1729860000000;
+    // Exactly matching short run (only 4 signal events)
+    const runA = {
+      schemaVersion: 1,
+      app: 'boolean-practice',
+      exportedAt: new Date(t0 + 50000).toISOString(),
+      student: { name: 'Student Alpha', classCode: 'CS-A' },
+      installId: 'aaaaaaaa-1111-1111-1111-111111111111',
+      events: [
+        { seq: 1, t: t0, type: 'outputs_checked', data: { set: 'shapes-1', sheet: 1, correct: false, attempt: 1 }, prevHash: '0' },
+        { seq: 2, t: t0 + 10000, type: 'outputs_checked', data: { set: 'shapes-1', sheet: 1, correct: true, attempt: 2 }, prevHash: '1' },
+        { seq: 3, t: t0 + 12000, type: 'sheet_solved', data: { set: 'shapes-1', sheet: 1, mode: 'table' }, prevHash: '2' },
+        { seq: 4, t: t0 + 20000, type: 'outputs_checked', data: { set: 'shapes-1', sheet: 2, correct: true, attempt: 1 }, prevHash: '3' },
+      ],
+      summary: { sheets: {} },
+    };
+
+    const runB = {
+      schemaVersion: 1,
+      app: 'boolean-practice',
+      exportedAt: new Date(t0 + 50000).toISOString(),
+      student: { name: 'Student Beta', classCode: 'CS-A' },
+      installId: 'bbbbbbbb-2222-2222-2222-222222222222',
+      events: JSON.parse(JSON.stringify(runA.events)),
+      summary: { sheets: {} },
+    };
+
+    const s1 = await summarizeFile(runA);
+    const s2 = await summarizeFile(runB);
+
+    const comparison = compareFiles([s1, s2]);
+    expect(comparison[0].flags.some((f) => f.type === 'identical_fingerprints')).toBe(false);
+    expect(comparison[1].flags.some((f) => f.type === 'identical_fingerprints')).toBe(false);
   });
 
   it('marks same student across multiple install IDs as info, not review flag', async () => {

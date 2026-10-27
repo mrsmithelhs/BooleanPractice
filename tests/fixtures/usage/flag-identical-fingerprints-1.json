@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "app": "boolean-practice",
   "appVersion": "0.1.0",
-  "exportedAt": "2026-10-26T03:23:14.749Z",
+  "exportedAt": "2026-10-27T00:41:37.756Z",
   "student": {
     "name": "Logan Price",
     "classCode": "PERIOD-1"
@@ -46,7 +46,7 @@
     },
     {
       "seq": 4,
-      "t": 1729860016000,
+      "t": 1729860017000,
       "sessionId": "sess-1",
       "type": "sheet_solved",
       "data": {
@@ -54,25 +54,70 @@
         "sheet": 1,
         "mode": "table",
         "attempts": 2,
-        "activeMs": 14000
+        "activeMs": 15000
       },
       "prevHash": "510579012f79e49c04fbfc22ad3b7dbabe77ebfa96706fc66e34f7ce29b994b5"
+    },
+    {
+      "seq": 5,
+      "t": 1729860035000,
+      "sessionId": "sess-1",
+      "type": "shading_checked",
+      "data": {
+        "set": "shapes-1",
+        "sheet": 2,
+        "correct": false,
+        "attempt": 1
+      },
+      "prevHash": "f61f4162ef5301dd6c2a87e557fed2ed23c495756c1f302a47a8d983f4ce1806"
+    },
+    {
+      "seq": 6,
+      "t": 1729860050000,
+      "sessionId": "sess-1",
+      "type": "shading_checked",
+      "data": {
+        "set": "shapes-1",
+        "sheet": 2,
+        "correct": true,
+        "attempt": 2
+      },
+      "prevHash": "4b4fdd16f956c93f8817cc6a11346a6e31634ff70a9b6d02c869f17b7327fd3c"
+    },
+    {
+      "seq": 7,
+      "t": 1729860052000,
+      "sessionId": "sess-1",
+      "type": "sheet_solved",
+      "data": {
+        "set": "shapes-1",
+        "sheet": 2,
+        "mode": "shade",
+        "attempts": 2,
+        "activeMs": 35000
+      },
+      "prevHash": "dc2fecc1f6db971d15c5a409189caadb90a6e68a2d19a69fc0fdb911811f0a70"
     }
   ],
   "summary": {
     "eventsTruncated": false,
     "firstRetainedSeq": 1,
-    "totalEvents": 4,
+    "totalEvents": 7,
     "sheets": {
       "shapes-1:1": {
         "solved": true,
         "outputChecks": 2,
-        "activeMs": 14000
+        "activeMs": 15000
+      },
+      "shapes-1:2": {
+        "solved": true,
+        "shadingChecks": 2,
+        "activeMs": 35000
       }
     }
   },
   "integrity": {
     "algorithm": "SHA-256",
-    "sha256": "c4e94fe64782eba41ded17c1dfc8b9252aea949555f5fe920f5a29d7163fd8d7"
+    "sha256": "a2c54393ed14f8594488451630617cd437b8cca327ac5210cc7a428553d4f26a"
   }
 }

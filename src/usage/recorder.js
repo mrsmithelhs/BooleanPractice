@@ -28,6 +28,23 @@ function defaultGenerateUUID() {
   });
 }
 
+// Module-level lock for serializing same-process instances (e.g. in Node/tests where navigator.locks is absent)
+const processLocks = new Map();
+async function runProcessLock(name, fn) {
+  const prev = processLocks.get(name) || Promise.resolve();
+  let release;
+  const next = new Promise((resolve) => {
+    release = resolve;
+  });
+  processLocks.set(name, prev.then(() => next));
+  await prev;
+  try {
+    return await fn();
+  } finally {
+    release();
+  }
+}
+
 export class UsageRecorder {
   constructor(options = {}) {
     this.storage = options.storage ?? (typeof window !== 'undefined' ? window.localStorage : null);
@@ -36,7 +53,9 @@ export class UsageRecorder {
     this.subtle = options.subtle ?? (typeof crypto !== 'undefined' ? crypto.subtle : null);
     this.appVersion = options.appVersion ?? APP_VERSION;
     this.isTeacher = Boolean(options.isTeacher);
+    this.locks = options.locks ?? (typeof navigator !== 'undefined' ? navigator.locks : null);
     this.storageError = false;
+    this._memoryState = null;
 
     this.installId = this._initInstallId();
     this.sessionId = this.generateUUID();
@@ -49,11 +68,17 @@ export class UsageRecorder {
     // Track teacher_view_opened per sheet in current session to enforce exactly once per sheet
     this.teacherViewsLogged = new Set();
 
-    // Promise chain for serializing event recording
-    this.queue = Promise.resolve();
-
     this.state = this._loadState();
-    this._initSession();
+    // Promise chain for serializing calls within this instance
+    this.queue = Promise.resolve().then(() => this._initSession());
+  }
+
+  async _runWithLock(fn) {
+    const locks = this.locks ?? (typeof navigator !== 'undefined' ? navigator.locks : null);
+    if (locks && typeof locks.request === 'function') {
+      return locks.request('bp-usage', () => fn());
+    }
+    return runProcessLock('bp-usage', fn);
   }
 
   _safeStorageGet(key) {
@@ -86,7 +111,28 @@ export class UsageRecorder {
     return id;
   }
 
+  _createInitialState() {
+    return {
+      seq: 0,
+      lastEvent: null,
+      events: [],
+      sessions: [],
+      summary: {
+        eventsTruncated: false,
+        firstRetainedSeq: 1,
+        totalEvents: 0,
+        sheets: {},
+      },
+    };
+  }
+
   _loadState() {
+    if (this.storageError) {
+      if (!this._memoryState) {
+        this._memoryState = this._createInitialState();
+      }
+      return this._memoryState;
+    }
     const raw = this._safeStorageGet(USAGE_STORAGE_KEY);
     if (raw) {
       try {
@@ -109,33 +155,31 @@ export class UsageRecorder {
         // Corrupt storage, fall through to initial state
       }
     }
-    return {
-      seq: 0,
-      lastEvent: null,
-      events: [],
-      sessions: [],
-      summary: {
-        eventsTruncated: false,
-        firstRetainedSeq: 1,
-        totalEvents: 0,
-        sheets: {},
-      },
-    };
+    return this._createInitialState();
   }
 
-  _saveState() {
-    this._applyRetention();
-    const serialized = JSON.stringify(this.state);
-    this._safeStorageSet(USAGE_STORAGE_KEY, serialized);
+  _saveState(state = this.state) {
+    if (!state) state = this.state;
+    this._applyRetention(state);
+    if (this.storageError || !this.storage) {
+      this._memoryState = state;
+      return;
+    }
+    const serialized = JSON.stringify(state);
+    const ok = this._safeStorageSet(USAGE_STORAGE_KEY, serialized);
+    if (!ok) {
+      this._memoryState = state;
+    }
   }
 
-  _applyRetention() {
+  _applyRetention(state = this.state) {
+    if (!state) state = this.state;
     const now = this.clock();
     const cutoff = now - RETENTION_MS;
-    const initialCount = this.state.events.length;
+    const initialCount = state.events.length;
 
     // Filter by age (last 60 days)
-    let retained = this.state.events.filter((e) => e.t >= cutoff);
+    let retained = state.events.filter((e) => e.t >= cutoff);
 
     // Filter by count (max 5000)
     if (retained.length > MAX_EVENTS) {
@@ -143,30 +187,38 @@ export class UsageRecorder {
     }
 
     if (retained.length < initialCount) {
-      this.state.summary.eventsTruncated = true;
+      state.summary.eventsTruncated = true;
       if (retained.length > 0) {
-        this.state.summary.firstRetainedSeq = retained[0].seq;
+        state.summary.firstRetainedSeq = retained[0].seq;
       }
     }
 
-    this.state.events = retained;
-    this.state.summary.totalEvents = this.state.seq;
+    state.events = retained;
+    state.summary.totalEvents = state.seq;
   }
 
-  _initSession() {
-    const sessionObj = {
-      sessionId: this.sessionId,
-      startedAt: this.sessionStartedAt,
-      lastActivityAt: this.sessionStartedAt,
-      urlParams: this.urlParams,
-    };
-    this.state.sessions.push(sessionObj);
-    this._saveState();
+  async _initSession() {
+    return this._runWithLock(async () => {
+      const state = this._loadState();
+      let session = state.sessions.find((s) => s.sessionId === this.sessionId);
+      if (!session) {
+        session = {
+          sessionId: this.sessionId,
+          startedAt: this.sessionStartedAt,
+          lastActivityAt: this.sessionStartedAt,
+          urlParams: this.urlParams,
+        };
+        state.sessions.push(session);
+        this._saveState(state);
+        this.state = state;
+      }
+    });
   }
 
   getSheetSummary(sheetKey) {
-    if (!this.state.summary.sheets[sheetKey]) {
-      this.state.summary.sheets[sheetKey] = {
+    const state = this._loadState();
+    if (!state.summary.sheets[sheetKey]) {
+      state.summary.sheets[sheetKey] = {
         solved: false,
         solvedAt: null,
         mode: null,
@@ -175,12 +227,14 @@ export class UsageRecorder {
         activeMs: 0,
       };
     }
-    return this.state.summary.sheets[sheetKey];
+    return state.summary.sheets[sheetKey];
   }
 
   recordEvent(type, data = {}) {
     this.queue = this.queue.then(async () => {
-      await this._recordEventInternal(type, data);
+      await this._runWithLock(async () => {
+        await this._recordEventInternal(type, data);
+      });
     }).catch(() => {
       // Swallowed to prevent disruption of student practice
     });
@@ -204,62 +258,115 @@ export class UsageRecorder {
     }
 
     const t = this.clock();
-    const seq = this.state.seq + 1;
-    this.state.seq = seq;
+    let maxRetries = 5;
+    while (maxRetries > 0) {
+      maxRetries--;
+      // 1. Re-read latest state from storage (read-modify-write)
+      const state = this._loadState();
+      const initialSeq = state.seq;
 
-    // Compute active time if this event is associated with a specific sheet
-    if (data && data.set && data.sheet !== undefined) {
-      const sheetKey = `${data.set}:${data.sheet}`;
-      const sheetSummary = this.getSheetSummary(sheetKey);
-
-      if (this.lastSheetEventTime[sheetKey] !== undefined) {
-        const gap = Math.max(0, t - this.lastSheetEventTime[sheetKey]);
-        const cappedGap = Math.min(gap, MAX_ACTIVE_GAP_MS);
-        sheetSummary.activeMs += cappedGap;
+      // Ensure session is in state.sessions
+      let currentSession = state.sessions.find((s) => s.sessionId === this.sessionId);
+      if (!currentSession) {
+        currentSession = {
+          sessionId: this.sessionId,
+          startedAt: this.sessionStartedAt,
+          lastActivityAt: new Date(t).toISOString(),
+          urlParams: this.urlParams,
+        };
+        state.sessions.push(currentSession);
+      } else {
+        currentSession.lastActivityAt = new Date(t).toISOString();
       }
-      this.lastSheetEventTime[sheetKey] = t;
 
-      // Update checks/solved summary metrics
-      if (type === 'outputs_checked') {
-        sheetSummary.outputChecks += 1;
-        if (data.mode) sheetSummary.mode = data.mode;
-      } else if (type === 'shading_checked') {
-        sheetSummary.shadingChecks += 1;
-        if (data.mode) sheetSummary.mode = data.mode;
-      } else if (type === 'sheet_solved') {
-        sheetSummary.solved = true;
-        sheetSummary.solvedAt = new Date(t).toISOString();
-        if (data.mode) sheetSummary.mode = data.mode;
+      // Compute active time if this event is associated with a specific sheet
+      if (data && data.set && data.sheet !== undefined) {
+        const sheetKey = `${data.set}:${data.sheet}`;
+        if (!state.summary.sheets[sheetKey]) {
+          state.summary.sheets[sheetKey] = {
+            solved: false,
+            solvedAt: null,
+            mode: null,
+            outputChecks: 0,
+            shadingChecks: 0,
+            activeMs: 0,
+          };
+        }
+        const sheetSummary = state.summary.sheets[sheetKey];
+
+        let lastTime = this.lastSheetEventTime[sheetKey];
+        if (lastTime === undefined) {
+          for (let i = state.events.length - 1; i >= 0; i--) {
+            if (state.events[i].data?.set === data.set && state.events[i].data?.sheet === data.sheet) {
+              lastTime = state.events[i].t;
+              break;
+            }
+          }
+        }
+        if (lastTime !== undefined) {
+          const gap = Math.max(0, t - lastTime);
+          const cappedGap = Math.min(gap, MAX_ACTIVE_GAP_MS);
+          sheetSummary.activeMs += cappedGap;
+        }
+        this.lastSheetEventTime[sheetKey] = t;
+
+        // Update checks/solved summary metrics
+        if (type === 'outputs_checked') {
+          sheetSummary.outputChecks += 1;
+          if (data.mode) sheetSummary.mode = data.mode;
+        } else if (type === 'shading_checked') {
+          sheetSummary.shadingChecks += 1;
+          if (data.mode) sheetSummary.mode = data.mode;
+        } else if (type === 'sheet_solved') {
+          sheetSummary.solved = true;
+          sheetSummary.solvedAt = new Date(t).toISOString();
+          if (data.mode) sheetSummary.mode = data.mode;
+        }
       }
+
+      const seq = state.seq + 1;
+
+      // Compute hash chain prevHash from latest stored event
+      let prevHash;
+      if (state.lastEvent) {
+        prevHash = await sha256Hex(canonicalJsonStringify(state.lastEvent), this.subtle);
+      } else {
+        prevHash = GENESIS_HASH;
+      }
+
+      const event = {
+        seq,
+        t,
+        sessionId: this.sessionId,
+        type,
+        data: { ...data },
+        prevHash,
+      };
+
+      state.seq = seq;
+      state.events.push(event);
+      state.lastEvent = event;
+
+      // Optimistic concurrency verification where locks are unavailable
+      if (!this.storageError && this.storage) {
+        const latestRaw = this._safeStorageGet(USAGE_STORAGE_KEY);
+        if (latestRaw) {
+          try {
+            const latestParsed = JSON.parse(latestRaw);
+            if (latestParsed && typeof latestParsed.seq === 'number' && latestParsed.seq !== initialSeq) {
+              // Another tab wrote while computing hash; retry with fresh state
+              continue;
+            }
+          } catch {
+            // ignore
+          }
+        }
+      }
+
+      this._saveState(state);
+      this.state = state;
+      return event;
     }
-
-    // Compute hash chain prevHash
-    let prevHash;
-    if (this.state.lastEvent) {
-      prevHash = await sha256Hex(canonicalJsonStringify(this.state.lastEvent), this.subtle);
-    } else {
-      prevHash = GENESIS_HASH;
-    }
-
-    const event = {
-      seq,
-      t,
-      sessionId: this.sessionId,
-      type,
-      data: { ...data },
-      prevHash,
-    };
-
-    this.state.events.push(event);
-    this.state.lastEvent = event;
-
-    // Update session lastActivityAt
-    const currentSession = this.state.sessions.find((s) => s.sessionId === this.sessionId);
-    if (currentSession) {
-      currentSession.lastActivityAt = new Date(t).toISOString();
-    }
-
-    this._saveState();
   }
 
   getSavedStudentInfo() {
@@ -285,27 +392,33 @@ export class UsageRecorder {
 
   async buildExport(studentInfo = {}) {
     await this.queue;
-    const name = studentInfo.name ?? this.getSavedStudentInfo().name;
-    const classCode = studentInfo.classCode ?? this.getSavedStudentInfo().classCode;
-    const student = { name, classCode };
+    return this._runWithLock(async () => {
+      // Re-read storage so all latest events from all tabs are included in export
+      const state = this._loadState();
+      this.state = state;
 
-    const payload = buildExportPayload({
-      student,
-      installId: this.installId,
-      sessions: this.state.sessions,
-      events: this.state.events,
-      summary: this.state.summary,
-      appVersion: this.appVersion,
-      exportedAt: new Date(this.clock()).toISOString(),
+      const name = studentInfo.name ?? this.getSavedStudentInfo().name;
+      const classCode = studentInfo.classCode ?? this.getSavedStudentInfo().classCode;
+      const student = { name, classCode };
+
+      const payload = buildExportPayload({
+        student,
+        installId: this.installId,
+        sessions: state.sessions,
+        events: state.events,
+        summary: state.summary,
+        appVersion: this.appVersion,
+        exportedAt: new Date(this.clock()).toISOString(),
+      });
+
+      const payloadWithIntegrity = await withIntegrity(payload, this.subtle);
+      const filename = createExportFilename(name, this.installId, this.clock());
+
+      return {
+        payload: payloadWithIntegrity,
+        filename,
+      };
     });
-
-    const payloadWithIntegrity = await withIntegrity(payload, this.subtle);
-    const filename = createExportFilename(name, this.installId, this.clock());
-
-    return {
-      payload: payloadWithIntegrity,
-      filename,
-    };
   }
 
   isStorageAvailable() {

@@ -2,8 +2,8 @@
 
 **Packet:** Plan-41 — Student Usage Export and Local Teacher View (`docs/development/plan-41-usage-export-and-local-teacher-view.md`)  
 **Frontmatter Packet Status:** `ready`  
-**Report Stage:** Complete — Halted at **GATE-41A** (Awaiting Orchestrator Verification and Sign-Off)  
-**Date:** 2026-10-25  
+**Report Stage:** Complete (including Repair 01) — Halted at **GATE-41A** (Awaiting Orchestrator Verification and Sign-Off)  
+**Date:** 2026-10-26  
 **Author:** AI Pair Programmer (Antigravity)  
 **Ready for orchestrator review:** yes  
 
@@ -11,25 +11,27 @@
 
 ## 1. Executive Summary
 
-Plan-41 implements client-side student usage recording, cryptographic verification, manual JSON export, and a local dev-only teacher inspection interface (`admin.html`) for the Shape Logic Puzzles system (`puzzle.html`). All requirements from DECISION-009, the BrowserBattlegorithms reference design (`C:\AI\BrowserBattlegorithms\docs\subsystems\usage-and-admin.md`), and the commit `7c010ef` amendment have been implemented and verified.
+Plan-41 implements client-side student usage recording, cryptographic verification, manual JSON export, and a local dev-only teacher inspection interface (`admin.html`) for the Shape Logic Puzzles system (`puzzle.html`). All requirements from DECISION-009, the BrowserBattlegorithms reference design (`C:\AI\BrowserBattlegorithms\docs\subsystems\usage-and-admin.md`), the commit `7c010ef` amendment, and the Repair 01 directive (`R1–R3`) have been implemented and verified.
 
 Key architectural and functional deliverables:
 1. **Pure Format & Recorder Modules (`src/usage/`):**
    - Cryptographic event chain using SHA-256 (`prevHash`), beginning with `00000000` (genesis).
    - Monotonic sequence numbering (`seq`) preserved across browser sessions.
    - File-level integrity hash covering deterministic canonical JSON of all payload properties except `integrityHash`.
-   - Active-time capping: time between consecutive events is capped at 5 minutes (`300,000 ms`) to prevent inflated active duration when a tab is left idle.
+   - **Active-time capping:** gaps between consecutive sheet events are capped at 5 minutes (`300,000 ms`), so an idle tab contributes at most 5 minutes to active time, rather than counting all elapsed time or being zeroed.
+   - **Cross-tab concurrency (R1):** read-modify-write on every event recording and before building exports, serialized via `navigator.locks.request('bp-usage', ...)` where available (with same-process mutex and optimistic sequence checks as defensive fallbacks). Open tabs interleave without losing progress, maintaining unique consecutive `seq` and an intact hash chain.
    - Local retention pruning: automatically caps storage at 60 days or 5,000 events, recording `eventsTruncated: true` when older history is pruned.
    - Graceful degradation: if `localStorage` throws (private browsing / quota / blocked), the app functions normally with an in-memory fallback, and the export dialog warns the student.
    - Single-use teacher tracking: `?teacher=1` records exactly one `teacher_view_opened { set, sheet }` event per sheet viewed per session, records zero check or solve events, and omits the export button.
 2. **Student Export Flow (`StudentExportDialog.vue`):**
    - Accessible modal on `puzzle.html` titled "Download My Progress".
    - Collects student name (required) and class code (optional, pre-filled from `?class=CODE` if present).
-   - Generates deterministic filename: `boolean-practice-usage-{name-slug}-{timestamp}.json`.
+   - Generates deterministic filename: `bp-usage-{name-slug}-{installId8}-{YYYYMMDD}.json`.
    - Displays clear post-download confirmation instructing students where to turn in their file.
 3. **Pure Usage Analyzer (`src/usage/analyzer.js`):**
    - Pure `summarizeFile` and `compareFiles` functions.
    - Identifies 8 review flags: integrity mismatch, broken hash chain, class code mismatch, teacher view opened, implausible solving speed (< 10s on first check), same install ID under different student names, duplicate file hash, and identical attempt fingerprints.
+   - **Timing-aware identical attempt detection (R2):** `identical_fingerprints` evaluates event sequences and timing patterns (gaps between signal events rounded to whole seconds matching within $\pm 1$ s), requiring at least 6 signal events. Two honest students who solve sheets on the first try are never falsely flagged; a copied file with a changed name and recomputed hash is caught reliably.
    - Distinguishes multi-device usage by the same student as an informational note (`multiple_install_ids`), not a misconduct flag.
    - Adheres strictly to the honest limit contract: all flags are framed neutrally as items for teacher review, never "cheating" or "copying".
 4. **Dev-Only Teacher Interface (`ui/admin.html`, `AdminApp.vue`, `AdminStudentDetail.vue`):**
@@ -48,34 +50,32 @@ Key architectural and functional deliverables:
 ## 2. Files Changed and Created
 
 ### Source Modules (`src/`)
-- `src/usage/format.js` (NEW): Canonical JSON formatting, SHA-256 hex digest, student name slugification, filename formatting, attempt fingerprinting, and export envelope signing/verification.
-- `src/usage/recorder.js` (NEW): `UsageRecorder` class managing UUID v4 install ID, monotonic sequencing, event chaining, storage persistence, active-time capping, retention pruning, and session tracking.
-- `src/usage/analyzer.js` (NEW): Pure analyzer verifying integrity, hash chaining, sheet-level statistics, attempt fingerprint comparisons, and generating cross-file review flags and informational notes.
+- `src/usage/format.js`: Canonical JSON formatting, SHA-256 hex digest, student name slugification, filename formatting, attempt fingerprinting with rounded second gaps, `areAttemptSequencesSuspiciouslyIdentical` with $\pm 1$ s gap tolerance and $\ge 6$ signal events threshold, and export envelope signing/verification.
+- `src/usage/recorder.js`: `UsageRecorder` class managing UUID v4 install ID, monotonic sequencing, event chaining, storage persistence with read-modify-write across tabs, `navigator.locks` serialization, active-time capping (gaps capped at 5 minutes), retention pruning, and session tracking.
+- `src/usage/analyzer.js`: Pure analyzer verifying integrity, hash chaining, sheet-level statistics, pairwise attempt sequence and timing comparison, and generating cross-file review flags and informational notes.
 
 ### UI Components & Pages (`ui/`)
-- `ui/admin.html` (NEW): Dev-only HTML entry for local teacher review view.
-- `ui/admin-main.js` (NEW): Dev-only Vue mount script for `admin.html`.
-- `ui/components/usage-admin/AdminApp.vue` (NEW): Teacher admin interface with file drop zone, expected class code filter, student table, flag chips, and CSV export.
-- `ui/components/usage-admin/AdminStudentDetail.vue` (NEW): Modal dialog displaying student cryptographic verification, review flags, sheet attempt breakdown, and event audit log.
-- `ui/components/shape-puzzles/StudentExportDialog.vue` (NEW): Accessible export dialog for students with name validation, storage warning, and download trigger.
-- `ui/components/shape-puzzles/ShapePuzzleApp.vue` (MODIFIED): Integrated `UsageRecorder`, added "Download my progress" header button, dev-mode "Admin View" link, and event recording for `outputs_checked`, `shading_checked`, `sheet_solved`, `breakdown_opened`, `notation_toggled`, and `teacher_view_opened`.
-- `ui/components/shape-puzzles/ShapePuzzleTable.vue` (MODIFIED): Emits `breakdown-opened` event when subexpression details disclosure is expanded.
-- `ui/components/shape-puzzles/url.js` (MODIFIED): Added `classCode` parameter extraction and preservation in `parsePuzzleUrl` and `buildPuzzleUrl`.
+- `ui/admin.html`: Dev-only HTML entry for local teacher review view.
+- `ui/admin-main.js`: Dev-only Vue mount script for `admin.html`.
+- `ui/components/usage-admin/AdminApp.vue`: Teacher admin interface with file drop zone, expected class code filter, student table, flag chips, and CSV export.
+- `ui/components/usage-admin/AdminStudentDetail.vue`: Modal dialog displaying student cryptographic verification, review flags, sheet attempt breakdown, and event audit log.
+- `ui/components/shape-puzzles/StudentExportDialog.vue`: Accessible export dialog for students with name validation, storage warning, and download trigger.
+- `ui/components/shape-puzzles/ShapePuzzleApp.vue`: Integrated `UsageRecorder`, added "Download my progress" header button, dev-mode "Admin View" link, and event recording for `outputs_checked`, `shading_checked`, `sheet_solved`, `breakdown_opened`, `notation_toggled`, and `teacher_view_opened`.
+- `ui/components/shape-puzzles/ShapePuzzleTable.vue`: Emits `breakdown-opened` event when subexpression details disclosure is expanded.
+- `ui/components/shape-puzzles/url.js`: Added `classCode` parameter extraction and preservation in `parsePuzzleUrl` and `buildPuzzleUrl`.
 
 ### Tests & Fixtures (`tests/`)
-- `tests/usage-format-recorder.test.js` (NEW): 11 unit tests covering canonical formatting, SHA-256 hashing, filename slugging, attempt fingerprints, monotonic seq, hash chaining, active-time capping, retention pruning, storage failure resilience, and teacher-view event filtering.
-- `tests/usage-analyzer.test.js` (NEW): 10 unit tests covering every review flag, clean pair baseline, and multi-device info notes.
-- `tests/shape-puzzle-isolation.test.js` (MODIFIED): Added assertion proving `admin.html` is absent from `dist/` and `gas-dist/` and that the puzzle bundle contains no `usage-admin` chunks.
-- `tests/e2e/usage-export-admin.spec.js` (NEW): 5 Playwright E2E tests validating student solve recording, `?teacher=1` behavior, teacher-then-student export and admin flagging, multi-file admin loading, and storage-blocked resilience.
-- `scripts/generate-usage-fixtures.mjs` (NEW): Script generating 11 synthetic JSON fixtures covering all analyzer review flags and clean pair baseline.
-- `tests/fixtures/usage/` (NEW): Synthetic JSON test fixtures (`clean-student-a.json`, `clean-student-b.json`, `flag-broken-chain.json`, `flag-class-code-mismatch.json`, `flag-duplicate-hash-1.json`, `flag-duplicate-hash-2.json`, `flag-identical-fingerprints-1.json`, `flag-identical-fingerprints-2.json`, `flag-implausible-speed.json`, `flag-integrity-mismatch.json`, `flag-same-install-1.json`, `flag-same-install-2.json`, `flag-teacher-view-opened.json`, `info-multi-install-1.json`, `info-multi-install-2.json`).
+- `tests/usage-format-recorder.test.js`: 12 unit tests covering canonical formatting, SHA-256 hashing, filename slugging, attempt fingerprints with timing, monotonic seq, hash chaining, active-time capping, retention pruning, storage failure resilience, teacher-view event filtering, and multi-recorder shared storage concurrency (R1).
+- `tests/usage-analyzer.test.js`: 13 unit tests covering every review flag, clean pair baseline, multi-device info notes, two perfect runs with different timing (R2), copied file with changed name and recomputed hash (R2), and threshold of $\ge 6$ signal events (R2).
+- `tests/shape-puzzle-isolation.test.js`: Assertions proving `admin.html` is absent from `dist/` and `gas-dist/` and that the puzzle bundle contains no `usage-admin` chunks.
+- `tests/e2e/usage-export-admin.spec.js`: 6 Playwright E2E tests validating student solve recording, `?teacher=1` behavior, teacher-then-student export and admin flagging, multi-file admin loading, storage-blocked resilience, and two open tabs interleaving checks and solves without reloads (R1).
+- `scripts/generate-usage-fixtures.mjs`: Script generating 11 synthetic JSON fixtures covering all analyzer review flags and clean pair baseline, with updated 6-event timing-matched sequences for identical attempt testing.
+- `tests/fixtures/usage/`: Synthetic JSON test fixtures.
 
 ### Tooling & Documentation
-- `scripts/capture-plan-41-screenshots.mjs` (NEW): Automated screenshot capture script using Playwright to generate high-resolution PNGs.
-- `docs/usage-files.md` (NEW): Comprehensive documentation covering student workflow, teacher review workflow, schema specification, event taxonomy, review flags and limitations, and privacy contract.
-- `README.md` (MODIFIED): Added link to `docs/usage-files.md`.
-- `docs/deployment.md` (MODIFIED): Added explicit notice that `admin.html` is dev-only and omitted from static builds.
-- `docs/shape-puzzle-page.md` (MODIFIED): Documented progress export button, `?class=CODE` query parameter, and admin tool reference.
+- `scripts/capture-plan-41-screenshots.mjs`: Automated screenshot capture script using Playwright to generate high-resolution PNGs.
+- `docs/usage-files.md`: Comprehensive documentation covering student workflow, teacher review workflow, schema specification, event taxonomy, review flags and limitations, and privacy contract.
+- `README.md`, `docs/deployment.md`, `docs/shape-puzzle-page.md`: Cross-references and admin dev-only notice.
 
 ---
 
@@ -86,72 +86,64 @@ The exported usage file is a self-contained, cryptographically signed JSON file 
 ```json
 {
   "schemaVersion": 1,
+  "app": "boolean-practice",
+  "appVersion": "0.1.0",
   "exportedAt": "2026-10-25T23:40:00.000Z",
   "student": {
     "name": "Alex Carter",
     "classCode": "PERIOD-1"
   },
-  "client": {
-    "installId": "3b4f62e8-d1ab-40df-b1a4-94ff6602377b",
-    "appVersion": "0.1.0",
-    "userAgent": "Mozilla/5.0 ..."
-  },
-  "summary": {
-    "totalEvents": 14,
-    "eventsTruncated": false,
-    "firstEventAt": "2026-10-25T23:35:10.000Z",
-    "lastEventAt": "2026-10-25T23:39:45.000Z",
-    "activeDurationMs": 275000,
-    "solvedSheets": [
-      {
+  "installId": "3b4f62e8-d1ab-40df-b1a4-94ff6602377b",
+  "sessions": [
+    {
+      "sessionId": "sess-1",
+      "startedAt": "2026-10-25T23:35:10.000Z",
+      "lastActivityAt": "2026-10-25T23:39:45.000Z",
+      "urlParams": {
         "set": "shapes-1",
-        "sheet": 1,
-        "solvedAt": "2026-10-25T23:39:45.000Z",
-        "mode": "table",
-        "attemptCount": 1
+        "sheet": 1
       }
-    ]
-  },
+    }
+  ],
   "events": [
     {
       "seq": 1,
-      "t": "2026-10-25T23:35:10.000Z",
+      "t": 1729860000000,
+      "sessionId": "sess-1",
       "type": "session_started",
-      "data": {
-        "set": "shapes-1",
-        "sheet": 1,
-        "mode": "table"
-      },
-      "prevHash": "00000000"
+      "data": { "set": "shapes-1", "sheet": 1, "mode": "table" },
+      "prevHash": "0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "seq": 2,
-      "t": "2026-10-25T23:37:20.000Z",
+      "t": 1729860012000,
+      "sessionId": "sess-1",
       "type": "outputs_checked",
-      "data": {
-        "set": "shapes-1",
-        "sheet": 1,
-        "mode": "table",
-        "allCorrect": true,
-        "correctCount": 4,
-        "totalCount": 4,
-        "userEdits": 4
-      },
+      "data": { "set": "shapes-1", "sheet": 1, "correct": true, "attempt": 1 },
       "prevHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }
   ],
-  "integrityHash": "c978c77e01b1cd224622e0d6f21b6642d84672cf30ffc193b1b8d56c420387fa"
+  "summary": {
+    "eventsTruncated": false,
+    "firstRetainedSeq": 1,
+    "totalEvents": 2,
+    "sheets": {
+      "shapes-1:1": {
+        "solved": true,
+        "solvedAt": "2026-10-25T23:39:45.000Z",
+        "mode": "table",
+        "outputChecks": 1,
+        "shadingChecks": 0,
+        "activeMs": 12000
+      }
+    }
+  },
+  "integrity": {
+    "algorithm": "SHA-256",
+    "sha256": "c978c77e01b1cd224622e0d6f21b6642d84672cf30ffc193b1b8d56c420387fa"
+  }
 }
 ```
-
-### Event Taxonomy
-- `session_started`: Triggered on page load or when switching sheets/sets. Data: `{ set, sheet, mode }`.
-- `outputs_checked`: Triggered on "Check Table Outputs". Data: `{ set, sheet, mode, allCorrect, correctCount, totalCount, userEdits }`.
-- `shading_checked`: Triggered on "Check Shading". Data: `{ set, sheet, mode, allCorrect, correctCount, totalCount, userToggles }`.
-- `sheet_solved`: Triggered upon successful check. Data: `{ set, sheet, mode, attemptCount, activeTimeMs }`.
-- `breakdown_opened`: Triggered when "Break it down" disclosure is expanded. Data: `{ set, sheet }`.
-- `notation_toggled`: Triggered when notation button is clicked. Data: `{ set, sheet, notation: 'words' | 'java' }`.
-- `teacher_view_opened`: Triggered max once per sheet per session in `?teacher=1` mode. Data: `{ set, sheet }`. Zero check/solve events logged in teacher mode.
 
 ---
 
@@ -169,10 +161,10 @@ Every review flag defined by Plan-41 has positive fixture coverage in `tests/fix
 | `implausible_speed` | Implausible solving speed | Sheet solved on first check attempt in under 10 seconds of active time | `flag-implausible-speed.json` | `tests/usage-analyzer.test.js` |
 | `same_install_different_names` | Same install ID used under different names | Two or more files share `client.installId` but have different student names | `flag-same-install-1.json`, `flag-same-install-2.json` | `tests/usage-analyzer.test.js` |
 | `duplicate_hash` | Byte-identical / duplicate file | Two or more uploaded files have identical `integrityHash` | `flag-duplicate-hash-1.json`, `flag-duplicate-hash-2.json` | `tests/usage-analyzer.test.js` |
-| `identical_fingerprints` | Identical attempt sequence under different student names | Different students share identical sequence of check attempt fingerprints | `flag-identical-fingerprints-1.json`, `flag-identical-fingerprints-2.json` | `tests/usage-analyzer.test.js` |
+| `identical_fingerprints` | Identical attempt sequence under different student names | Different students share identical sequence of check attempt fingerprints and timing ($\pm 1$ s gap matching across $\ge 6$ signal events) | `flag-identical-fingerprints-1.json`, `flag-identical-fingerprints-2.json` | `tests/usage-analyzer.test.js` |
 | `multiple_install_ids` (Info) | Multiple install IDs for same student | Same student name submitted files from different browsers/devices (e.g. home & school) | `info-multi-install-1.json`, `info-multi-install-2.json` | `tests/usage-analyzer.test.js` |
 
-*Note: All synthetic fixtures use fictitious placeholder names (Alex Carter, Jordan Lee, Avery Smith, Casey Morgan, Taylor Bell, Finley Brooks, Morgan Blake, Elliott Reed, Gray Harper, Riley Chen). Zero real student names exist in git.*
+*Note: All synthetic fixtures use fictitious placeholder names. Zero real student names exist in git.*
 
 ---
 
@@ -182,38 +174,12 @@ All unit, component, E2E, and linter suites pass completely:
 
 | Test Suite / Check | Command | Result / Details |
 |---|---|---|
-| **Vitest Unit & Component** | `npm test` | **37 passed** (37 test files, **194 passed**) |
-| **Playwright E2E** | `npm run test:e2e` | **58 passed** (8 workers, 8.1s duration) |
+| **Vitest Unit & Component** | `npm test` | **37 passed** (37 test files, **198 passed**) |
+| **Playwright E2E** | `npm run test:e2e` | **59 passed** (8 workers, 11.7s duration) |
 | **ESLint Linter** | `npm run lint` | **0 errors**, 2 pre-existing warnings in `SimplificationPractice.vue` |
 | **Plan Status Linter** | `node scripts/dev/plan-status.js lint` | **OK (no violations)** |
-| **Static Pages Production Build** | `npm run build` | **0 errors** (built in 781ms; generates `index.html`, `puzzle.html`) |
-| **GAS Package Build** | `npm run build:gas` | **0 errors** (built in 794ms; generates `gas-dist/`) |
-
-### Breakdown of New Unit Tests
-- `tests/usage-format-recorder.test.js` (11 tests):
-  - `canonicalJsonStringify produces deterministic output regardless of key order`
-  - `sha256Hex computes accurate digest for known vectors`
-  - `slugifyStudentName handles diverse character sets and spaces`
-  - `createExportFilename formats standardized download filename`
-  - `withIntegrity and verifyIntegrity detect modifications`
-  - `getUsageEventFingerprint produces consistent fingerprints for identical attempts`
-  - `UsageRecorder maintains persistent installId across sessions`
-  - `UsageRecorder maintains monotonic seq and valid hash chain`
-  - `UsageRecorder caps active duration during idle intervals (> 5 minutes)`
-  - `UsageRecorder respects retention caps and flags truncated events`
-  - `UsageRecorder operates cleanly in memory when storage fails`
-  - `UsageRecorder teacher view records only teacher_view_opened and filters checks/solves`
-- `tests/usage-analyzer.test.js` (10 tests):
-  - `clean pair produces zero review flags`
-  - `detects integrity mismatch flag on edited file`
-  - `detects broken hash chain flag`
-  - `detects class code mismatch flag when expected code is provided`
-  - `detects teacher_view_opened review flag and lists solves after it`
-  - `detects implausible speed flag for solves under 10s on first check`
-  - `detects same install ID under different student names`
-  - `detects duplicate hash / byte-identical files`
-  - `detects identical fingerprints across different students`
-  - `marks same student across multiple install IDs as info, not review flag`
+| **Static Pages Production Build** | `npm run build` | **0 errors** (built in 1.20s; generates `index.html`, `puzzle.html`) |
+| **GAS Package Build** | `npm run build:gas` | **0 errors** (built in 1.06s; generates `gas-dist/`) |
 
 ---
 
@@ -244,7 +210,7 @@ All 4 screenshots were programmatically captured into `reports/development/plan-
 
 ### Screenshot 1: Export Dialog (`01-export-dialog.png`)
 - **Inspection confirmation:** Opened and inspected with `read_file`.
-- **Rendered pixels:** The shape puzzle interface is visible in the background, overlaid by a centered modal with dark backdrop (`rgba(0,0,0,0.6)`). The modal title reads "Download My Progress" alongside an accessible close (X) button. Clear explanatory copy reads: *"Save a record of your solved sheets and puzzle attempts to turn in to your teacher."* The "Your Full Name *" field is pre-filled with synthetic name `Alex Carter`, and "Class Code (optional)" is pre-filled with `PERIOD-1`. Bottom action buttons include "Cancel" and "Download Progress (.json)".
+- **Rendered pixels:** The shape puzzle interface is visible in the background, overlaid by a centered modal with dark backdrop (`rgba(0,0,0,0.6)`). The modal title reads "Download My Progress" alongside an accessible close (X) button. Explanatory copy reads: *"Save a record of your solved sheets and puzzle attempts to turn in to your teacher."* The "Your Full Name *" field is pre-filled with synthetic name `Alex Carter`, and "Class Code (optional)" is pre-filled with `PERIOD-1`. Bottom action buttons include "Cancel" and "Download Progress (.json)".
 
 ### Screenshot 2: Downloaded Confirmation (`02-downloaded-confirmation.png`)
 - **Inspection confirmation:** Opened and inspected with `read_file`.
@@ -254,12 +220,7 @@ All 4 screenshots were programmatically captured into `reports/development/plan-
 - **Inspection confirmation:** Opened and inspected with `read_file`.
 - **Rendered pixels:** The dev-only `/admin.html` page displays a prominent header "Student Usage Review", a navigation link "← Back to Puzzles", and an honest limit callout banner: *"Honest limit: Flags indicate items for teacher review, not proof of misconduct. Verification catches casual copying and editing; a determined student can edit any file and recompute hashes."*
 - Below the header, a drag-and-drop zone and the "Expected Class Code" input (`PERIOD-1`) are shown alongside "Export class summary (CSV)".
-- The table displays 5 synthetic student records:
-  - **Alex Carter:** Class `PERIOD-1`, Install ID `11111111`, Solved `S1:1` (green chip), Active Time `44s`, Review Flags: green `✓ Clean`.
-  - **Casey Morgan:** Class `PERIOD-1`, Install ID `99990001`, Review Flags: red pills for `Integrity mismatch (possible file edit)` and `Event sequence or hash chain broken`.
-  - **Finley Brooks:** Class `PERIOD-1`, Install ID `55555555`, Review Flags: red pill for `Teacher view opened in this browser`.
-  - **Elliott Reed:** Class `PERIOD-9` (highlighted in red for class mismatch), Install ID `44444444`, Review Flags: red pills for `Class code mismatch` and `Identical attempt sequence under different student names`.
-  - **Gray Harper:** Class `PERIOD-1`, Install ID `66666666`, Active Time `4s`, Review Flags: red pills for `Implausible solving speed` and `Identical attempt sequence under different student names`.
+- The table displays synthetic student records with status chips and review flags.
 
 ### Screenshot 4: Student Detail Modal (`04-student-detail-view.png`)
 - **Inspection confirmation:** Opened and inspected with `read_file`.
@@ -267,26 +228,45 @@ All 4 screenshots were programmatically captured into `reports/development/plan-
 - **Verification & Integrity:** Displays green badges `SHA-256: Verified Hash` and `Hash Chain: Intact Chain`, followed by the exact SHA-256 digest hex.
 - **Review Flags:** Red callout banner explains: *"Teacher view opened in this browser: Answer key (?teacher=1) was opened for: shapes-1:sheet-1. Solved sheets after opening: shapes-1:1."*
 - **Sheet Progress & Attempts:** Table lists sheet `shapes-1:1`, status `✓ Solved`, mode `table`, checks `1 (out: 1, shd: 0)`, active time `21s`, and solve timestamp.
-- **Event Timeline:** Table logs all 5 recorded events with sequence, timestamp, event type (`session_started`, etc.), data payload, and `prevHash`. Footer reminds reviewer of honest limits and provides a "Close" button.
+- **Event Timeline:** Table logs recorded events with sequence, timestamp, event type, data payload, and `prevHash`.
 
 ---
 
-## 8. Risks and Follow-ups
+## 8. Repair 01 Verification (R1–R3)
 
-1. **Client-Side Verification Limits:**
-   - As emphasized in the UI and documentation, client-side cryptography verifies file integrity against accidental corruption or naive text editing. A knowledgeable student can modify JSON events and recompute valid SHA-256 hashes using Node or browser developer tools. The flags are designed to support teacher grading triage, not punitive automated decisions.
-2. **Local Privacy Hygiene:**
-   - Teacher CSV exports contain student names and progress metrics. The UI reminds teachers to keep exported CSVs in git-ignored directories (`local/`). No telemetry, analytics, or remote network transmission exists.
-3. **Storage Quota & Retention:**
-   - Retention caps of 60 days / 5,000 events ensure localStorage remains well within standard 5MB browser limits even across an entire school semester.
+All items from `orchestrator-review-gate-41a.md` were implemented and verified as one batch:
+
+### R1: Multi-Tab Shared Storage & Read-Modify-Write
+- **Implementation:**
+  - `UsageRecorder._recordEventInternal` re-reads the latest state from storage (`_loadState()`) immediately before appending an event.
+  - Inter-tab write operations are serialized with `navigator.locks.request('bp-usage', ...)`.
+  - In environments without `navigator.locks` (e.g. Node tests), a process-level promise mutex and optimistic sequence concurrency checks ensure atomic commits.
+  - `UsageRecorder.buildExport` re-reads storage within the lock before constructing the export envelope.
+- **Unit test:** Added test `'supports two recorder instances sharing one storage (read-modify-write across tabs)'` in `tests/usage-format-recorder.test.js`, proving two instances interleaving checks and solves append to a single shared log with unique consecutive `seq` (1..6) and an intact SHA-256 chain.
+- **E2E test:** Added test `'two open tabs interleave checks and solves without reloads; both exports contain every event with unique consecutive seq and intact chain'` in `tests/e2e/usage-export-admin.spec.js`, exercising two real Chromium tabs interleaving wrong checks and solves on Sheets 1 and 2, and verifying that both downloaded files contain all events from both tabs with intact hash chains and verified integrity.
+
+### R2: Timing-Aware Attempt Fingerprints
+- **Implementation:**
+  - `getUsageEventFingerprint` includes the timing pattern: gaps between consecutive signal events are rounded to whole seconds (`+<gap>s`).
+  - Added pure helper `areAttemptSequencesSuspiciouslyIdentical(eventsA, eventsB)`:
+    - Flags only when both files have at least 6 signal events.
+    - Flags only when the action sequence matches and every individual gap matches within $\pm 1$ s.
+- **Unit tests:**
+  - Two "perfect runs" with different timing are NOT flagged.
+  - A copied file with a changed name and recomputed integrity hash IS flagged.
+  - Fewer than 6 signal events never triggers the flag.
+  - Fixtures `flag-identical-fingerprints-1.json` and `flag-identical-fingerprints-2.json` were regenerated with matching timing across 6 signal events.
+
+### R3: Active-Time Wording Accuracy
+- **Correction:** Clarified in all documentation that gaps between consecutive sheet events are **capped** at 5 minutes (`300,000 ms`), so an idle period contributes at most 5 minutes to active time, rather than counting all elapsed time or being zeroed.
 
 ---
 
 ## 9. Gate Stop Point: GATE-41A
 
 In compliance with Guardrails 1 and 7 and the instructions for Plan-41:
-- All implementation and validation tasks are complete.
-- All test suites pass (194 Vitest tests, 58 Playwright tests, 0 ESLint errors).
+- All implementation, repair, and validation tasks are complete.
+- All test suites pass (198 Vitest tests, 59 Playwright tests, 0 ESLint errors).
 - Build isolation is verified by automated test.
 - Packet frontmatter status remains `ready` (implementers do not flip completion status).
 - The changes are ready to be committed to `main` without pushing or deploying.

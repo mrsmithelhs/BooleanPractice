@@ -214,30 +214,46 @@ async function main() {
   writeFileSync(resolve(outDir, 'flag-duplicate-hash-2.json'), JSON.stringify(payloadDupHash2, null, 2));
 
   // 9. Flag: identical fingerprints under different student names
-  // Exactly matching check/solve attempt sequence
+  // Exactly matching check/solve attempt sequence and timing (>= 6 signal events)
   const eventsFp1 = await createChain([
     { t: t0, type: 'session_started', data: {} },
     { t: t0 + 2000, type: 'outputs_checked', data: { set: 'shapes-1', sheet: 1, correct: false, attempt: 1 } },
     { t: t0 + 15000, type: 'outputs_checked', data: { set: 'shapes-1', sheet: 1, correct: true, attempt: 2 } },
-    { t: t0 + 16000, type: 'sheet_solved', data: { set: 'shapes-1', sheet: 1, mode: 'table', attempts: 2, activeMs: 14000 } },
+    { t: t0 + 17000, type: 'sheet_solved', data: { set: 'shapes-1', sheet: 1, mode: 'table', attempts: 2, activeMs: 15000 } },
+    { t: t0 + 35000, type: 'shading_checked', data: { set: 'shapes-1', sheet: 2, correct: false, attempt: 1 } },
+    { t: t0 + 50000, type: 'shading_checked', data: { set: 'shapes-1', sheet: 2, correct: true, attempt: 2 } },
+    { t: t0 + 52000, type: 'sheet_solved', data: { set: 'shapes-1', sheet: 2, mode: 'shade', attempts: 2, activeMs: 35000 } },
   ]);
   const eventsFp2 = await createChain([
     { t: t0 + 100000, type: 'session_started', data: {} },
-    { t: t0 + 102000, type: 'outputs_checked', data: { set: 'shapes-1', sheet: 1, correct: false, attempt: 1 } },
-    { t: t0 + 115000, type: 'outputs_checked', data: { set: 'shapes-1', sheet: 1, correct: true, attempt: 2 } },
-    { t: t0 + 116000, type: 'sheet_solved', data: { set: 'shapes-1', sheet: 1, mode: 'table', attempts: 2, activeMs: 14000 } },
+    { t: t0 + 103000, type: 'outputs_checked', data: { set: 'shapes-1', sheet: 1, correct: false, attempt: 1 } },
+    { t: t0 + 116000, type: 'outputs_checked', data: { set: 'shapes-1', sheet: 1, correct: true, attempt: 2 } },
+    { t: t0 + 118000, type: 'sheet_solved', data: { set: 'shapes-1', sheet: 1, mode: 'table', attempts: 2, activeMs: 15000 } },
+    { t: t0 + 136000, type: 'shading_checked', data: { set: 'shapes-1', sheet: 2, correct: false, attempt: 1 } },
+    { t: t0 + 151000, type: 'shading_checked', data: { set: 'shapes-1', sheet: 2, correct: true, attempt: 2 } },
+    { t: t0 + 153000, type: 'sheet_solved', data: { set: 'shapes-1', sheet: 2, mode: 'shade', attempts: 2, activeMs: 35000 } },
   ]);
   const payloadFp1 = await withIntegrity(buildExportPayload({
     student: { name: 'Logan Price', classCode: 'PERIOD-1' },
     installId: 'aaaaaaaa-0000-0000-0000-00000000000a',
     events: eventsFp1,
-    summary: { sheets: { 'shapes-1:1': { solved: true, outputChecks: 2, activeMs: 14000 } } },
+    summary: {
+      sheets: {
+        'shapes-1:1': { solved: true, outputChecks: 2, activeMs: 15000 },
+        'shapes-1:2': { solved: true, shadingChecks: 2, activeMs: 35000 },
+      },
+    },
   }));
   const payloadFp2 = await withIntegrity(buildExportPayload({
     student: { name: 'Mason Brooks', classCode: 'PERIOD-1' },
     installId: 'bbbbbbbb-0000-0000-0000-00000000000b',
     events: eventsFp2,
-    summary: { sheets: { 'shapes-1:1': { solved: true, outputChecks: 2, activeMs: 14000 } } },
+    summary: {
+      sheets: {
+        'shapes-1:1': { solved: true, outputChecks: 2, activeMs: 15000 },
+        'shapes-1:2': { solved: true, shadingChecks: 2, activeMs: 35000 },
+      },
+    },
   }));
   writeFileSync(resolve(outDir, 'flag-identical-fingerprints-1.json'), JSON.stringify(payloadFp1, null, 2));
   writeFileSync(resolve(outDir, 'flag-identical-fingerprints-2.json'), JSON.stringify(payloadFp2, null, 2));

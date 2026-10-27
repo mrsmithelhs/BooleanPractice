@@ -63,25 +63,76 @@ export function createExportFilename(studentName, installId, date = new Date()) 
   return `bp-usage-${nameSlug}-${idPart}-${datePart}.json`;
 }
 
-export function getUsageEventFingerprint(events) {
+export const SIGNAL_EVENT_TYPES = Object.freeze([
+  'outputs_checked',
+  'shading_checked',
+  'sheet_solved',
+  'teacher_view_opened',
+]);
+
+export function getUsageSignalEvents(events) {
   if (!Array.isArray(events) || events.length === 0) {
-    return 'empty';
+    return [];
   }
-  const signalEvents = events.filter((e) =>
-    ['outputs_checked', 'shading_checked', 'sheet_solved', 'teacher_view_opened'].includes(e.type),
-  );
+  return events.filter((e) => SIGNAL_EVENT_TYPES.includes(e?.type));
+}
+
+function getSignalEventDescriptor(e) {
+  const set = e.data?.set || '';
+  const sheet = e.data?.sheet ?? '';
+  const correct = typeof e.data?.correct === 'boolean'
+    ? e.data.correct
+    : (typeof e.data?.allCorrect === 'boolean' ? e.data.allCorrect : '');
+  const attempt = e.data?.attempt ?? e.data?.attempts ?? '';
+  return `${e.type}:${set}:${sheet}:${correct}:${attempt}`;
+}
+
+export function getUsageEventFingerprint(events) {
+  const signalEvents = getUsageSignalEvents(events);
   if (signalEvents.length === 0) {
     return 'empty';
   }
   return signalEvents
-    .map((e) => {
-      const set = e.data?.set || '';
-      const sheet = e.data?.sheet ?? '';
-      const correct = typeof e.data?.correct === 'boolean' ? e.data.correct : '';
-      const attempt = e.data?.attempt ?? '';
-      return `${e.type}:${set}:${sheet}:${correct}:${attempt}`;
+    .map((e, idx) => {
+      const base = getSignalEventDescriptor(e);
+      if (idx === 0) return base;
+      const gapSec = Math.round(Math.max(0, (e.t || 0) - (signalEvents[idx - 1].t || 0)) / 1000);
+      return `${base}+${gapSec}s`;
     })
     .join(';');
+}
+
+export function areAttemptSequencesSuspiciouslyIdentical(eventsA, eventsB) {
+  const sigA = getUsageSignalEvents(eventsA);
+  const sigB = getUsageSignalEvents(eventsB);
+
+  // Must have at least 6 signal events to prevent false positives on short runs
+  if (sigA.length < 6 || sigB.length < 6) {
+    return false;
+  }
+
+  if (sigA.length !== sigB.length) {
+    return false;
+  }
+
+  for (let i = 0; i < sigA.length; i++) {
+    const a = sigA[i];
+    const b = sigB[i];
+
+    if (getSignalEventDescriptor(a) !== getSignalEventDescriptor(b)) {
+      return false;
+    }
+
+    if (i > 0) {
+      const gapA = Math.round(Math.max(0, (a.t || 0) - (sigA[i - 1].t || 0)) / 1000);
+      const gapB = Math.round(Math.max(0, (b.t || 0) - (sigB[i - 1].t || 0)) / 1000);
+      if (Math.abs(gapA - gapB) > 1) {
+        return false;
+      }
+    }
+  }
+
+  return true;
 }
 
 export function buildExportPayload({

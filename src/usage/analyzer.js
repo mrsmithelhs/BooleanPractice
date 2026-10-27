@@ -1,5 +1,6 @@
 import {
   GENESIS_HASH,
+  areAttemptSequencesSuspiciouslyIdentical,
   canonicalJsonStringify,
   getUsageEventFingerprint,
   sha256Hex,
@@ -317,29 +318,31 @@ export function compareFiles(summaries, options = {}) {
     }
   }
 
-  // C. Identical attempt fingerprints under different student names
-  const byFingerprint = new Map();
-  results.forEach((item) => {
-    const fp = item.summary.eventFingerprint;
-    if (fp && fp !== 'empty') {
-      if (!byFingerprint.has(fp)) byFingerprint.set(fp, []);
-      byFingerprint.get(fp).push(item);
-    }
-  });
+  // C. Identical attempt fingerprints with matching timing under different student names
+  for (let i = 0; i < results.length; i++) {
+    for (let j = i + 1; j < results.length; j++) {
+      const itemA = results[i];
+      const itemB = results[j];
+      const nameA = (itemA.summary.student?.name || '').trim().toLowerCase();
+      const nameB = (itemB.summary.student?.name || '').trim().toLowerCase();
 
-  for (const [, items] of byFingerprint.entries()) {
-    if (items.length > 1) {
-      const names = new Set(
-        items.map((it) => (it.summary.student.name || '').trim().toLowerCase()),
-      );
-      if (names.size > 1) {
-        items.forEach((it) => {
-          it.flags.push({
-            type: 'identical_fingerprints',
-            label: 'Identical attempt sequence under different student names',
-            detail: `Identical check/solve attempt sequence matches other student file(s).`,
-          });
-        });
+      if (nameA && nameB && nameA !== nameB) {
+        if (areAttemptSequencesSuspiciouslyIdentical(itemA.summary.events, itemB.summary.events)) {
+          if (!itemA.flags.some((f) => f.type === 'identical_fingerprints')) {
+            itemA.flags.push({
+              type: 'identical_fingerprints',
+              label: 'Identical attempt sequence under different student names',
+              detail: 'Identical check/solve attempt sequence and timing match other student file(s).',
+            });
+          }
+          if (!itemB.flags.some((f) => f.type === 'identical_fingerprints')) {
+            itemB.flags.push({
+              type: 'identical_fingerprints',
+              label: 'Identical attempt sequence under different student names',
+              detail: 'Identical check/solve attempt sequence and timing match other student file(s).',
+            });
+          }
+        }
       }
     }
   }
