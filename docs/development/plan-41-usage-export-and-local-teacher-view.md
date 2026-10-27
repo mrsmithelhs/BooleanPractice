@@ -1,7 +1,8 @@
 ---
 id: plan-41
 title: "Student Usage Export and Local Teacher View"
-status: ready
+status: complete
+resolution: "Usage export (puzzle page) and dev-only local teacher view (admin.html) accepted after Repair 01 plus orchestrator active-time fix (118007a); owner real-browser test passed and signed off 2026-10-26. The owner's Pages deploy is still pending."
 depends_on: [plan-40]
 gate: "GATE-41A: student export on the puzzle page and the local-only admin view working end to end, admin proven absent from dist/ and gas-dist/, full suites green; owner tries it with real browsers before any deploy"
 summary: >-
