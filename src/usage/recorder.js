@@ -63,8 +63,6 @@ export class UsageRecorder {
     this.urlParams = options.urlParams ? { ...options.urlParams } : {};
     delete this.urlParams.teacher;
 
-    // Track active time per sheet in memory: sheetKey -> last event timestamp
-    this.lastSheetEventTime = {};
     // Track teacher_view_opened per sheet in current session to enforce exactly once per sheet
     this.teacherViewsLogged = new Set();
 
@@ -294,13 +292,12 @@ export class UsageRecorder {
         }
         const sheetSummary = state.summary.sheets[sheetKey];
 
-        let lastTime = this.lastSheetEventTime[sheetKey];
-        if (lastTime === undefined) {
-          for (let i = state.events.length - 1; i >= 0; i--) {
-            if (state.events[i].data?.set === data.set && state.events[i].data?.sheet === data.sheet) {
-              lastTime = state.events[i].t;
-              break;
-            }
+        // Always use the stored log (not a per-tab cache) so time from other open tabs isn't counted twice
+        let lastTime;
+        for (let i = state.events.length - 1; i >= 0; i--) {
+          if (state.events[i].data?.set === data.set && state.events[i].data?.sheet === data.sheet) {
+            lastTime = state.events[i].t;
+            break;
           }
         }
         if (lastTime !== undefined) {
@@ -308,7 +305,6 @@ export class UsageRecorder {
           const cappedGap = Math.min(gap, MAX_ACTIVE_GAP_MS);
           sheetSummary.activeMs += cappedGap;
         }
-        this.lastSheetEventTime[sheetKey] = t;
 
         // Update checks/solved summary metrics
         if (type === 'outputs_checked') {

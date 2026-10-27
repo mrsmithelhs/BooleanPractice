@@ -335,4 +335,22 @@ describe('Recorder (src/usage/recorder.js)', () => {
     expect(v1.ok).toBe(true);
     expect(v2.ok).toBe(true);
   });
+
+  it('does not double-count active time when two tabs work on the same sheet', async () => {
+    const storage = new MockStorage();
+    let now = 1729850000000;
+    const clock = () => now;
+    const r1 = new UsageRecorder({ storage, clock });
+    const r2 = new UsageRecorder({ storage, clock });
+    const check = { set: 'shapes-1', sheet: 1, correct: false };
+
+    await r1.recordEvent('outputs_checked', { ...check, attempt: 1 });
+    now += 3000;
+    await r2.recordEvent('outputs_checked', { ...check, attempt: 1 });
+    now += 3000;
+    await r1.recordEvent('outputs_checked', { ...check, attempt: 2 });
+
+    const exported = await r1.buildExport({ name: 'Two Tabs' });
+    expect(exported.payload.summary.sheets['shapes-1:1'].activeMs).toBe(6000);
+  });
 });
