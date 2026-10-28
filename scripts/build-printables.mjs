@@ -614,7 +614,12 @@ async function main() {
     studentPagesHtml.push(
       i === 0
         ? studentHtml
-        : renderStudentPageHtml(sheet, regions, { truthTableValues, setId: setDef.id, showStudentFields: false }),
+        : renderStudentPageHtml(sheet, regions, {
+            truthTableValues,
+            setId: setDef.id,
+            showStudentFields: false,
+            pageNumber: i + 1,
+          }),
     );
     keyPagesHtml.push(keyHtml);
 

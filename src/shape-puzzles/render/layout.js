@@ -619,6 +619,7 @@ export function renderStudentPageHtml(sheet, regions, options = {}) {
   const convention = options.truthTableValues || sheet.truthTableValues || 'TF';
   // Name/Period blanks appear once per packet: on standalone sheets and on the booklet's first page
   const showStudentFields = options.showStudentFields !== false;
+  const pageNumber = options.pageNumber ?? 1;
   const setId = options.setId || sheet.setId || 'shapes-1';
   const wordsExpr = formatExpressionWords(sheet.expression);
   const figureSvg = renderFigureSvg(sheet, regions, { isKey: false, convention });
@@ -666,7 +667,7 @@ export function renderStudentPageHtml(sheet, regions, options = {}) {
     <div class="footer-block">
       <span>Mr. Smith's Engineering Tech — Digital Logic</span>
       <span>Set: ${setId} &bull; ${sheet.title}</span>
-      <span class="page-number-text">Page 1</span>
+      <span class="page-number-text">Page ${pageNumber}</span>
     </div>
   </div>
 </body>
