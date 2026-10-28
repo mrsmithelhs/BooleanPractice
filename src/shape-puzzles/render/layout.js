@@ -612,6 +612,22 @@ function getBaseCss() {
       font-size: 8pt;
       color: #555;
     }
+
+    /* Student pages are sized to stay legible when printed 2-up (about 65% scale) */
+    .student-page .sheet-title { font-size: 17pt; }
+    .student-page .instructions-list { font-size: 13pt; padding-left: 7mm; }
+    .student-page .instructions-list li { margin-bottom: 1mm; }
+    .student-page .expression-banner { padding: 2mm 3.5mm; margin-bottom: 3mm; }
+    .student-page .expr-words-label { font-size: 13pt; }
+    .student-page .expr-words-text { font-size: 19pt; }
+    .student-page .student-table-container .truth-table { width: 150mm; }
+    .student-page .truth-table,
+    .student-page .truth-table th { font-size: 13pt; }
+    .student-page .truth-table th,
+    .student-page .truth-table td { height: 9.6mm; padding: 0.8mm 0.5mm; }
+    .student-page .col-row-num,
+    .student-page .col-var { width: 16mm; }
+    .student-page .footer-block { font-size: 10pt; }
   `;
 }
 
