@@ -611,7 +611,11 @@ async function main() {
 
     const studentHtml = renderStudentPageHtml(sheet, regions, { truthTableValues, setId: setDef.id });
     const keyHtml = renderKeyPageHtml(sheet, regions, { truthTableValues, setId: setDef.id });
-    studentPagesHtml.push(studentHtml);
+    studentPagesHtml.push(
+      i === 0
+        ? studentHtml
+        : renderStudentPageHtml(sheet, regions, { truthTableValues, setId: setDef.id, showStudentFields: false }),
+    );
     keyPagesHtml.push(keyHtml);
 
     // 1. Generate Student PDF

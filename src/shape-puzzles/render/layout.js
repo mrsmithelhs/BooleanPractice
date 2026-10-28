@@ -434,19 +434,23 @@ function getBaseCss() {
       border-radius: 1mm;
       letter-spacing: 0.5mm;
     }
-    .student-fields {
+    .student-fields-large {
       display: flex;
-      gap: 5mm;
-      font-size: 9pt;
-      color: #222;
+      align-items: flex-end;
+      gap: 8mm;
+      font-size: 15pt;
+      font-weight: bold;
+      color: #111;
+      margin-bottom: 3mm;
     }
     .field-line {
-      border-bottom: 0.3mm solid #444;
+      border-bottom: 0.45mm solid #111;
       display: inline-block;
+      height: 9mm;
+      vertical-align: bottom;
     }
-    .field-name { width: 45mm; }
-    .field-date { width: 28mm; }
-    .field-class { width: 28mm; }
+    .field-name { width: 105mm; }
+    .field-class { width: 32mm; }
 
     .instructions-block {
       margin-bottom: 2mm;
@@ -613,6 +617,8 @@ function getBaseCss() {
 
 export function renderStudentPageHtml(sheet, regions, options = {}) {
   const convention = options.truthTableValues || sheet.truthTableValues || 'TF';
+  // Name/Period blanks appear once per packet: on standalone sheets and on the booklet's first page
+  const showStudentFields = options.showStudentFields !== false;
   const setId = options.setId || sheet.setId || 'shapes-1';
   const wordsExpr = formatExpressionWords(sheet.expression);
   const figureSvg = renderFigureSvg(sheet, regions, { isKey: false, convention });
@@ -628,13 +634,12 @@ export function renderStudentPageHtml(sheet, regions, options = {}) {
 <body>
   <div class="page-sheet student-page" id="sheet-${sheet.id}">
     <div class="header-block">
+      ${showStudentFields ? `<div class="student-fields-large">
+        <span>Name <span class="field-line field-name">&nbsp;</span></span>
+        <span>Period <span class="field-line field-class">&nbsp;</span></span>
+      </div>` : ''}
       <div class="header-top">
         <h1 class="sheet-title">${sheet.title}</h1>
-        <div class="student-fields">
-          <span>Name: <span class="field-line field-name">&nbsp;</span></span>
-          <span>Date: <span class="field-line field-date">&nbsp;</span></span>
-          <span>Period: <span class="field-line field-class">&nbsp;</span></span>
-        </div>
       </div>
     </div>
 
