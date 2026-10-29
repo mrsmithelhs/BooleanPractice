@@ -251,6 +251,13 @@
       @close="isExportDialogOpen = false"
       @download="handleExportDownload"
     />
+
+    <SetCompleteDialog
+      :is-open="isSetCompleteOpen"
+      :has-challenges-left="setCompleteHasChallenges"
+      @close="isSetCompleteOpen = false"
+      @download="handleSetCompleteDownload"
+    />
   </div>
 </template>
 
@@ -258,6 +265,7 @@
 import { computed, onMounted, ref } from 'vue';
 import ShapePuzzleCanvas from './ShapePuzzleCanvas.vue';
 import ShapePuzzleTable from './ShapePuzzleTable.vue';
+import SetCompleteDialog from './SetCompleteDialog.vue';
 import StudentExportDialog from './StudentExportDialog.vue';
 import { AVAILABLE_SETS, buildPuzzleUrl, parsePuzzleUrl } from './url.js';
 import { getSheetMode } from './modes.js';
@@ -286,6 +294,9 @@ let recorder = null;
 let cellEditsCount = 0;
 let regionTogglesCount = 0;
 const isExportDialogOpen = ref(false);
+const isSetCompleteOpen = ref(false);
+const setCompleteHasChallenges = ref(false);
+const setCompletePrompted = new Set();
 const isStorageAvailable = ref(true);
 const studentInfo = ref({ name: '', classCode: '' });
 
@@ -652,6 +663,7 @@ function handleCheckOutputs() {
     attempts: outputAttemptCount.value,
     activeMs,
   });
+  promptIfSetComplete();
 }
 
 // Region Shading Actions
@@ -721,6 +733,7 @@ function handleCheckShading() {
       attempts: shadingAttemptCount.value,
       activeMs,
     });
+    promptIfSetComplete();
   } else {
     shadingCorrect.value = false;
     shadingChecked.value = true;
@@ -743,6 +756,31 @@ function handleCheckShading() {
     });
     shadingAttemptCount.value++;
   }
+}
+
+// After the last core sheet (or the last sheet) is solved, nudge the student to download their progress file
+function promptIfSetComplete() {
+  if (isTeacher.value || !activeSet.value) return;
+  const sheets = activeSet.value.sheets;
+  const coreNumbers = sheets
+    .map((sheet, i) => (sheet.tier === 'extension' ? null : i + 1))
+    .filter((n) => n !== null);
+  const lastCore = coreNumbers.length ? Math.max(...coreNumbers) : sheets.length;
+  const num = currentSheetNumber.value;
+  if (num !== lastCore && num !== sheets.length) return;
+  const key = `${currentSetId.value}:${num}`;
+  if (setCompletePrompted.has(key)) return;
+  setCompletePrompted.add(key);
+  setCompleteHasChallenges.value = num < sheets.length;
+  // Let the reveal animation play before the modal covers it
+  setTimeout(() => {
+    isSetCompleteOpen.value = true;
+  }, 1500);
+}
+
+function handleSetCompleteDownload() {
+  isSetCompleteOpen.value = false;
+  openExportDialog();
 }
 
 function openExportDialog() {

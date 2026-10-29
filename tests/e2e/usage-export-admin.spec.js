@@ -340,4 +340,33 @@ test.describe('Student Usage Export & Local Teacher Admin (Plan 41)', () => {
     await tab1.close();
     await tab2.close();
   });
+
+  test('solving the last core sheet opens the set-complete modal, whose button opens the export dialog', async ({ page }) => {
+    await page.goto('/puzzle.html?set=shapes-1&sheet=4&mode=table');
+    // (A OR B) AND NOT(C): rows 3, 5, 7 are T (one click), the rest F (two clicks)
+    for (let i = 0; i < 8; i++) {
+      const clicks = [2, 4, 6].includes(i) ? 1 : 2;
+      for (let k = 0; k < clicks; k++) await page.locator(`[data-testid="output-cell-${i}"]`).click();
+    }
+    await page.locator('[data-testid="btn-check-table"]').click();
+    await expect(page.locator('[data-testid="solved-picture-name"]')).toBeVisible();
+
+    const modal = page.locator('[data-testid="set-complete-dialog"]');
+    await expect(modal).toBeVisible();
+    await expect(page.locator('[data-testid="set-complete-download-btn"]')).toBeFocused();
+    await page.locator('[data-testid="set-complete-download-btn"]').click();
+    await expect(modal).toHaveCount(0);
+    await expect(page.locator('[data-testid="student-name-input"]')).toBeVisible();
+  });
+
+  test('solving a sheet before the end of the set does not open the set-complete modal', async ({ page }) => {
+    await page.goto('/puzzle.html?set=shapes-1&sheet=1');
+    for (const [i, n] of [[0, 2], [1, 2], [2, 1], [3, 2]]) {
+      for (let k = 0; k < n; k++) await page.locator(`[data-testid="output-cell-${i}"]`).click();
+    }
+    await page.locator('[data-testid="btn-check-table"]').click();
+    await expect(page.locator('[data-testid="solved-picture-name"]')).toBeVisible();
+    await page.waitForTimeout(2000);
+    await expect(page.locator('[data-testid="set-complete-dialog"]')).toHaveCount(0);
+  });
 });
